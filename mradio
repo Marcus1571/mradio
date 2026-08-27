@@ -91,7 +91,7 @@ def eff_int(env, key, fallback):
 
 SETTINGS = load_settings()
 OLLAMA = eff_str("MRADIO_OLLAMA", "ollama_url", "")
-OLLAMA_MODEL = eff_str("MRADIO_OLLAMA_MODEL", "ollama_model", "gemma4:e4b-it-qat")
+OLLAMA_MODEL = eff_str("MRADIO_OLLAMA_MODEL", "ollama_model", "gemma3:4b")
 OLLAMA_TIMEOUT = eff_int("MRADIO_OLLAMA_TIMEOUT", "ollama_timeout", 75)
 OLLAMA_GPU = eff_int("MRADIO_OLLAMA_NUM_GPU", "ollama_gpu", -1)
 API_BASE = eff_str("MRADIO_API_BASE", "api_base", "https://api.openai.com/v1").rstrip("/")

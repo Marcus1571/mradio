@@ -96,7 +96,7 @@ through Wikipedia's API. Two provider modes, both opt-in:
 | Variable                 | Default                | Meaning                     |
 | ------------------------ | ---------------------- | --------------------------- |
 | `MRADIO_OLLAMA`          | *(unset → off)*        | Ollama API base URL         |
-| `MRADIO_OLLAMA_MODEL`    | `gemma4:e4b-it-qat`    | model to use                |
+| `MRADIO_OLLAMA_MODEL`    | `gemma3:4b`           | model to use (`gemma3:12b`, `llama3.2`, …) |
 | `MRADIO_OLLAMA_TIMEOUT`  | `75`                   | seconds before giving up    |
 | `MRADIO_OLLAMA_NUM_GPU`  | `-1`                   | ollama `num_gpu` (-1=auto; force e.g. `999` if the GPU idles and it's running on CPU) |
 
@@ -120,11 +120,19 @@ mradio
 ```
 
 ```sh
-# or with your own ollama
-export MRADIO_OLLAMA=http://192.168.88.8:11434
-export MRADIO_OLLAMA_MODEL=gemma4:e4b-it-qat
+# or with Ollama running on this machine (the default install)
+export MRADIO_OLLAMA=http://localhost:11434
+export MRADIO_OLLAMA_MODEL=gemma3:4b
 mradio
 ```
+
+`localhost:11434` is Ollama's default address on the same machine mradio runs
+on. If Ollama lives on a *different* computer (a desktop with a beefier GPU, a
+NAS, a home server) just point `MRADIO_OLLAMA` at that host instead — any
+`http://host:11434` works, including over your LAN. The **gemma3** family is a
+great free place to start (`gemma3:4b` fits ~8 GB of VRAM; `gemma3:12b` for the
+roomier ones), with `llama3.2` and `mistral` as equally solid lightweight
+alternatives; any model you got via `ollama pull` is fair game.
 
 Enrichment is fully optional and fails silently: if no provider is configured
 or reachable, playback and the plain metadata display still work perfectly.
