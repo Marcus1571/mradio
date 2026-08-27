@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """mradio — a colorful TUI radio player that uses mpv as its engine.
 
-Usage: mradio [stream-url]              play (defaults to VCR1)
+Usage: mradio [stream-url] [station-name]       play (defaults to VCR1)
        mradio --version | --help | --settings
 Keys: q quit · space pause · + / - volume · m mute · r reconnect · o open article
-      z expand/collapse the full trivia text (or click it) · 1/2/3 pick AI provider
+      z expand/collapse the full trivia text · 1/2/3 pick AI provider
       p toggle dark/light palette
 Config: self-contained in ~/.local/share/mradio/ (settings.json, config.json,
         cache.json). No shell rc files needed — env vars only optional overrides.
@@ -24,7 +24,7 @@ import time
 import urllib.request
 import urllib.parse
 
-VERSION = "0.7.10"
+VERSION = "0.7.13"
 
 LOG = os.environ.get("MRADIO_LOG",
                      os.path.expanduser("~/.local/share/mradio/mradio.log"))
@@ -135,12 +135,14 @@ def load_cfg():
         return {}
 
 
-def persist_cfg(provider=None, theme=None):
+def persist_cfg(provider=None, theme=None, volume=None):
     d = load_cfg()
     if provider is not None:
         d["provider"] = provider
     if theme is not None:
         d["theme"] = theme
+    if volume is not None:
+        d["volume"] = volume
     try:
         os.makedirs(os.path.dirname(CFG_FILE), exist_ok=True)
         tmp = CFG_FILE + ".tmp"
@@ -300,7 +302,17 @@ def make_state():
             "performer": "", "kbps": None, "khz": None, "codec": None,
             "cache": None, "vol": 0, "mute": False, "pause": False,
             "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
-            "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None}
+            "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None,
+            "station": "", "station_resolved": False}
+
+
+def apply_volume(mpc, vol):
+    if vol is None:
+        return
+    for _ in range(20):
+        if mpc.cmd("set_property", "volume", float(vol)) is not None:
+            break
+        time.sleep(0.1)
 
 
 class Enricher:
@@ -731,14 +743,15 @@ def render(std, elapsed, s):
     y = 0
     tw = max(8, w - 2)
     host = (sys.argv[1] if len(sys.argv) > 1 else DEFAULT_URL).split("/")[2]
+    st_show = (s.get("station") or host)[:max(8, w - 42)]
 
     badge = " ● RADIO "
     add(std, y, 0, badge, 3)
     x = len(badge)
     add(std, y, x, " ▸ ", 1)
     x += 3
-    add(std, y, x, " " + host + " ", 2)
-    x += len(host) + 2
+    add(std, y, x, " " + st_show + " ", 2)
+    x += len(st_show) + 2
     add(std, y, x, " ▸ ", 1)
     x += 3
     pill = " LIVE " if not s["pause"] else " PAUSED "
@@ -860,7 +873,8 @@ def main():
                 ("api_timeout", API_TIMEOUT),
                 ("opencode", OC), ("opencode_timeout", OC_TIMEOUT),
                 ("provider", load_cfg().get("provider", "")),
-                ("theme", load_cfg().get("theme", "dark"))]
+                ("theme", load_cfg().get("theme", "dark")),
+                ("mouse", load_cfg().get("mouse", 0))]
         for k, v in rows:
             print(f"{k} = {v}")
         key = API_KEY
@@ -869,6 +883,7 @@ def main():
         print(f"settings file: {SETTINGS_FILE}")
         return
     url = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_URL
+    ovr_name = sys.argv[2] if len(sys.argv) > 2 else None
     try:
         os.unlink(SOCK)
     except OSError:
@@ -883,16 +898,22 @@ def main():
     curses.use_default_colors()
     init_colors(load_cfg().get("theme", "dark"))
     curses.curs_set(0)
-    try:
-        curses.mousemask(curses.BUTTON1_PRESSED)
-    except Exception:
-        pass
+    mouse_on = bool(load_cfg().get("mouse"))
+    if mouse_on:
+        try:
+            curses.mousemask(curses.BUTTON1_PRESSED)
+        except Exception:
+            pass
 
     exit_code = 0
     try:
         proc = launch_mpv(url)
         mpc = Mpc(SOCK)
+        saved_vol = load_cfg().get("volume")
+        apply_volume(mpc, saved_vol)
         state = make_state()
+        state["station"] = ovr_name or url.split("/")[2]
+        state["station_resolved"] = bool(ovr_name)
         ab = load_cfg().get("theme", "dark")
         state["theme"] = ab if ab in ("dark", "light") else "dark"
         enrich = Enricher()
@@ -904,6 +925,13 @@ def main():
             if proc.poll() is not None:
                 proc = launch_mpv(url)
                 mpc = Mpc(SOCK)
+                apply_volume(mpc, saved_vol)
+            if not state["station_resolved"]:
+                icy = mpc.get("metadata/by-key/icy-name")
+                if icy:
+                    state["station"] = str(icy).strip()
+                    state["station_resolved"] = True
+                    log(f"station = {state['station']}")
             raw = mpc.get("metadata/by-key/icy-title") or ""
             if raw != state["raw_title"]:
                 state["raw_title"] = raw
@@ -956,8 +984,14 @@ def main():
                 mpc.cmd("cycle", "pause")
             elif ch in (ord("+"), ord("="), curses.KEY_RIGHT):
                 mpc.cmd("add", "volume", 5)
+                v = mpc.get("volume")
+                if isinstance(v, (int, float)):
+                    persist_cfg(volume=int(v))
             elif ch in (ord("-"), curses.KEY_LEFT):
                 mpc.cmd("add", "volume", -5)
+                v = mpc.get("volume")
+                if isinstance(v, (int, float)):
+                    persist_cfg(volume=int(v))
             elif ch == ord("m"):
                 mpc.cmd("cycle", "mute")
             elif ch in (ord("o"), ord("O")):
@@ -968,6 +1002,7 @@ def main():
                 time.sleep(0.2)
                 proc = launch_mpv(url)
                 mpc = Mpc(SOCK)
+                apply_volume(mpc, saved_vol)
             elif ch in (ord("1"), ord("2"), ord("3")):
                 names = {ord("1"): "opencode", ord("2"): "ollama", ord("3"): "openai"}
                 name = names[ch]

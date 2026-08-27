@@ -7,7 +7,7 @@ now-playing track.
 Version history: [CHANGELOG.md](CHANGELOG.md)
 
 ```
- ● RADIO  ▸  uk2.streamingpulse.com  ▸  LIVE
+ ● RADIO  ▸  VCR Auditorium | Venice Classic Radio Italia  ▸  LIVE
 
  Luigi Boccherini (1743-1805)
  Quartetto per archi in Sol minore n.6 op.24
@@ -58,7 +58,7 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `m`        | mute                                     |
 | `r`        | reconnect (revive a dead stream/station) |
 | `o`        | open the verified Wikipedia article      |
-| `z`        | expand/collapse the full trivia note: fills the screen with the complete text (a click on the text toggles it too). Long notes that don't fit the window show a `…` marker instead of being silently cut |
+| `z`        | expand/collapse the full trivia note: fills the screen with the complete text. Long notes that don't fit the window show a `…` marker instead of being silently cut. Click-to-toggle is **off by default** to keep the terminal text selectable — opt in with `mouse = 1` in `config.json` |
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
 | `p`        | swap color scheme: dark-terminal vs light-terminal palette. Instant, no reload, and remembered for next sessions (your current theme + key appear right after the LIVE pill up top) |
 
@@ -69,10 +69,49 @@ configured; the enrichment spinner also shows which provider is working
 ## Usage
 
 ```sh
-mradio                              # plays Venice Classic Radio (VCR1)
+mradio                                # plays Venice Classic Radio (VCR1)
 mradio https://some-radio-url/stream.mp3
-mradio --version / --help
+mradio https://some-radio-url/stream.mp3 "My Station"   # force the display name
+mradio --version | --help
 ```
+
+The station name shown in the top bar is normally read automatically from the
+stream's own icy-name metadata, e.g. `VCR Auditorium | Venice Classic Radio
+Italia`. If a stream reports no name — or one you'd rather not show — force it
+with an optional second argument:
+
+```sh
+mradio https://uk2.streamingpulse.com/ssl/vcr1 "Venice Classic Radio Auditorium"
+```
+
+### Handy aliases
+
+Save your favorite stations as aliases so you don't type URLs (and so you can
+force the display name once, in the alias). First find which shell you use:
+
+```sh
+echo $0                # prints something containing "zsh" or "bash"
+basename "$SHELL"      # prints just "zsh" or "bash" (reliable everywhere)
+```
+
+Then append aliases to the matching startup file:
+
+| Shell  | File to edit                                              |
+| ------ | --------------------------------------------------------- |
+| zsh    | `~/.zshrc`, or `~/.zsh_aliases` if you keep one           |
+| bash   | `~/.bashrc`, or `~/.bash_aliases` (sourced if it exists)  |
+
+```sh
+# e.g. add these to the file for your shell
+alias vcra='mradio https://uk2.streamingpulse.com/ssl/vcr1 "Venice Classic Radio Auditorium"'
+alias vcrl='mradio https://uk2.streamingpulse.com/ssl/vcr2 "Venice Classic Radio Live"'
+alias naim='mradio http://mscp3.live-streams.nl:8250/class-high.aac'
+alias swissjazz='mradio http://stream.srg-ssr.ch/m/rsj/mp3_128'
+```
+
+Reload with `source ~/.zshrc` (or `source ~/.bashrc` / `~/.bash_aliases`) or
+just open a new terminal window, then run `vcra`. Streams without a forced name
+still display their icy-name automatically.
 
 ## AI enrichment (optional, opt-in)
 
@@ -167,10 +206,13 @@ connected to — no API key needed:
 
 Two small files under `~/.local/share/mradio/`:
 
-- **`config.json`** — your AI provider choice and color theme
-  (`{"provider": "opencode", "theme": "dark"}`); press `1/2/3` to change the
-  provider or `p` to flip the terminal palette, and future sessions start the
-  same way.
+- **`config.json`** — your AI provider choice, color theme, last volume, and the
+  mouse mode (e.g. `{"provider": "opencode", "theme": "dark", "volume": 73,
+  "mouse": 0}`); press `1/2/3` to change the provider, `p` to flip the palette,
+  or `+`/`-` to set the volume — future sessions start exactly the way you left
+  them. `mouse` is `0` by default (click events are not captured, so terminal
+  text selection works normally); set it to `1` to let clicks on the trivia text
+  expand/collapse it.
 - **`cache.json`** — every enrichment ever computed, keyed by track tag, and
   **labeled with the AI provider that produced it**. A cached note is only
   reused when the same provider is selected, so switching AIs always re-fetches

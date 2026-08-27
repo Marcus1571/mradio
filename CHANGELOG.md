@@ -7,7 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.7.10] - 2026-08-27
+## [0.7.11] - 2026-08-27
+
+### Added
+
+- Volume is remembered between sessions: `+`/`-` saves it to `config.json` and
+  it is re-applied on startup, on `r` reconnect, and on automatic mpv restarts.
+
+### Fixed
+
+- Restoration used mpv's legacy `set` IPC command, which rejects numeric values
+  (`invalid parameter`), so the volume silently reset to 100% every session —
+  now applied via `set_property`.
+
+## [0.7.12] - 2026-08-27
+
+### Changed
+
+- **Interactive trivia view (continued from 0.7.9/0.7.10):** mouse-click toggling
+  is now **off by default** (`"mouse": 0` in `config.json`) so the terminal's
+  native text selection works normally again; set it to `1` to re-enable
+  click-to-expand. The `z` key is unaffected.
+
+## [0.7.13] - 2026-08-27
+
+### Added
+
+- The station name in the top bar now comes from the stream's own icy-name
+  metadata (e.g. `VCR Auditorium | Venice Classic Radio Italia`) instead of the
+  CDN host; an optional second argument `mradio <url> "<name>"` overrides it.
+
+[0.7.13]: https://github.com/Marcus1571/mradio/releases/tag/v0.7.13
+
+[0.7.12]: https://github.com/Marcus1571/mradio/releases/tag/v0.7.12
+
+[0.7.11]: https://github.com/Marcus1571/mradio/releases/tag/v0.7.11
+
+[0.7.10]: https://github.com/Marcus1571/mradio/releases/tag/v0.7.10
 
 ### Fixed
 
