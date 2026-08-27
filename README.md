@@ -4,6 +4,8 @@ A colorful terminal radio player that uses **mpv** as the audio engine and a
 Python `curses` frontend to show what's playing — plus AI enrichment for the
 now-playing track.
 
+Version history: [CHANGELOG.md](CHANGELOG.md)
+
 ```
  ● RADIO  ▸  uk2.streamingpulse.com  ▸  LIVE
 
