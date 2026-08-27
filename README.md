@@ -58,6 +58,7 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `m`        | mute                                     |
 | `r`        | reconnect (revive a dead stream/station) |
 | `o`        | open the verified Wikipedia article      |
+| `z`        | expand/collapse the full trivia note: fills the screen with the complete text (a click on the text toggles it too). Long notes that don't fit the window show a `…` marker instead of being silently cut |
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
 | `p`        | swap color scheme: dark-terminal vs light-terminal palette. Instant, no reload, and remembered for next sessions (your current theme + key appear right after the LIVE pill up top) |
 
@@ -158,8 +159,9 @@ connected to — no API key needed:
 > Note: the opencode route is the slowest of the three (free gateway often
 > takes 20–90 s per track) but gives the richest trivia. Ollama is fastest,
 > APIs are in between. While it works you'll see `▚ opencode 34s` in the display.
-> Trivia is aimed at ~750–850 characters; the display shows the full text the
-> model wrote, uncut — there is no visible `…` truncation.
+> Trivia is aimed at ~750–850 characters. In the normal view a note that does
+> not fit the window is word-wrapped and marked with `…`; press `z` (or click the
+> text) to read the full note full-screen, expanding again to collapse.
 
 ## Persistence & caching
 

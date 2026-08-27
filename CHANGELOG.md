@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.9] - 2026-08-27
+
+### Added
+
+- `z` toggles a full-screen view of the current trivia note (clicking the text
+  with the mouse toggles it too), and auto-collapses when the station moves to
+  a new track.
+- Help lines updated (`z:expand` / `z:collapse`) and README/docs extended.
+
+### Fixed
+
+- Trivia in the normal view was hard-sliced at the column width, splitting words
+  mid-way, and surplus lines were dropped silently. It now word-wraps, and a
+  note that does not fit the window is marked with `…` instead of being cut
+  without a trace.
+
+[0.7.9]: https://github.com/Marcus1571/mradio/releases/tag/v0.7.9
+
 ## [0.7.8] - 2026-08-27
 
 Initial public release. A single-file, stdlib-only terminal radio player that
