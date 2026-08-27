@@ -24,7 +24,7 @@ import time
 import urllib.request
 import urllib.parse
 
-VERSION = "0.7.9"
+VERSION = "0.7.10"
 
 LOG = os.environ.get("MRADIO_LOG",
                      os.path.expanduser("~/.local/share/mradio/mradio.log"))
@@ -300,7 +300,7 @@ def make_state():
             "performer": "", "kbps": None, "khz": None, "codec": None,
             "cache": None, "vol": 0, "mute": False, "pause": False,
             "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
-            "ai_provider": "", "theme": "dark", "details": False}
+            "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None}
 
 
 class Enricher:
@@ -761,11 +761,13 @@ def render(std, elapsed, s):
             y += 1
         y += 1
         blurb = s.get("blurb") or ""
+        z0 = y
         for line in (textwrap.wrap(blurb, width=tw) if blurb else []):
             if y >= h - 2:
                 break
             add(std, y, 1, line, 2, curses.A_DIM)
             y += 1
+        s["txt_zone"] = (z0, max(z0, y - 1)) if blurb else None
         if h >= 2 and ai_configured():
             add(std, h - 2, 1,
                 (f" now:{s.get('ai_provider') or ''}   "
@@ -793,6 +795,7 @@ def render(std, elapsed, s):
             y += 1
         blurb = s.get("blurb") or ""
         if blurb:
+            z0 = y
             lines = textwrap.wrap(blurb, width=tw) or [blurb]
             maxlines = max(1, (h - y) - 5)
             shown = lines[:maxlines]
@@ -801,7 +804,9 @@ def render(std, elapsed, s):
                 y += 1
             if len(lines) > maxlines and shown:
                 add(std, y - 1, 1, (shown[-1].rstrip() + " …")[:tw], 2, curses.A_DIM)
+            s["txt_zone"] = (z0, y - 1)
         else:
+            s["txt_zone"] = None
             pn = s.get("pn", "")
             if pn:
                 add(std, y, 1, pn, 7)
@@ -974,11 +979,15 @@ def main():
                                           state["title"], state["performer"])
             elif ch == curses.KEY_MOUSE:
                 try:
-                    _, _, _, _, bstate = curses.getmouse()
+                    _, mx, my, _, bstate = curses.getmouse()
+                    _, w = stdscr.getmaxyx()
+                    zone = state.get("txt_zone")
+                    if bstate & curses.BUTTON1_PRESSED and zone:
+                        z0, z1 = zone
+                        if z0 <= my <= z1 and 1 <= mx <= max(1, w - 2):
+                            state["details"] = not state["details"]
                 except Exception:
-                    bstate = 0
-                if bstate & curses.BUTTON1_PRESSED:
-                    state["details"] = not state["details"]
+                    pass
             elif ch in (ord("z"), ord("Z")):
                 state["details"] = not state["details"]
             elif ch in (ord("p"), ord("P")):

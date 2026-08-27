@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.10] - 2026-08-27
+
+### Fixed
+
+- **Interactive trivia view (introduced in 0.7.9):** click toggling was too
+  greedy — any click anywhere in the window expanded/collapsed it, which stole
+  plain clicks meant to focus or select the terminal in mouse-first terminals
+  (e.g. WezTerm). Clicks now expand/collapse only when they land on the trivia
+  text itself; clicks on empty rows, the header, the meters or the help lines
+  fall through untouched, so focusing the terminal no longer flips the view.
+
+[0.7.10]: https://github.com/Marcus1571/mradio/releases/tag/v0.7.10
+
 ## [0.7.9] - 2026-08-27
 
 ### Added
@@ -22,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mid-way, and surplus lines were dropped silently. It now word-wraps, and a
   note that does not fit the window is marked with `…` instead of being cut
   without a trace.
+
+[0.7.10]: https://github.com/Marcus1571/mradio/releases/tag/v0.7.10
 
 [0.7.9]: https://github.com/Marcus1571/mradio/releases/tag/v0.7.9
 
