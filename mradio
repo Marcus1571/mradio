@@ -1,0 +1,965 @@
+#!/usr/bin/env python3
+"""mradio — a colorful TUI radio player that uses mpv as its engine.
+
+Usage: mradio [stream-url]              play (defaults to VCR1)
+       mradio --version | --help | --settings
+Keys: q quit · space pause · + / - volume · m mute · r reconnect · o open article
+      1/2/3 pick AI provider · p toggle dark/light palette
+Config: self-contained in ~/.local/share/mradio/ (settings.json, config.json,
+        cache.json). No shell rc files needed — env vars only optional overrides.
+"""
+
+import curses
+import json
+import os
+import queue
+import re
+import socket
+import subprocess
+import sys
+import threading
+import time
+import urllib.request
+import urllib.parse
+
+VERSION = "0.7.8"
+
+LOG = os.environ.get("MRADIO_LOG",
+                     os.path.expanduser("~/.local/share/mradio/mradio.log"))
+SERVE_LOG = os.environ.get("MRADIO_SERVE_LOG",
+                           os.path.expanduser("~/.local/share/mradio/serve.log"))
+
+
+def log(msg, level="INFO"):
+    try:
+        os.makedirs(os.path.dirname(LOG), exist_ok=True)
+        with open(LOG, "a") as fh:
+            fh.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {level} {msg}\n")
+    except Exception:
+        pass
+
+SOCK = "/tmp/mpv-radio.sock"
+DEFAULT_URL = "https://uk2.streamingpulse.com/ssl/vcr1"
+SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
+                               os.path.expanduser("~/.local/share/mradio/settings.json"))
+
+
+def load_settings():
+    try:
+        with open(SETTINGS_FILE) as fh:
+            d = json.load(fh)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def seed_settings(force=False):
+    values = {
+        "ollama_url": OLLAMA, "ollama_model": OLLAMA_MODEL,
+        "ollama_timeout": OLLAMA_TIMEOUT, "ollama_gpu": OLLAMA_GPU,
+        "api_base": API_BASE, "api_key": API_KEY, "api_model": API_MODEL,
+        "api_timeout": API_TIMEOUT, "opencode": OC, "opencode_timeout": OC_TIMEOUT,
+    }
+    if not force and load_settings():
+        return
+    try:
+        os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
+        tmp = SETTINGS_FILE + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(values, fh, indent=2)
+        os.replace(tmp, SETTINGS_FILE)
+        log(f"settings seeded to {SETTINGS_FILE}")
+    except Exception as e:
+        log(f"settings seed FAIL: {e}", "WARN")
+
+
+def eff_str(env, key, fallback):
+    v = os.environ.get(env)
+    if v is not None and v != "":
+        return v
+    v = SETTINGS.get(key)
+    return fallback if v is None else str(v)
+
+
+def eff_int(env, key, fallback):
+    v = eff_str(env, key, fallback)
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return fallback
+
+
+SETTINGS = load_settings()
+OLLAMA = eff_str("MRADIO_OLLAMA", "ollama_url", "")
+OLLAMA_MODEL = eff_str("MRADIO_OLLAMA_MODEL", "ollama_model", "gemma4:e4b-it-qat")
+OLLAMA_TIMEOUT = eff_int("MRADIO_OLLAMA_TIMEOUT", "ollama_timeout", 75)
+OLLAMA_GPU = eff_int("MRADIO_OLLAMA_NUM_GPU", "ollama_gpu", -1)
+API_BASE = eff_str("MRADIO_API_BASE", "api_base", "https://api.openai.com/v1").rstrip("/")
+API_KEY = eff_str("MRADIO_API_KEY", "api_key", "")
+API_MODEL = eff_str("MRADIO_MODEL", "api_model", "gpt-4o-mini")
+API_TIMEOUT = eff_int("MRADIO_API_TIMEOUT", "api_timeout", 30)
+OC = eff_str("MRADIO_OPENCODE", "opencode", "")
+OC_TIMEOUT = eff_int("MRADIO_OPENCODE_TIMEOUT", "opencode_timeout", 180)
+CFG_FILE = os.environ.get("MRADIO_CFG",
+                          os.path.expanduser("~/.local/share/mradio/config.json"))
+CACHE_FILE = os.environ.get("MRADIO_CACHE",
+                            os.path.expanduser("~/.local/share/mradio/cache.json"))
+PROVIDERS = ("opencode", "ollama", "openai")
+
+
+def oc_port():
+    if not OC:
+        return 0
+    if OC.strip() in ("1", "on", "yes", "true"):
+        return 4096
+    try:
+        return int(OC)
+    except ValueError:
+        return 4096
+
+
+def provider_enabled(name):
+    probe = {"opencode": bool(oc_port()), "ollama": bool(OLLAMA),
+             "openai": bool(API_KEY)}
+    return probe.get(name, False)
+
+
+def load_cfg():
+    try:
+        with open(CFG_FILE) as fh:
+            d = json.load(fh)
+            return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def persist_cfg(provider=None, theme=None):
+    d = load_cfg()
+    if provider is not None:
+        d["provider"] = provider
+    if theme is not None:
+        d["theme"] = theme
+    try:
+        os.makedirs(os.path.dirname(CFG_FILE), exist_ok=True)
+        tmp = CFG_FILE + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(d, fh)
+        os.replace(tmp, CFG_FILE)
+    except Exception as e:
+        log(f"config persist FAIL: {e}", "WARN")
+
+
+DARK_PALETTE = {1: curses.COLOR_CYAN, 2: curses.COLOR_WHITE,
+                3: curses.COLOR_BLACK, 4: curses.COLOR_GREEN,
+                5: curses.COLOR_MAGENTA, 6: curses.COLOR_YELLOW,
+                7: curses.COLOR_BLUE, 8: curses.COLOR_BLACK,
+                9: curses.COLOR_BLACK}
+LIGHT_PALETTE = {1: curses.COLOR_BLUE, 2: curses.COLOR_BLACK,
+                 3: curses.COLOR_BLACK, 4: curses.COLOR_GREEN,
+                 5: curses.COLOR_MAGENTA, 6: curses.COLOR_MAGENTA,
+                 7: curses.COLOR_BLUE, 8: curses.COLOR_BLACK,
+                 9: curses.COLOR_BLACK}
+CHIP_BG = {3: curses.COLOR_CYAN, 8: curses.COLOR_GREEN, 9: curses.COLOR_RED}
+
+
+def init_colors(theme="dark"):
+    pal = LIGHT_PALETTE if theme == "light" else DARK_PALETTE
+    for n in range(1, 10):
+        curses.init_pair(n, pal[n], CHIP_BG.get(n, -1))
+
+
+def ai_configured():
+    return bool(OLLAMA) or bool(API_KEY) or bool(oc_port())
+
+
+def launch_mpv(url):
+    return subprocess.Popen(
+        ["mpv", "--no-video", "--no-terminal", "--really-quiet",
+         "--force-window=no", "--osc=no", "--osd-level=0",
+         "--input-ipc-server=" + SOCK, url],
+        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+class Mpc:
+    def __init__(self, path):
+        self.path = path
+
+    def cmd(self, *args):
+        try:
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.settimeout(0.4)
+            s.connect(self.path)
+            s.sendall(json.dumps({"command": list(args)}).encode() + b"\n")
+            buf = b""
+            while True:
+                chunk = s.recv(65536)
+                if not chunk:
+                    break
+                buf += chunk
+                if buf.count(b"\n") >= 1:
+                    break
+            s.close()
+            return json.loads(buf.split(b"\n")[0])
+        except Exception:
+            return None
+
+    def get(self, prop):
+        r = self.cmd("get_property", prop)
+        if isinstance(r, dict) and r.get("error") == "success":
+            return r.get("data")
+        return None
+
+
+def repair_mojibake(s):
+    for enc in ("cp1252", "latin-1"):
+        try:
+            fixed = s.encode(enc).decode("utf-8")
+            if fixed != s:
+                return fixed
+        except Exception:
+            continue
+    return s
+
+
+def elide(s, limit=4000):
+    s = " ".join(s.split())
+    if len(s) <= limit:
+        return s
+    cut = s[:limit].rsplit(" ", 1)[0]
+    return cut.rstrip(" ,;:-") + "…"
+
+
+def extract_json_item(raw):
+    item = {"work": "", "trivia": "", "wiki": "", "movement": 0}
+    r = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+    r = re.sub(r"\s*```$", "", r)
+    a, b = r.find("{"), r.rfind("}")
+    if a != -1 and b > a:
+        try:
+            p = json.loads(r[a:b + 1])
+            if isinstance(p, dict):
+                return {
+                    "work": str(p.get("work") or "").strip(),
+                    "trivia": str(p.get("trivia") or "").strip(),
+                    "wiki": str(p.get("wiki") or "").strip(),
+                    "movement": 1 if p.get("movement") == 1 else 0,
+                }
+        except Exception:
+            pass
+
+    def g(key):
+        m = re.search(rf'"{re.escape(key)}"\s*:\s*"((?:[^"\\]|\\.)*)"', r)
+        if m:
+            v = m.group(1).replace('\\"', '"').replace("\\n", " ")
+            v = v.replace("\\u2019", "’").replace("\\u2018", "‘")
+            return v
+        return None
+
+    trivia, wiki, work = g("trivia"), g("wiki"), g("work")
+    mm = re.search(r'"movement"\s*:\s*([01])', r)
+    got = [v for v in (trivia, wiki, work) if v is not None] or (mm is not None)
+    if got:
+        item["trivia"] = trivia or ""
+        item["wiki"] = wiki or ""
+        item["work"] = work or ""
+        item["movement"] = 1 if (mm and mm.group(1) == "1") else 0
+        return item
+    if re.search(r"\b(movement|tagged name|json|schema)\b", r, re.I):
+        return item
+    item["trivia"] = elide(" ".join(r.split()))
+    return item
+
+
+def split_title(raw):
+    raw = repair_mojibake(raw)
+    raw = re.sub(r"\s*\{[^}]*\}", "", raw).strip()
+    artist, sep, title = raw.partition(" - ")
+    if not sep:
+        artist, title = "", raw
+    performer = ""
+    i = title.find("(")
+    if i != -1:
+        candidate = title[i:].strip()
+        if candidate.endswith(")") and len(candidate) > 2:
+            performer = candidate
+            title = title[:i].strip()
+    return artist, title.strip(), performer
+
+
+def meter(width, value, nmax):
+    if nmax <= 0:
+        return " " * width
+    filled = int(round(width * min(value, nmax) / nmax))
+    return "█" * filled + "░" * (width - filled)
+
+
+def make_state():
+    return {"raw_title": "", "artist": "", "title": "connecting…",
+            "performer": "", "kbps": None, "khz": None, "codec": None,
+            "cache": None, "vol": 0, "mute": False, "pause": False,
+            "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
+            "ai_provider": "", "theme": "dark"}
+
+
+class Enricher:
+    def __init__(self):
+        self.q = queue.Queue()
+        self.cache = self._load_cache()
+        self.offline_until = 0.0
+        self.last_key = None
+        self._oc_proc = None
+        self.started = {}
+        self.epoch = 0
+        self.provider = self._load_provider()
+        self._plock = threading.Lock()
+
+    def _load_cache(self):
+        try:
+            with open(CACHE_FILE) as fh:
+                data = json.load(fh)
+            if not isinstance(data, dict):
+                return {}
+            # keep only the most recent 800 entries on load
+            return {k: v for k, v in list(data.items())[-800:] if isinstance(v, dict)}
+        except Exception:
+            return {}
+
+    def persist_cache(self):
+        with self._plock:
+            try:
+                os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+                tmp = CACHE_FILE + ".tmp"
+                with open(tmp, "w") as fh:
+                    json.dump(self.cache, fh)
+                os.replace(tmp, CACHE_FILE)
+            except Exception as e:
+                log(f"cache persist FAIL: {e}", "WARN")
+
+    def _load_provider(self):
+        p = load_cfg().get("provider", "")
+        return p if p in PROVIDERS else ""
+
+    def active_provider(self):
+        order = ([self.provider] if provider_enabled(self.provider) else []) \
+            + [n for n in PROVIDERS if n != self.provider and provider_enabled(n)]
+        return order[0] if order else ""
+
+    def switch_provider(self, name):
+        if name not in PROVIDERS or not provider_enabled(name):
+            log(f"provider switch to {name} rejected (not configured)")
+            return False
+        self.provider = name
+        self.offline_until = 0.0
+        persist_cfg(provider=name)
+        log(f"provider switched to {name}")
+        return True
+
+    def invalidate(self, key, artist, title, performer):
+        self.epoch += 1
+        self.cache.pop(key, None)
+        self.started.pop(key, None)
+        self.persist_cache()
+        self.submit(key, artist, title, performer)
+
+    def start(self):
+        threading.Thread(target=self._worker, daemon=True).start()
+
+    def blurb(self, key):
+        return self.cache.get(key) if self.provider_matches(key) else None
+
+    def provider_matches(self, key):
+        item = self.cache.get(key)
+        return (isinstance(item, dict) and item.get("provider") == self.provider
+                and not item.get("fail"))
+
+    def pending(self, key):
+        if not ai_configured():
+            return False
+        return self.last_key == key and not self.provider_matches(key)
+
+    def submit(self, key, artist, title, performer):
+        self.last_key = key
+        if self.provider_matches(key):
+            return
+        self.started[key] = time.time()
+        self.q.put((key, artist, title, performer))
+
+    def elapsed(self, key):
+        t = self.started.get(key)
+        return int(time.time() - t) if t else 0
+
+    def _worker(self):
+        while True:
+            key, artist, title, performer = self.q.get()
+            epoch = self.epoch
+            if not ai_configured():
+                log("ai not configured, skipping enrichment")
+                self.cache[key] = {"work": "", "trivia": "", "wiki": "",
+                                   "movement": 0, "provider": self.provider,
+                                   "fail": True}
+                self.started.pop(key, None)
+                continue
+            if time.time() < self.offline_until:
+                log(f"offline cooldown until {time.strftime('%H:%M:%S', time.localtime(self.offline_until))}, skipping")
+                self.cache[key] = {"work": "", "trivia": "", "wiki": "",
+                                   "movement": 0, "provider": self.provider,
+                                   "fail": True}
+                self.started.pop(key, None)
+                continue
+            t0 = time.time()
+            log(f"enrich start: {artist!r} - {title!r}")
+            item = self._ask(artist, title, performer)
+            had_wiki = bool(item and item.get("wiki"))
+            if item is None:
+                self.offline_until = time.time() + 120
+                log("ALL providers failed -> offline 120s", "WARN")
+                item = {"work": "", "trivia": "", "wiki": "", "movement": 0,
+                        "fail": True}
+            else:
+                if item.get("wiki"):
+                    surname = (artist.split("(")[0].split()[-1] if artist else "") or ""
+                    wt0 = time.time()
+                    item["wiki"] = self._resolve_wiki(item["wiki"], surname)
+                    log(f"wiki resolve {item['wiki']!r} elapse={time.time()-wt0:.1f}s")
+            self.started.pop(key, None)
+            if epoch != self.epoch:
+                log("stale reply discarded (provider/selection changed)")
+                continue
+            item["provider"] = self.provider
+            self.cache[key] = item
+            self.persist_cache()
+            log(f"enrich done elapse={time.time()-t0:.1f}s "
+                f"trivia={len(item.get('trivia') or '')}ch "
+                f"work={bool(item.get('work'))} "
+                f"wiki={had_wiki}->{bool(item.get('wiki'))}")
+            if len(self.cache) > 256:
+                self.cache.pop(next(iter(self.cache)))
+
+    def _ask(self, artist, title, performer):
+        question = (
+            f"Artist/Composer: {artist or 'unknown'} · "
+            f"Tagged name: {title or 'unknown'} · "
+            f"Performer (if present): {performer or 'none'}"
+        )
+        prompt = (
+            "You enrich classical-radio metadata for a live classical radio stream.\n"
+            + question + "\n"
+            "Reply with ONLY a single raw JSON object, nothing else. No markdown, "
+            "no code fences, no reasoning, no explanations, no text before or "
+            "after. Use exactly this shape:\n"
+            '{"movement": 0, "work": "", "wiki": "", "trivia": ""}\n'
+            "Rules:\n"
+            '- "movement": 1 ONLY if the tagged name is a movement, part, section '
+            'or fragment of a larger complete work (e.g. "1. Allegro", "Adagio", '
+            '"Finale", "Menuetto", "II."). A short standalone piece such as a '
+            'mazurka, prelude, song, waltz or individual character piece IS the '
+            'whole work: use 0 and leave "work" empty.\n'
+            '- "work": the canonical name of the WHOLE work with opus/catalogue '
+            'number, ONLY when "movement" is 1; otherwise "".\n'
+            '- "wiki": the exact English Wikipedia article title of the whole work '
+            'with its disambiguator, e.g. "Mazurkas, Op. 67 (Chopin)" or '
+            '"Sonata da camera No. 3 (Corelli)"; if none exists return "".\n'
+            '- "trivia": 6-9 short plain sentences that weave together BOTH '
+            '(a) the composer — who they were, their era/place in music '
+            'history, notable relations or legacy — and (b) the piece being '
+            'played — date, catalogue number, structure/movements, dedication, '
+            'premiere, notable performers or recordings, where one may have '
+            'heard it. Flow naturally from one to the other (either order, no '
+            'headings, no labels). Aim for 750-850 characters with a hard '
+            'maximum of 850 — if your draft runs long, tighten it. Always end '
+            'on a complete, natural final sentence; never trail off mid-thought.\n'
+            "Output the JSON object and nothing else."
+        )
+        raw = self._llm(prompt)
+        if raw is None:
+            return None
+        item = extract_json_item(raw)
+        if not item["movement"]:
+            item["work"] = ""
+        item["trivia"] = elide((item["trivia"] or "").replace('"', ""))
+        return item
+
+    def _llm(self, prompt):
+        order = ([self.provider] if provider_enabled(self.provider) else []) \
+            + [n for n in PROVIDERS if n != self.provider and provider_enabled(n)]
+        fns = {"opencode": self._llm_opencode, "ollama": self._llm_ollama,
+               "openai": self._llm_openai}
+        for name in order:
+            t0 = time.time()
+            out = fns[name](prompt)
+            log(f"llm[{name}] elapse={time.time()-t0:.1f}s "
+                f"len={len(out or '')} ok={bool(out)}")
+            if out:
+                return out
+        return None
+
+    def _llm_ollama(self, prompt):
+        try:
+            payload = {
+                "model": OLLAMA_MODEL,
+                "prompt": prompt,
+                "stream": False,
+                "options": {"temperature": 0.1, "num_predict": 1200,
+                            "num_gpu": OLLAMA_GPU},
+            }
+            req = urllib.request.Request(
+                OLLAMA + "/api/generate",
+                data=json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=OLLAMA_TIMEOUT) as r:
+                data = json.loads(r.read().decode())
+            try:
+                ev = data.get("eval_count") or 0
+                ed = data.get("eval_duration") or 1
+                log(f"ollama: eval={ev}tok rate={ev/(ed/1e9):.1f} tok/s "
+                    f"total={data.get('total_duration',0)/1e9:.1f}s "
+                    f"load={data.get('load_duration',0)/1e9:.1f}s")
+            except Exception:
+                pass
+            return (data.get("response") or "").strip() or None
+        except Exception as e:
+            log(f"ollama FAIL: {e}", "WARN")
+            return None
+
+    def _llm_openai(self, prompt):
+        try:
+            base = API_BASE if API_BASE.endswith("/chat/completions") else API_BASE + "/chat/completions"
+            payload = {
+                "model": API_MODEL,
+                "messages": [
+                    {"role": "system", "content":
+                        "You are a helpful classical-music metadata assistant. "
+                        "Reply ONLY with the requested JSON, no markdown."},
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,
+                "max_tokens": 1200,
+            }
+            req = urllib.request.Request(
+                base,
+                data=json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json",
+                         "Authorization": "Bearer " + API_KEY},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=API_TIMEOUT) as r:
+                data = json.loads(r.read().decode())
+            content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
+            return content.strip() or None
+        except Exception as e:
+            log(f"openai FAIL: {e}", "WARN")
+            return None
+
+    def _oc_health(self, port, timeout=2):
+        try:
+            with urllib.request.urlopen(
+                    f"http://127.0.0.1:{port}/global/health", timeout=timeout) as r:
+                return json.loads(r.read().decode()).get("healthy") is True
+        except Exception:
+            return False
+
+    def _oc_start(self, port):
+        try:
+            sd = open(SERVE_LOG, "a")
+            self._oc_proc = subprocess.Popen(
+                ["opencode", "serve", "--port", str(port), "--hostname", "127.0.0.1"],
+                stdin=subprocess.DEVNULL, stdout=sd, stderr=sd)
+            for _ in range(20):
+                if self._oc_health(port):
+                    return True
+                time.sleep(0.5)
+            log(f"opencode serve on :{port} did not become healthy; see {SERVE_LOG}", "WARN")
+        except Exception as e:
+            log(f"opencode spawn FAIL: {e}", "WARN")
+        return False
+
+    def _llm_opencode(self, prompt):
+        port = oc_port()
+        h0 = time.time()
+        if not self._oc_health(port):
+            log(f"opencode not on :{port}, spawning serve")
+            if not self._oc_start(port):
+                log("opencode unavailable", "WARN")
+                return None
+        log(f"opencode healthy (elapse={time.time()-h0:.1f}s), using :{port}")
+        try:
+            hdr = {"Content-Type": "application/json"}
+            s0 = time.time()
+            req = urllib.request.Request(
+                f"http://127.0.0.1:{port}/session",
+                data=json.dumps({"title": "mradio"}).encode(), headers=hdr, method="POST")
+            with urllib.request.urlopen(req, timeout=10) as r:
+                sid = json.loads(r.read().decode()).get("id")
+            if not sid:
+                log("opencode session create returned no id", "WARN")
+                return None
+            log(f"opencode session {sid} created in {time.time()-s0:.2f}s")
+            try:
+                m0 = time.time()
+                req = urllib.request.Request(
+                    f"http://127.0.0.1:{port}/session/{sid}/message",
+                    data=json.dumps({"parts": [{"type": "text", "text": prompt}]}).encode(),
+                    headers=hdr, method="POST")
+                with urllib.request.urlopen(req, timeout=OC_TIMEOUT) as r:
+                    data = json.loads(r.read().decode())
+                texts = " ".join(
+                    p.get("text", "") for p in data.get("parts", [])
+                    if p.get("type") == "text" and p.get("text"))
+                log(f"opencode message took {time.time()-m0:.1f}s, "
+                    f"returned {len(data.get('parts') or [])} parts, {len(texts)} chars")
+                return texts.strip() or None
+            finally:
+                try:
+                    req = urllib.request.Request(
+                        f"http://127.0.0.1:{port}/session/{sid}", method="DELETE")
+                    urllib.request.urlopen(req, timeout=5)
+                except Exception:
+                    pass
+        except Exception as e:
+            log(f"opencode FAIL: {e}", "WARN")
+            return None
+
+    def shutdown(self):
+        self.persist_cache()
+        if getattr(self, "_oc_proc", None):
+            try:
+                self._oc_proc.terminate()
+            except Exception:
+                pass
+
+    def _resolve_wiki(self, query, surname=""):
+        ua = {"User-Agent": "mradio/0.3 (educational music enrichment) python-urllib"}
+        cand = []
+        try:
+            qurl = ("https://en.wikipedia.org/w/api.php?action=opensearch&format=json"
+                    "&limit=5&search=" + urllib.parse.quote(query))
+            req = urllib.request.Request(qurl, headers=ua)
+            with urllib.request.urlopen(req, timeout=10) as r:
+                res = json.loads(r.read().decode())
+            if len(res) > 3:
+                cand.extend((res[1][i], res[3][i]) for i in range(min(len(res[1]), len(res[3]))))
+        except Exception:
+            pass
+        if not cand:
+            try:
+                qurl = ("https://en.wikipedia.org/w/api.php?action=query&list=search&format=json"
+                        "&srlimit=5&srsearch=" + urllib.parse.quote(query))
+                req = urllib.request.Request(qurl, headers=ua)
+                with urllib.request.urlopen(req, timeout=10) as r:
+                    res = json.loads(r.read().decode())
+                hits = res.get("query", {}).get("search", [])
+                for h in hits:
+                    t = h.get("title")
+                    if not t:
+                        continue
+                    iurl = ("https://en.wikipedia.org/w/api.php?action=query&prop=info"
+                            "&inprop=url&format=json&titles=" + urllib.parse.quote(t))
+                    req = urllib.request.Request(iurl, headers=ua)
+                    with urllib.request.urlopen(req, timeout=10) as r:
+                        pages = json.loads(r.read().decode()).get("query", {}).get("pages", {})
+                    for pg in pages.values():
+                        if pg.get("fullurl"):
+                            cand.append((pg.get("title", t), pg["fullurl"]))
+            except Exception:
+                pass
+        seen = set()
+        for t, u in cand:
+            if u in seen:
+                continue
+            seen.add(u)
+            if not self._relevant(u, t, query, surname):
+                continue
+            hreq = urllib.request.Request(u, method="HEAD", headers=ua)
+            try:
+                with urllib.request.urlopen(hreq, timeout=10) as r:
+                    if r.status == 200:
+                        return {"title": u.rsplit("/", 1)[-1].replace("_", " "),
+                                "url": u}
+            except Exception:
+                continue
+        return ""
+
+    def _relevant(self, url, title, query, surname):
+        try:
+            eurl = ("https://en.wikipedia.org/w/api.php?action=query&prop=extracts"
+                    "&exintro&explaintext&exchars=600&format=json&redirects=1&titles="
+                    + urllib.parse.quote(title))
+            ua = {"User-Agent": "mradio/0.3 (educational music enrichment) python-urllib"}
+            req = urllib.request.Request(eurl, headers=ua)
+            with urllib.request.urlopen(req, timeout=10) as r:
+                res = json.loads(r.read().decode())
+            pages = res.get("query", {}).get("pages", {})
+            intro = ""
+            for pg in pages.values():
+                if "missing" not in pg:
+                    intro = (pg.get("extract") or "")
+                if pg.get("redirects"):
+                    intro = intro or ""
+            intro = intro.lower()
+        except Exception:
+            return False
+        def toks(s):
+            return set(re.findall(r"[a-zà-ÿ]+", s.lower()))
+        qt = toks(query)
+        tt = toks(title)
+        if not qt or not tt:
+            return False
+        overlap = bool(qt & tt)
+        surname_hit = (bool(surname) and surname.lower() in intro) or not surname
+        return overlap and surname_hit
+
+    def _pn(self, key):
+        return self.last_key == key and key not in self.cache
+
+
+def add(std, y, x, text, pair, attr=0):
+    try:
+        std.attron(curses.color_pair(pair) | attr)
+        std.addstr(y, x, text)
+        std.attroff(curses.color_pair(pair) | attr)
+    except curses.error:
+        pass
+
+
+def render(std, elapsed, s):
+    std.erase()
+    h, w = std.getmaxyx()
+    y = 0
+    tw = max(8, w - 2)
+    host = (sys.argv[1] if len(sys.argv) > 1 else DEFAULT_URL).split("/")[2]
+
+    badge = " ● RADIO "
+    add(std, y, 0, badge, 3)
+    x = len(badge)
+    add(std, y, x, " ▸ ", 1)
+    x += 3
+    add(std, y, x, " " + host + " ", 2)
+    x += len(host) + 2
+    add(std, y, x, " ▸ ", 1)
+    x += 3
+    pill = " LIVE " if not s["pause"] else " PAUSED "
+    add(std, y, x, pill, 8 if not s["pause"] else 9)
+    x += len(pill)
+    add(std, y, x, f" {s.get('theme') or 'dark'} (p)", 1)
+    y += 2
+
+    if h - y > 9:
+        if s["artist"]:
+            add(std, y, 1, s["artist"][:tw], 4, curses.A_BOLD)
+            y += 1
+        add(std, y, 1, s["title"][:tw], 2, curses.A_BOLD)
+        y += 1
+        if s["performer"]:
+            add(std, y, 1, s["performer"][:tw], 6)
+            y += 1
+        if s["work_label"]:
+            add(std, y, 1, ("Work: " + s["work_label"])[:tw], 7)
+            y += 1
+        blurb = s.get("blurb") or ""
+        if blurb:
+            lines = [blurb[i:i + tw] for i in range(0, len(blurb), tw)]
+            maxlines = max(1, (h - y) - 5)
+            for line in lines[:maxlines]:
+                if line:
+                    add(std, y, 1, line, 2, curses.A_DIM)
+                    y += 1
+        else:
+            pn = s.get("pn", "")
+            if pn:
+                add(std, y, 1, pn, 7)
+                y += 1
+        y += 1
+
+    if h - y > 5:
+        kbps = f"{s['kbps']//1000} kbps" if isinstance(s["kbps"], (int, float)) else "—"
+        khz = f"{s['khz']/1000:.1f} kHz" if isinstance(s["khz"], (int, float)) else "—"
+        codec = s["codec"] or "—"
+        cache = f"{s['cache']:.1f}s" if isinstance(s["cache"], (int, float)) else "—"
+        add(std, y, 1, (f" {kbps} · {khz} · {codec} · cache {cache} · "
+                        f"stream {int(elapsed//60):02d}:{int(elapsed%60):02d}")[:tw], 7)
+        y += 1
+
+    if h - y > 4:
+        vol = s["vol"] if isinstance(s["vol"], (int, float)) else 0
+        vw = max(10, w - 14)
+        add(std, y, 1, " vol " + ("MUTED " if s["mute"] else ""), 1)
+        add(std, y + 1, 1, " " + meter(vw, vol, 100), 4)
+        add(std, y + 1, 1 + vw + 2, f" {int(vol)}%", 2)
+        y += 3
+
+    if h >= 2 and ai_configured():
+        prov = s.get("ai_provider") or ""
+        add(std, h - 2, 1,
+            (f" AI: 1=opencode  2=ollama  3=api   now:{prov}   "
+             "press to re-request")[:tw], 3)
+
+    if h >= 1:
+        if s["wiki_url"]:
+            add(std, h - 1, 1, " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   o:open article", 6)
+        else:
+            add(std, h - 1, 1, " q:quit   space:pause   + / -:volume   m:mute   r:reconnect", 6)
+
+    std.refresh()
+
+
+def main():
+    if len(sys.argv) > 1 and sys.argv[1] in ("-v", "--version"):
+        print(f"mradio {VERSION}")
+        return
+    if len(sys.argv) > 1 and sys.argv[1] in ("-h", "--help"):
+        print(__doc__)
+        return
+    seed_settings()
+    if len(sys.argv) > 1 and sys.argv[1] == "--settings":
+        rows = [("ollama_url", OLLAMA), ("ollama_model", OLLAMA_MODEL),
+                ("ollama_timeout", OLLAMA_TIMEOUT), ("ollama_gpu", OLLAMA_GPU),
+                ("api_base", API_BASE), ("api_model", API_MODEL),
+                ("api_timeout", API_TIMEOUT),
+                ("opencode", OC), ("opencode_timeout", OC_TIMEOUT),
+                ("provider", load_cfg().get("provider", "")),
+                ("theme", load_cfg().get("theme", "dark"))]
+        for k, v in rows:
+            print(f"{k} = {v}")
+        key = API_KEY
+        print("api_key = " + (key[:4] + "…" + key[-4:] if len(key) > 8
+                              else ("…" if key else "")))
+        print(f"settings file: {SETTINGS_FILE}")
+        return
+    url = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_URL
+    try:
+        os.unlink(SOCK)
+    except OSError:
+        pass
+    stdscr = curses.initscr()
+    curses.noecho()
+    curses.cbreak()
+    stdscr.keypad(True)
+    stdscr.timeout(150)
+    stdscr.refresh()
+    curses.start_color()
+    curses.use_default_colors()
+    init_colors(load_cfg().get("theme", "dark"))
+    curses.curs_set(0)
+
+    exit_code = 0
+    try:
+        proc = launch_mpv(url)
+        mpc = Mpc(SOCK)
+        state = make_state()
+        ab = load_cfg().get("theme", "dark")
+        state["theme"] = ab if ab in ("dark", "light") else "dark"
+        enrich = Enricher()
+        enrich.start()
+        state["ai_provider"] = enrich.active_provider()
+        started = time.time()
+        while True:
+            t = time.time()
+            if proc.poll() is not None:
+                proc = launch_mpv(url)
+                mpc = Mpc(SOCK)
+            raw = mpc.get("metadata/by-key/icy-title") or ""
+            if raw != state["raw_title"]:
+                state["raw_title"] = raw
+                if raw:
+                    a, ti, p = split_title(raw)
+                    state.update(artist=a, title=ti, performer=p)
+                    enrich.submit(raw, a, ti, p)
+                else:
+                    state["title"] = "connecting…"
+            item = enrich.blurb(state["raw_title"])
+            if isinstance(item, dict):
+                state["blurb"] = item.get("trivia") or ""
+                state["work_label"] = item.get("work") or ""
+                wk = item.get("wiki")
+                if isinstance(wk, dict):
+                    state["wiki_url"] = wk.get("url") or ""
+                    state["wiki_title"] = wk.get("title") or ""
+                else:
+                    state["wiki_url"] = ""
+                    state["wiki_title"] = ""
+            else:
+                state["blurb"] = ""
+                state["work_label"] = ""
+                state["wiki_url"] = ""
+                state["wiki_title"] = ""
+            if enrich.pending(state["raw_title"]):
+                es = enrich.elapsed(state["raw_title"])
+                prov = state.get("ai_provider") or ""
+                state["pn"] = "▚▞"[(int(t * 2) % 2)] + \
+                    (f" {prov} {es}s" if es > 0 else f" {prov}…")
+            else:
+                state["pn"] = ""
+            state["kbps"] = mpc.get("audio-params/bitrate") or state["kbps"]
+            state["khz"] = mpc.get("audio-params/samplerate") or state["khz"]
+            state["codec"] = mpc.get("audio-codec-name") or state["codec"]
+            state["cache"] = mpc.get("cache-duration")
+            vol = mpc.get("volume")
+            if isinstance(vol, (int, float)):
+                state["vol"] = vol
+            state["mute"] = bool(mpc.get("mute"))
+            state["pause"] = bool(mpc.get("pause"))
+            render(stdscr, t - started, state)
+            ch = stdscr.getch()
+            if ch == curses.KEY_RESIZE:
+                continue
+            if ch in (ord("q"), 27):
+                break
+            elif ch == ord(" "):
+                mpc.cmd("cycle", "pause")
+            elif ch in (ord("+"), ord("="), curses.KEY_RIGHT):
+                mpc.cmd("add", "volume", 5)
+            elif ch in (ord("-"), curses.KEY_LEFT):
+                mpc.cmd("add", "volume", -5)
+            elif ch == ord("m"):
+                mpc.cmd("cycle", "mute")
+            elif ch in (ord("o"), ord("O")):
+                if state["wiki_url"]:
+                    subprocess.Popen(["open", state["wiki_url"]])
+            elif ch in (ord("r"), ord("R")):
+                proc.terminate()
+                time.sleep(0.2)
+                proc = launch_mpv(url)
+                mpc = Mpc(SOCK)
+            elif ch in (ord("1"), ord("2"), ord("3")):
+                names = {ord("1"): "opencode", ord("2"): "ollama", ord("3"): "openai"}
+                name = names[ch]
+                if enrich.switch_provider(name):
+                    state["ai_provider"] = name
+                    rk = state["raw_title"]
+                    if rk:
+                        enrich.invalidate(rk, state["artist"],
+                                          state["title"], state["performer"])
+            elif ch in (ord("p"), ord("P")):
+                state["theme"] = "light" if state["theme"] != "light" else "dark"
+                init_colors(state["theme"])
+                persist_cfg(theme=state["theme"])
+                log(f"theme switched to {state['theme']}")
+        proc.terminate()
+        try:
+            proc.wait(timeout=2)
+        except Exception:
+            proc.kill()
+    except KeyboardInterrupt:
+        exit_code = 130
+    except Exception:
+        exit_code = 1
+    finally:
+        try:
+            enrich.shutdown()
+        except Exception:
+            pass
+        try:
+            os.unlink(SOCK)
+        except OSError:
+            pass
+    try:
+        curses.endwin()
+    except Exception:
+        pass
+    os._exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()
