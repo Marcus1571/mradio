@@ -18,6 +18,8 @@ _loader.exec_module(_mradio)
 
 extract_json_item = _mradio.extract_json_item
 split_title = _mradio.split_title
+latest_release_version = _mradio.latest_release_version
+ver_key = _mradio.ver_key
 
 
 class TestExtractJsonItem(unittest.TestCase):
@@ -103,6 +105,26 @@ class TestSplitTitle(unittest.TestCase):
         self.assertEqual(artist, "Brahms")
         self.assertEqual(title, "1. Allegro")
         self.assertEqual(performer, "")
+
+
+class TestReleaseFeed(unittest.TestCase):
+    def test_latest_release_version(self):
+        body = (
+            '<entry><link href="https://github.com/Marcus1571/mradio/'
+            'releases/tag/v0.7.15"/></entry>'
+            '<entry><link href="https://github.com/Marcus1571/mradio/'
+            'releases/tag/v0.7.14"/></entry>'
+        )
+        self.assertEqual(latest_release_version(body), "0.7.15")
+
+    def test_release_version_no_tag(self):
+        self.assertIsNone(latest_release_version("<entry>no releases</entry>"))
+
+    def test_ver_key(self):
+        self.assertEqual(ver_key("v0.7.15"), [0, 7, 15])
+        self.assertEqual(ver_key("0.7.15-beta"), [0, 7, 15])
+        self.assertGreater(ver_key("0.7.15"), ver_key("0.7.14"))
+        self.assertLess(ver_key("0.7.2"), ver_key("0.7.10"))
 
 
 if __name__ == "__main__":

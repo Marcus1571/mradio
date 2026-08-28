@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **In-app update check (report-only):** on startup mradio makes one lightweight
+  request to the GitHub releases feed. The current version is shown at the
+  bottom-right corner, and if a newer release exists a clickable `UPDATE` pill
+  (or the `u` key) opens the release page so you can upgrade. It never downloads
+  or runs code automatically. Configurable via `MRADIO_REPO` /
+  `MRADIO_UPDATE_URL`.
+
+## [0.7.14] - 2026-08-28
+
 ### Fixed
 
 - **Thread safety:** `Enricher.cache`/`started`/`last_key`/`epoch`/`provider`/

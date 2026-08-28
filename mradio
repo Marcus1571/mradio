@@ -25,7 +25,12 @@ import time
 import urllib.request
 import urllib.parse
 
-VERSION = "0.7.14"
+VERSION = "0.7.15"
+
+UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
+UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
+    f"https://github.com/{UPDATE_REPO}/releases/latest"
+_latest = {"version": None}
 
 LOG = os.environ.get("MRADIO_LOG",
                      os.path.expanduser("~/.local/share/mradio/mradio.log"))
@@ -293,6 +298,30 @@ def elide(s, limit=4000):
     return cut.rstrip(" ,;:-") + "…"
 
 
+def ver_key(v):
+    return [int(x) for x in re.findall(r"\d+", v or "")]
+
+
+def latest_release_version(body):
+    tags = re.findall(r"releases/tag/v?([0-9]+(?:\.[0-9]+){1,3})", body or "")
+    return tags[0] if tags else None
+
+
+def check_update():
+    """Fetch the newest release tag from the GitHub atom feed (once, in the
+    background). Never downloads or runs code — it only reports."""
+    try:
+        req = urllib.request.Request(
+            f"https://github.com/{UPDATE_REPO}/releases.atom",
+            headers={"User-Agent": "mradio/" + VERSION})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            body = r.read().decode("utf-8", "replace")
+        _latest["version"] = latest_release_version(body)
+        log(f"update check: latest={_latest['version']} current={VERSION}")
+    except Exception as e:
+        log(f"update check FAIL: {e}", "WARN")
+
+
 def extract_json_item(raw):
     item = {"work": "", "trivia": "", "wiki": "", "movement": 0}
     r = re.sub(r"^```(?:json)?\s*", "", raw.strip())
@@ -363,6 +392,7 @@ def make_state():
             "cache": None, "vol": 0, "mute": False, "pause": False,
             "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
             "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None,
+            "update_url": "", "update_zone": None,
             "station": "", "station_resolved": False}
 
 
@@ -872,6 +902,27 @@ def draw_help(std, s, y, tw, keys):
     add(std, y, 1, line[:tw], 6)
 
 
+def draw_right(std, s, h, w):
+    """Right-aligned footer: clickable UPDATE pill (h-2) + version (h-1).
+    Returns the leftmost column taken so row text can avoid overlap."""
+    left = w
+    s["update_zone"] = None
+    if h >= 2:
+        url = s.get("update_url") or ""
+        if url:
+            label = " UPDATE "
+            x0 = max(0, w - len(label) - 1)
+            add(std, h - 2, x0, label, 3, curses.A_BOLD)
+            s["update_zone"] = (h - 2, x0, x0 + len(label) - 1)
+            left = min(left, x0)
+    if h >= 1:
+        ver = "v" + VERSION
+        x0 = max(0, w - len(ver) - 1)
+        add(std, h - 1, x0, ver, 1)
+        left = min(left, x0)
+    return left
+
+
 def render(std, elapsed, s):
     std.erase()
     h, w = std.getmaxyx()
@@ -906,12 +957,15 @@ def render(std, elapsed, s):
             add(std, y, 1, line, 2, curses.A_DIM)
             y += 1
         s["txt_zone"] = (z0, max(z0, y - 1)) if blurb else None
+        rlim = draw_right(std, s, h, w)
+        lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
         if h >= 2 and ai_configured():
+            upd = "   u:update" if s.get("update_url") else ""
             add(std, h - 2, 1,
                 (f" now:{s.get('ai_provider') or ''}   "
-                 "z:collapse   q:quit   space:pause   r:reconnect")[:tw], 3)
+                 f"z:collapse   q:quit   space:pause   r:reconnect{upd}")[:lw], 3)
         if h >= 1:
-            draw_help(std, s, h - 1, tw,
+            draw_help(std, s, h - 1, lw,
                       " z:collapse   q:quit   space:pause   r:reconnect")
         std.refresh()
         return
@@ -955,14 +1009,18 @@ def render(std, elapsed, s):
         add(std, y + 1, 1 + vw + 2, f" {int(vol)}%", 2)
         y += 3
 
+    rlim = draw_right(std, s, h, w)
+    lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
+
     if h >= 2 and ai_configured():
         prov = s.get("ai_provider") or ""
+        upd = "   u:update" if s.get("update_url") else ""
         add(std, h - 2, 1,
             (f" AI: 1=opencode  2=ollama  3=api   now:{prov}   "
-             "press to re-request")[:tw], 3)
+             f"press to re-request{upd}")[:lw], 3)
 
     if h >= 1:
-        draw_help(std, s, h - 1, tw,
+        draw_help(std, s, h - 1, lw,
                   " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   z:expand")
 
     std.refresh()
@@ -1030,10 +1088,16 @@ def main():
         state["theme"] = ab if ab in ("dark", "light") else "dark"
         enrich = Enricher()
         enrich.start()
+        threading.Thread(target=check_update, daemon=True).start()
         state["ai_provider"] = enrich.active_provider()
         started = time.time()
         while True:
             t = time.time()
+            if _latest["version"] and \
+                    ver_key(_latest["version"]) > ver_key(VERSION):
+                state["update_url"] = UPDATE_URL
+            else:
+                state["update_url"] = ""
             if proc.poll() is not None:
                 proc = launch_mpv(url)
                 mpc = Mpc(SOCK)
@@ -1109,6 +1173,9 @@ def main():
             elif ch in (ord("o"), ord("O")):
                 if state["wiki_url"]:
                     subprocess.Popen(["open", state["wiki_url"]])
+            elif ch in (ord("u"), ord("U")):
+                if state.get("update_url"):
+                    subprocess.Popen(["open", state["update_url"]])
             elif ch in (ord("r"), ord("R")):
                 proc.terminate()
                 time.sleep(0.2)
@@ -1128,6 +1195,12 @@ def main():
                 try:
                     _, mx, my, _, bstate = curses.getmouse()
                     _, w = stdscr.getmaxyx()
+                    if bstate & curses.BUTTON1_PRESSED:
+                        uz = state.get("update_zone")
+                        if uz and state.get("update_url"):
+                            zy, zx0, zx1 = uz
+                            if my == zy and zx0 <= mx <= zx1:
+                                subprocess.Popen(["open", state["update_url"]])
                     zone = state.get("txt_zone")
                     if bstate & curses.BUTTON1_PRESSED and zone:
                         z0, z1 = zone

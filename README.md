@@ -81,6 +81,7 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `m`        | mute                                     |
 | `r`        | reconnect (revive a dead stream/station) |
 | `o`        | open the verified Wikipedia article      |
+| `u`        | open the release page when an update is available |
 | `z`        | expand/collapse the full trivia note: fills the screen with the complete text. Long notes that don't fit the window show a `…` marker instead of being silently cut. Click-to-toggle is **off by default** to keep the terminal text selectable — opt in with `mouse = 1` in `config.json` |
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
 | `p`        | swap color scheme: dark-terminal vs light-terminal palette. Instant, no reload, and remembered for next sessions (your current theme + key appear right after the LIVE pill up top) |
@@ -88,6 +89,21 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 A second help line near the bottom shows the current AI provider whenever AI is
 configured; the enrichment spinner also shows which provider is working
 (`▚ opencode 34s`).
+
+## Updates
+
+The cornerstone of the right edge of the screen:
+
+- the **current version** is always shown at the bottom-right (e.g. `v0.7.14`);
+- if a newer release exists, a clickable **`UPDATE`** pill appears right above
+  it. Click it (opt in with `"mouse": 1` in `config.json`) or press **`u`** to
+  open the release page on GitHub and upgrade with the usual
+  `git pull && ./install.sh`.
+
+mradio performs one lightweight background request to the GitHub releases feed
+at startup and **never downloads or executes code automatically** — it only
+reports. Point it at a different repo with `MRADIO_REPO` (owner/name) or
+`MRADIO_UPDATE_URL` (full releases URL) if you fork.
 
 ## Usage
 

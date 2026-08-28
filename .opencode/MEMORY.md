@@ -37,15 +37,16 @@
 
 ## Current state
 
-- **Latest version:** `0.7.14` (in-code `VERSION`); unreleased, under `[Unreleased]`
+- **Latest version:** `0.7.15` (in-code `VERSION`); unreleased, under `[Unreleased]`
   in CHANGELOG.
-- **Previous release:** `0.7.11`/`0.7.12`/`0.7.13` all tagged (v0.7.11–v0.7.13, each
-  pointing at the same commit `e92820d`), pushed to origin; working tree was clean
-  before the 0.7.14 work.
-- **0.7.14 fixes (uncommitted at last session end):** thread-safety lock around all
-  Enricher shared state; urljoin-based API endpoint building; opencode pidfile +
-  port-probe zombie prevention; mpv cleanup moved into `finally`; render() dedup;
-  `make test` + `make smoke` + `test_mradio.py` (13 unit tests).
+- **Previous release:** `0.7.14` (commit `156b841`, tag+GitHub Release pushed).
+- **0.7.15 work-in-progress (uncommitted at last session end):** in-app update
+  check (report-only) — version shown bottom-right, clickable/pressable `UPDATE`
+  pill when a newer release exists; `u` key; `MRADIO_REPO`/`MRADIO_UPDATE_URL`
+  env overrides; 16 unit tests.
+- **Open decision:** user asked "can we automate the update process?" — offered
+  a `mradio --update` self-update (download raw file → atomic replace). NOT yet
+  implemented; confirm with user before building (security: fetching remote code).
 
 ## Why mpv as the engine
 
@@ -103,6 +104,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `m` | mute |
 | `r` | reconnect (revive dead stream/station) |
 | `o` | open the verified Wikipedia article |
+| `u` | open the release page when an update is available |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
 | `p` | swap dark/light palette (remembered) |
@@ -135,6 +137,12 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   `MRADIO_API_TIMEOUT`, `MRADIO_OPENCODE`, `MRADIO_OPENCODE_TIMEOUT`.
 - Paths: `MRADIO_LOG`, `MRADIO_SERVE_LOG`, `MRADIO_CFG`, `MRADIO_CACHE`,
   `MRADIO_SETTINGS`.
+- Updates: `MRADIO_REPO` (owner/name, default `Marcus1571/mradio`),
+  `MRADIO_UPDATE_URL` (full releases URL). Update check is report-only:
+  background thread → `latest_release_version()` parses `releases.atom`;
+  compare with `ver_key()`; sets `state["update_url"]` → `draw_right` renders
+  version (bottom-right) + ` UPDATE ` pill (h-2, pair 3 chip) → mouse zone
+  `update_zone` and `u` key open it.
 - Default model: `gemma3:4b`; default API base: `https://api.openai.com/v1`;
   default API model: `gpt-4o-mini`.
 - Ollama telemetry reported (`eval=… rate=… tok/s`); low `rate` + idle GPU ⇒
