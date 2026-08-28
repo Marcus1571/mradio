@@ -40,10 +40,25 @@ socket, so *you* never see a raw media player. Decoding, networking, and
 stream metadata all belong to mpv; mradio is a thin, colorful display + remote
 control on top.
 
-## Requirements
+## Requirements & platform support
+
+mradio is a single, stdlib-only Python script that drives `mpv`, so it runs on
+any modern Unix-like system with Python and mpv installed:
 
 - **python3** (3.8+; stdlib only, no pip dependencies)
-- **mpv** — `brew install mpv` (macOS), `apt install mpv`, etc.
+- **mpv** — the audio engine: `brew install mpv` (macOS), `apt install mpv`
+  (Debian/Ubuntu), `dnf install mpv` (Fedora), `pacman -S mpv` (Arch), …
+
+| OS | Status | Notes |
+| --- | ------ | ----- |
+| 🍎 macOS | ✅ works | fully tested; install mpv via Homebrew |
+| 🐧 Linux | ✅ works | any distro with `python3` + `mpv` |
+| 🪟 Windows | ❌ not supported | Python's official Windows build lacks `curses` — use [WSL](https://learn.microsoft.com/windows/wsl/) and follow the Linux steps |
+
+> The UI is built with `curses`, Python's terminal-UI module. The official
+> Windows build of Python does not ship `curses`, so mradio can't run natively
+> on Windows — but it runs fine inside WSL (e.g. Ubuntu), where `apt install
+> mpv` + `chmod +x install.sh && ./install.sh` is all it takes.
 
 ## Install
 
