@@ -6,6 +6,14 @@ now-playing track.
 
 Version history: [CHANGELOG.md](CHANGELOG.md)
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Marcus1571/mradio/main/docs/mradio-preview.png"
+       alt="mradio — dark terminal (left) and light terminal (right): live-station header, AI-enriched track info and trivia, audio meters and key help">
+</p>
+
+The screenshot shows both color palettes side by side (below is the same screen
+in plain text):
+
 ```
  ● RADIO  ▸  VCR Auditorium | Venice Classic Radio Italia  ▸  LIVE
 
@@ -21,7 +29,7 @@ Version history: [CHANGELOG.md](CHANGELOG.md)
   vol
   ████████████████████████████████████████████████████████████████████  100%
 
- q:quit   space:pause   + / -:volume   m:mute   r:reconnect   o:open article
+  q:quit   space:pause   + / -:volume   m:mute   r:reconnect   o:open article
 ```
 
 ## Why mpv as the engine?
