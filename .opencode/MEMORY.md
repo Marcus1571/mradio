@@ -51,16 +51,16 @@
 
 ## Current state
 
-- **Latest version:** `0.7.15` (in-code `VERSION`); unreleased, under `[Unreleased]`
+- **Latest version:** `0.7.16` (in-code `VERSION`); unreleased, under `[Unreleased]`
   in CHANGELOG.
-- **Previous release:** `0.7.14` (commit `156b841`, tag+GitHub Release pushed).
-- **0.7.15 work-in-progress (uncommitted at last session end):** in-app update
-  check (report-only) — version shown bottom-right, clickable/pressable `UPDATE`
-  pill when a newer release exists; `u` key; `MRADIO_REPO`/`MRADIO_UPDATE_URL`
-  env overrides; 16 unit tests.
-- **Open decision:** user asked "can we automate the update process?" — offered
-  a `mradio --update` self-update (download raw file → atomic replace). NOT yet
-  implemented; confirm with user before building (security: fetching remote code).
+- **Previous release:** `0.7.15` (tag + GitHub Release pushed).
+- **0.7.16 work (uncommitted until c.p'd):** hourly update check via
+  `update_watcher()` daemon thread — checks immediately then every
+  `UPDATE_INTERVAL` (60 s min, default 3600, env `MRADIO_UPDATE_INTERVAL`).
+  Conditional requests: sends `_latest["etag"]` as `If-None-Match`; `304` keeps
+  the previous result and costs nothing against GitHub's 60 req/hr anonymous
+  limit. `UPDATE` pill restyled to black-on-yellow (pair 10). 20 unit tests.
+- **Open decision:** none pending.
 
 ## Why mpv as the engine
 
@@ -152,11 +152,15 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 - Paths: `MRADIO_LOG`, `MRADIO_SERVE_LOG`, `MRADIO_CFG`, `MRADIO_CACHE`,
   `MRADIO_SETTINGS`.
 - Updates: `MRADIO_REPO` (owner/name, default `Marcus1571/mradio`),
-  `MRADIO_UPDATE_URL` (full releases URL). Update check is report-only:
-  background thread → `latest_release_version()` parses `releases.atom`;
-  compare with `ver_key()`; sets `state["update_url"]` → `draw_right` renders
-  version (bottom-right) + ` UPDATE ` pill (h-2, pair 3 chip) → mouse zone
-  `update_zone` and `u` key open it.
+  `MRADIO_UPDATE_URL` (full releases URL), `MRADIO_UPDATE_INTERVAL` (seconds,
+  min 60, default 3600). Update check is report-only: `update_watcher()`
+  daemon thread → `check_update()` sends `If-None-Match: <etag>` to
+  `releases.atom` (a `304` is logged and skipped) → `latest_release_version()`
+  parses the body → compare with `ver_key()`; sets `state["update_url"]` →
+  `draw_right` renders version (bottom-right in row h-1) + ` UPDATE ` pill
+  (row h-2, pair 10 = black-on-yellow chip) → mouse zone `update_zone` and
+  `u` key open it. Startup thread is `update_watcher` (loops forever), NOT
+  single `check_update`.
 - Default model: `gemma3:4b`; default API base: `https://api.openai.com/v1`;
   default API model: `gpt-4o-mini`.
 - Ollama telemetry reported (`eval=… rate=… tok/s`); low `rate` + idle GPU ⇒

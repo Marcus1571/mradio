@@ -94,16 +94,24 @@ configured; the enrichment spinner also shows which provider is working
 
 The cornerstone of the right edge of the screen:
 
-- the **current version** is always shown at the bottom-right (e.g. `v0.7.14`);
-- if a newer release exists, a clickable **`UPDATE`** pill appears right above
-  it. Click it (opt in with `"mouse": 1` in `config.json`) or press **`u`** to
-  open the release page on GitHub and upgrade with the usual
+- the **current version** is always shown at the bottom-right (e.g. `v0.7.16`);
+- if a newer release exists, a black-on-yellow **`UPDATE`** pill appears right
+  above it. Click it (opt in with `"mouse": 1` in `config.json`) or press **`u`**
+  to open the release page on GitHub and upgrade with the usual
   `git pull && ./install.sh`.
 
-mradio performs one lightweight background request to the GitHub releases feed
-at startup and **never downloads or executes code automatically** — it only
-reports. Point it at a different repo with `MRADIO_REPO` (owner/name) or
-`MRADIO_UPDATE_URL` (full releases URL) if you fork.
+mradio checks the GitHub releases feed hourly (24 requests/day — far under
+GitHub's 60 req/hr anonymous REST limit) in a background daemon thread, and
+it **never downloads or executes code automatically** — it only reports. Since
+0.7.16 each check is a conditional request: the feed's ETag is sent back, so an
+unchanged feed returns a `304` that doesn't count against the limit at all.
+Tune the cadence with `MRADIO_UPDATE_INTERVAL` (seconds, minimum 60), point at
+a different repo with `MRADIO_REPO` (owner/name) or set `MRADIO_UPDATE_URL`
+(full releases URL) if you fork.
+
+Because the app can stay open for days, the check runs once at startup and
+then repeats every hour so a release cut mid-session still lights up the
+pill.
 
 ## Usage
 

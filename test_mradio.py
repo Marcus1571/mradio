@@ -166,6 +166,12 @@ class TestReleaseFeed(unittest.TestCase):
         self.assertGreater(ver_key("0.7.15"), ver_key("0.7.14"))
         self.assertLess(ver_key("0.7.2"), ver_key("0.7.10"))
 
+    def test_update_interval_default_hourly(self):
+        self.assertEqual(_mradio.UPDATE_INTERVAL, 3600)
+
+    def test_update_interval_floor(self):
+        self.assertGreaterEqual(_mradio.UPDATE_INTERVAL, 60)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Update check now runs hourly while mradio is open** (the app may stay up
+  for days, so a release cut mid-session still lights up the `UPDATE` pill).
+  Checks are conditional requests — the feed's ETag is sent back so an
+  unchanged feed returns `304` and doesn't consume GitHub's rate limit
+  (anonymous REST cap is 60 req/hr; we do 24/day and effectively ~0 after
+  ETags). Cadence configurable via `MRADIO_UPDATE_INTERVAL` (seconds, min 60).
+- **`UPDATE` pill restyled:** black text on a yellow chip (pair 10) so it
+  stands out from the cyan RADIO badge.
+
 ## [0.7.15] - 2026-08-28
 
 ### Added
