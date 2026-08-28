@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.21"
+VERSION = "0.7.22"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -235,11 +235,29 @@ LIGHT_PALETTE = {1: curses.COLOR_BLUE, 2: curses.COLOR_BLACK,
 CHIP_BG = {3: curses.COLOR_CYAN, 8: curses.COLOR_GREEN, 9: curses.COLOR_RED,
            10: curses.COLOR_YELLOW}
 
+# 256-color palettes (Catppuccin-inspired: Mocha for dark, Latte for light).
+# Values are (fg, bg); -1 = terminal default. Chips (3/8/9/10) get a colored
+# background with a high-contrast foreground. Used only when the terminal
+# reports >= 256 colors; otherwise the ANSI palettes + CHIP_BG above apply.
+DARK_256 = {1: (117, -1), 2: (189, -1), 3: (0, 44), 4: (35, -1),
+            5: (177, -1), 6: (216, -1), 7: (117, -1),
+            8: (0, 121), 9: (0, 210), 10: (0, 208)}
+LIGHT_256 = {1: (27, -1), 2: (239, -1), 3: (0, 32), 4: (29, -1),
+             5: (99, -1), 6: (60, -1), 7: (172, -1),
+             8: (15, 28), 9: (15, 124), 10: (0, 208)}
+
 
 def init_colors(theme="dark"):
-    pal = LIGHT_PALETTE if theme == "light" else DARK_PALETTE
-    for n in range(1, 11):
-        curses.init_pair(n, pal[n], CHIP_BG.get(n, -1))
+    if theme == "light":
+        pal, pal256 = LIGHT_PALETTE, LIGHT_256
+    else:
+        pal, pal256 = DARK_PALETTE, DARK_256
+    if getattr(curses, "COLORS", 0) >= 256:
+        for n in range(1, 11):
+            curses.init_pair(n, *pal256[n])
+    else:
+        for n in range(1, 11):
+            curses.init_pair(n, pal[n], CHIP_BG.get(n, -1))
 
 
 def ai_configured():

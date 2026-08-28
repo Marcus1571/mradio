@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.22] - 2026-08-28
+
+### Added
+
+- **Catppuccin-inspired color palettes.** When the terminal reports 256 colors,
+  mradio now uses a proper chromatic palette — Mocha-inspired for the dark
+  theme, Latte-inspired for the light theme — instead of bare ANSI hues:
+  one accent family per theme, muted "subtext" tones for secondary lines, and
+  chips (RADIO / LIVE / PAUSED / UPDATE) with high-contrast on-chip text. Old
+  ANSI colors remain as a fallback on 8-color terminals.
+
 ## [0.7.21] - 2026-08-28
 
 ### Added

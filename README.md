@@ -86,7 +86,7 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `v`        | force a version check now (flashes the result) |
 | `z`        | expand/collapse the full trivia note: fills the screen with the complete text. Long notes that don't fit the window show a `…` marker instead of being silently cut. Click-to-toggle is **off by default** to keep the terminal text selectable — opt in with `mouse = 1` in `config.json` |
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
-| `p`        | swap color scheme: dark-terminal vs light-terminal palette. Instant, no reload, and remembered for next sessions (your current theme + key appear right after the LIVE pill up top) |
+| `p`        | swap color scheme: dark-terminal vs light-terminal palette (Catppuccin-inspired on 256-color terminals, classic ANSI otherwise). Instant, no reload, and remembered for next sessions (your current theme + key appear right after the LIVE pill up top) |
 
 A second help line near the bottom shows the current AI provider whenever AI is
 configured; the enrichment spinner also shows which provider is working

@@ -106,6 +106,13 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 - `render` — curses drawing; dark/light palette toggle with `p`. Artist/title/
   performer/work block and the wiki footer are shared helpers (`draw_info`,
   `draw_help`).
+- **Color palettes** — `DARK_PALETTE`/`LIGHT_PALETTE` are ANSI fallbacks (fg
+  only, 8 ~ curses.COLOR_*), plus `DARK_256`/`LIGHT_256` = `{1..10: (fg, bg)}`
+  xterm-256 indices, Catppuccin-inspired (Mocha dark / Latte light). Chips 3
+  (RADIO/AI), 8 (LIVE), 9 (PAUSED), 10 (UPDATE) get colored bg + high-contrast
+  fg. `init_colors()` picks the 256 map when `curses.COLORS >= 256`, else ANSI.
+  1 = arrows/version/theme/vol label, 2 = body, 4 = artist+meter,
+  6 = performer/meta, 7 = work label/spinner.
 - `main()` — mpv reaping lives in `finally` (terminate → wait 2s → kill),
   guarded by `proc is not None`; all exit paths (q, Ctrl-C, exceptions, resize)
   reap mpv, run `Enricher.shutdown()`, and unlink the IPC socket.
@@ -172,8 +179,8 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   `https://github.com/{REPO}/releases/download/{tag}/mradio`, validates with
   `compile()` + VERSION parse, backs up to `mradio.old`, `os.replace`s, and
   NEVER executes. `U` = apply (fallback browser on any failure), `u`/click =
-  browser only. Hints: `u:page  U:apply`. Running from a git checkout refuses
-  ("use git pull").
+  browser only. Hints: `u:page  U:apply  v:check`. Running from a git checkout
+  refuses ("use git pull").
 - Default model: `gemma3:4b`; default API base: `https://api.openai.com/v1`;
   default API model: `gpt-4o-mini`.
 - Ollama telemetry reported (`eval=… rate=… tok/s`); low `rate` + idle GPU ⇒
