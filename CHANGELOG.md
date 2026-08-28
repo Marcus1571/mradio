@@ -7,14 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.7.19] - 2026-08-28
+## [0.7.20] - 2026-08-28
 
 ### Changed
 
-- **Placeholder release (version bump only — no functional changes).** Cut so
-  the `U` self-update path can be validated end-to-end from the running
-  v0.7.18 install: the newer release appears in the pill, its `mradio` asset
-  downloads, validates and atomically replaces the binary on restart.
+- **Update / self-update flow tested end-to-end on a live install.** On a
+  machine running v0.7.18 the release-check lit up the `UPDATE` pill for
+  v0.7.19, and pressing `U` downloaded the release's `mradio` asset, validated
+  it (syntax + version), backed the running file up to `mradio.old`,
+  atomically swapped it, and the update was applied on restart — confirmed
+  clean (v0.7.18 → v0.7.19 → next launch on the new version). This release
+  (version bump, no functional changes) re-pins the tested flow with the
+  `mradio` + `install.sh` assets.
 
 ## [0.7.18] - 2026-08-28
 
