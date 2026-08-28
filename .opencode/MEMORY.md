@@ -3,6 +3,26 @@
 > Read this first in every session so we can pick up where we left off.
 > Update it whenever the project state changes significantly.
 
+## ⚠️ COMMANDMENTS (non-negotiable — read before acting)
+
+1. **A "release" is the GitHub RELEASE, not the tag.** Pushing a git tag does
+   NOT update the GitHub Releases page/sidebar. A release only exists when the
+   tag has a GitHub Release attached to it (notes + assets).
+2. **Full release sequence, in order — never stop early:**
+   1. bump `VERSION` in `./mradio` and add the CHANGELOG section;
+   2. commit the changes;
+   3. `git tag vX.Y.Z` and `git push origin vX.Y.Z`;
+   4. `gh release create vX.Y.Z --repo Marcus1571/mradio --title "mradio vX.Y.Z" --notes-file <notes.md> mradio install.sh`
+      (assets = `mradio` + `install.sh`, notes = the CHANGELOG section body);
+   5. **verify** with `gh release list | head` that the new version is marked
+      `Latest` — do not report "released" until this confirms.
+3. Every release the user asks for must be **pushed to origin, then created as
+   a GitHub Release with the two assets**, and confirmed `Latest`. If only a
+   tag was pushed, say so and finish the job — do not declare success.
+4. Do NOT change the provider fallback order, the Wikipedia verification logic
+   (`_resolve_wiki` / `_relevant`), or the atomic-write pattern for
+   cache.json / config.json — accepted as correct.
+
 ## What it is
 
 `mradio` — a colorful terminal radio player (Python `curses` TUI) that drives
