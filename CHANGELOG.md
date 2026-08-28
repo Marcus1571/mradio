@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.23] - 2026-08-28
+
+### Changed
+
+- **`p` now rotates through four color schemes** — `dark`, `light`,
+  `light-navy`, `light-mauve` — so arrangements can be compared live on one
+  key. The header shows the active scheme name.
+
+### Added
+
+- **Light-theme arrangements.** `light-navy` (navy-bold title `#000087`,
+  cinnamon-brown performer `#AF5F00`, teal composer, amber work label) and
+  `light-mauve` (royal-blue title, tan performer, mauve accents). Classic
+  `light` (Latte) is kept unchanged as the starting point for comparison.
+
 ## [0.7.22] - 2026-08-28
 
 ### Added

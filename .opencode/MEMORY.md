@@ -106,13 +106,16 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 - `render` — curses drawing; dark/light palette toggle with `p`. Artist/title/
   performer/work block and the wiki footer are shared helpers (`draw_info`,
   `draw_help`).
-- **Color palettes** — `DARK_PALETTE`/`LIGHT_PALETTE` are ANSI fallbacks (fg
-  only, 8 ~ curses.COLOR_*), plus `DARK_256`/`LIGHT_256` = `{1..10: (fg, bg)}`
-  xterm-256 indices, Catppuccin-inspired (Mocha dark / Latte light). Chips 3
-  (RADIO/AI), 8 (LIVE), 9 (PAUSED), 10 (UPDATE) get colored bg + high-contrast
-  fg. `init_colors()` picks the 256 map when `curses.COLORS >= 256`, else ANSI.
-  1 = arrows/version/theme/vol label, 2 = body, 4 = artist+meter,
-  6 = performer/meta, 7 = work label/spinner.
+- **Color palettes** — `DARK_256`/`LIGHT_256`/`LIGHT_NAVY_256`/`LIGHT_MAUVE_256`
+  = `{1..10: (fg, bg)}` xterm-256 indices; `DARK_PALETTE`/`LIGHT_PALETTE` are
+  the ANSI fallbacks (fg only) with shared `CHIP_BG`. `SCHEMES =
+  ("dark","light","light-navy","light-mauve")`; `p` calls `next_theme()` to
+  rotate and `init_colors()` picks the 256 map when `curses.COLORS >= 256` else
+  ANSI (new light arrangements fall back to classic light ANSI). Pair meaning:
+  1 = arrows/version/theme/vol label, 2 = title (navy `18` in light-navy,
+  royal `19` in mauve), 4 = composer/artist + meter, 6 = performer (cinnamon
+  `130` / tan `137`), 7 = work label/spinner, chips 3/8/9/10 = RADIO, LIVE,
+  PAUSED, UPDATE.
 - `main()` — mpv reaping lives in `finally` (terminate → wait 2s → kill),
   guarded by `proc is not None`; all exit paths (q, Ctrl-C, exceptions, resize)
   reap mpv, run `Enricher.shutdown()`, and unlink the IPC socket.
@@ -132,7 +135,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `v` | force a version check now (flashes the result in the AI row) |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
-| `p` | swap dark/light palette (remembered) |
+| `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
 
 ## Full feature history (CHANGELOG)
 

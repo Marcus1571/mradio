@@ -36,18 +36,18 @@
   <circle cx="20" cy="15" r="6" fill="#CBD2D9"/>
   <circle cx="44" cy="15" r="6" fill="#CBD2D9"/>
   <circle cx="68" cy="15" r="6" fill="#CBD2D9"/>
-  <text x="64.0" y="21" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#57606A">mradio — light terminal (p to switch)</text>
+  <text x="96.0" y="21" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="13" fill="#57606A">mradio — light-navy (p to rotate)</text>
   <rect x="20.0" y="44.0" width="72.9" height="16" rx="3" fill="#00AFD7"/>
   <rect x="514.1" y="44.0" width="48.6" height="16" rx="3" fill="#008700"/>
   <text x="20.0" y="58.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#101014" font-weight="700"> ● RADIO </text>
   <text x="92.9" y="58.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#005FD7" font-weight="400"> ▸ </text>
-  <text x="117.2" y="58.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#4E4E4E" font-weight="400"> VCR Auditorium | Venice Classic Radio Italia </text>
+  <text x="117.2" y="58.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#000087" font-weight="400"> VCR Auditorium | Venice Classic Radio Italia </text>
   <text x="489.8" y="58.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#005FD7" font-weight="400"> ▸ </text>
   <text x="514.1" y="58.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#FFFFFF" font-weight="700"> LIVE </text>
-  <text x="562.7" y="58.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#005FD7" font-weight="400"> light (p)</text>
+  <text x="562.7" y="58.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#005FD7" font-weight="400"> light-navy (p)</text>
   <text x="28.1" y="90.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#00875F" font-weight="700">Luigi Boccherini (1743-1805)</text>
-  <text x="28.1" y="110.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#4E4E4E" font-weight="700">Quartetto per archi in Sol minore n.6 op.24</text>
-  <text x="28.1" y="130.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#5F5F87" font-weight="400">(Europa Galante - Fabio Biondi, violino e direzione)</text>
+  <text x="28.1" y="110.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#000087" font-weight="700">Quartetto per archi in Sol minore n.6 op.24</text>
+  <text x="28.1" y="130.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#AF5F00" font-weight="400">(Europa Galante - Fabio Biondi, violino e direzione)</text>
   <text x="28.1" y="150.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#D78700" font-weight="400">work: ...</text>
   <text x="28.1" y="170.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#A0A0A0" font-weight="400">This quartet is part of a series of works that showcases Boccherini's</text>
   <text x="28.1" y="190.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#A0A0A0" font-weight="400">mastery of the string quartet form, often featuring virtuosic passages</text>
@@ -55,7 +55,7 @@
   <text x="28.1" y="250.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#D78700" font-weight="400"> — · 44.1 kHz · mp3 · cache — · stream 00:45</text>
   <text x="28.1" y="270.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#005FD7" font-weight="400">vol</text>
   <rect x="28.1" y="276.0" width="477.9" height="16" rx="2" fill="#00875F"/>
-  <text x="28.1" y="290.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#4E4E4E" font-weight="400">  100%</text>
-  <text x="28.1" y="330.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#5F5F87" font-weight="400">q:quit   space:pause   + / -:volume   m:mute   r:reconnect   o:open article</text>
+  <text x="28.1" y="290.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#000087" font-weight="400">  100%</text>
+  <text x="28.1" y="330.0" font-family="Monaco, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="13.5" fill="#AF5F00" font-weight="400">q:quit   space:pause   + / -:volume   m:mute   r:reconnect   o:open article</text>
 </g>
 </svg>

@@ -21,6 +21,9 @@ split_title = _mradio.split_title
 latest_release_version = _mradio.latest_release_version
 latest_release_tag = _mradio.latest_release_tag
 ver_key = _mradio.ver_key
+next_theme = _mradio.next_theme
+init_colors = _mradio.init_colors
+SCHEMES = _mradio.SCHEMES
 
 
 class TestExtractJsonItem(unittest.TestCase):
@@ -146,6 +149,56 @@ class TestRightFooter(unittest.TestCase):
         self.assertTrue(any(c[2] == " UPDATE " and c[0] == f._h - 2
                             for c in f.calls), "UPDATE pill not drawn")
         self.assertIsNotNone(s.get("update_zone"))
+
+
+class TestPalettes(unittest.TestCase):
+    def test_next_theme_cycles_all_schemes(self):
+        seen = []
+        t = "dark"
+        for _ in range(len(SCHEMES) + 1):
+            seen.append(t)
+            t = next_theme(t)
+        self.assertEqual(seen[:len(SCHEMES)] + [seen[0]], seen,
+                         "rotation must wrap back to the first scheme")
+
+    def test_next_theme_unknown_falls_back_to_dark(self):
+        self.assertEqual(next_theme("nope"), SCHEMES[1])
+
+    def test_init_colors_256_sets_chip_bg_and_fg(self):
+        pairs = {}
+        _old_c = getattr(_mradio.curses, "COLORS", None)
+        _old = _mradio.curses.init_pair
+        _mradio.curses.COLORS = 256
+        _mradio.curses.init_pair = lambda n, fg, bg: pairs.__setitem__(n, (fg, bg))
+        try:
+            init_colors("light-navy")
+        finally:
+            if _old_c is None:
+                del _mradio.curses.COLORS
+            else:
+                _mradio.curses.COLORS = _old_c
+            _mradio.curses.init_pair = _old
+        self.assertEqual(pairs[2], (18, -1), "navy title color")
+        self.assertEqual(pairs[6], (130, -1), "cinnamon performer color")
+        self.assertEqual(pairs[8], (15, 28), "white on green LIVE chip")
+
+    def test_init_colors_each_scheme_has_10_pairs(self):
+        for scheme in SCHEMES:
+            pairs = {}
+            _old_c = getattr(_mradio.curses, "COLORS", None)
+            _old = _mradio.curses.init_pair
+            _mradio.curses.COLORS = 256
+            _mradio.curses.init_pair = lambda n, fg, bg: pairs.__setitem__(n, (fg, bg))
+            try:
+                init_colors(scheme)
+            finally:
+                if _old_c is None:
+                    del _mradio.curses.COLORS
+                else:
+                    _mradio.curses.COLORS = _old_c
+                _mradio.curses.init_pair = _old
+            self.assertEqual(sorted(pairs), list(range(1, 11)),
+                             f"{scheme} must define all 10 pairs")
 
 
 class TestReleaseFeed(unittest.TestCase):
