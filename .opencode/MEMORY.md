@@ -1,0 +1,151 @@
+# mradio — project memory
+
+> Read this first in every session so we can pick up where we left off.
+> Update it whenever the project state changes significantly.
+
+## What it is
+
+`mradio` — a colorful terminal radio player (Python `curses` TUI) that drives
+**mpv** as its audio engine over an IPC socket, plus optional **AI enrichment**
+(trivia note / Work line / verified Wikipedia link) for the now-playing track.
+
+- Single self-contained file: `./mradio` (~1058 lines), Python 3.8+, **stdlib
+  only, no pip dependencies**.
+- Repo: `git@github.com:Marcus1571/mradio.git` (user: `Marcus1571`).
+- No local demo branch conventions — trivial `main` history, semantic-version
+  tags released on GitHub (`v0.7.x`).
+
+## Current state
+
+- **Latest version:** `0.7.14` (in-code `VERSION`); unreleased, under `[Unreleased]`
+  in CHANGELOG.
+- **Previous release:** `0.7.11`/`0.7.12`/`0.7.13` all tagged (v0.7.11–v0.7.13, each
+  pointing at the same commit `e92820d`), pushed to origin; working tree was clean
+  before the 0.7.14 work.
+- **0.7.14 fixes (uncommitted at last session end):** thread-safety lock around all
+  Enricher shared state; urljoin-based API endpoint building; opencode pidfile +
+  port-probe zombie prevention; mpv cleanup moved into `finally`; render() dedup;
+  `make test` + `make smoke` + `test_mradio.py` (13 unit tests).
+
+## Why mpv as the engine
+
+Radio streams are messy (icecast metadata, HTTPS, reconnects). mpv handles all
+of that battle-tested. mradio is a thin, colorful display + remote control over
+mpv's IPC socket — decoding/network/metadata all belong to mpv.
+
+## Architecture (map of `./mradio`)
+
+- Constants: socket `/tmp/mpv-radio.sock`, default stream VCR1
+  (`https://uk2.streamingpulse.com/ssl/vcr1`).
+- `load_settings` / `seed_settings` — AI settings in
+  `~/.local/share/mradio/settings.json` (self-contained; env vars are optional
+  overrides, no shell rc needed).
+- `load_cfg` / `persist_cfg` — `config.json`: provider, theme, volume, mouse.
+- `Mpc` class — thin mpv IPC client (`cmd`, `get`).
+- `repair_mojibake`, `split_title` — icy-metadata parsing (artist/title split).
+- `Enricher` class — background-thread AI enrichment:
+  - **Thread safety:** a single `self._lock` (`threading.RLock`) guards
+    `cache` / `started` / `last_key` / `epoch` / `provider` / `offline_until`
+    across the main thread and `_worker`; `persist_cache()` uses the same lock
+    for the dict snapshot + the atomic file write.
+  - Cache eviction (in `_worker`, under the lock) is FIFO:
+    `pop(next(iter(cache)))` removes the OLDEST entry — never the just-written
+    key; verified.
+  - Provider order (live-switched with `1`/`2`/`3`): **opencode → ollama → API**.
+  - `_llm_opencode` (`opencode serve`, zero-auth gateway), `_llm_ollama`,
+    `_llm_openai` (any OpenAI-compatible: Groq, OpenRouter, Gemini, NIM…).
+    Endpoints are built with `api_endpoint()` (`urljoin`-based), not
+    concatenation.
+  - **opencode process hygiene:** `opencode.pid` pidfile stores `pid port`;
+    `_oc_start` reaps a wedged instance we own before spawning, refuses to
+    spawn if an untracked listener holds the port unhealthily, and kills a
+    spawned serve that never becomes healthy; `shutdown()` reaps + clears it.
+  - `_resolve_wiki` / `_relevant` — Wikipedia title resolution; link only shown
+    if the article is verified to exist AND match (composer surname + token
+    overlap).
+  - Cache `~/.local/share/mradio/cache.json` keyed by track tag, **tagged with
+    the provider that produced it** — a note is reused only when the same
+    provider is selected.
+- `render` — curses drawing; dark/light palette toggle with `p`. Artist/title/
+  performer/work block and the wiki footer are shared helpers (`draw_info`,
+  `draw_help`).
+- `main()` — mpv reaping lives in `finally` (terminate → wait 2s → kill),
+  guarded by `proc is not None`; all exit paths (q, Ctrl-C, exceptions, resize)
+  reap mpv, run `Enricher.shutdown()`, and unlink the IPC socket.
+
+## Key bindings
+
+| Key | Action |
+| --- | ------ |
+| `q` | quit |
+| `space` | pause/resume |
+| `+`/`-` (or `→`/`←`) | volume up/down |
+| `m` | mute |
+| `r` | reconnect (revive dead stream/station) |
+| `o` | open the verified Wikipedia article |
+| `z` | expand/collapse full trivia note (full-screen) |
+| `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
+| `p` | swap dark/light palette (remembered) |
+
+## Full feature history (CHANGELOG)
+
+- **0.7.8** — initial public release: full TUI, mpv IPC control, icy-metadata
+  parsing with mojibake repair, AI enrichment with verified Wikipedia links,
+  three providers, persistence, palette toggle, `--settings`, installers.
+- **0.7.9** — `z` key + mouse-click expand/collapse full trivia; word-wrapping
+  with `…` marker instead of silent cut.
+- **0.7.10** — click-expand gated to the trivia text only (fixes greedy clicks
+  stealing focus in mouse-first terminals like WezTerm).
+- **0.7.11** — volume remembered between sessions (`+`/`-` saved to
+  `config.json`, re-applied on startup / reconnect / mpv restart). Fixed: legacy
+  `set` IPC rejected numerics (`invalid parameter`) → uses `set_property`.
+- **0.7.12** — mouse-click toggling now **off by default** (`"mouse": 0`) so
+  terminal text selection works; opt in with `"mouse": 1`.
+- **0.7.13** — station name from stream's own icy-name metadata (instead of CDN
+  host); optional second arg `<url> "<name>"` to override.
+- **0.7.14** *(unreleased)* — thread-safety lock for all Enricher shared state;
+  `urljoin` endpoint building; opencode pidfile + port-probe zombie prevention;
+  guaranteed mpv/Enricher/socket cleanup on every exit path; render() dedup
+  helpers; `make test` / `make smoke` / `test_mradio.py` (13 unit tests).
+
+## Env vars (optional overrides; settings.json is the source of truth)
+
+- AI: `MRADIO_OLLAMA`, `MRADIO_OLLAMA_MODEL`, `MRADIO_OLLAMA_TIMEOUT`,
+  `MRADIO_OLLAMA_NUM_GPU`, `MRADIO_API_BASE`, `MRADIO_API_KEY`, `MRADIO_MODEL`,
+  `MRADIO_API_TIMEOUT`, `MRADIO_OPENCODE`, `MRADIO_OPENCODE_TIMEOUT`.
+- Paths: `MRADIO_LOG`, `MRADIO_SERVE_LOG`, `MRADIO_CFG`, `MRADIO_CACHE`,
+  `MRADIO_SETTINGS`.
+- Default model: `gemma3:4b`; default API base: `https://api.openai.com/v1`;
+  default API model: `gpt-4o-mini`.
+- Ollama telemetry reported (`eval=… rate=… tok/s`); low `rate` + idle GPU ⇒
+  not GPU-offloaded → set `MRADIO_OLLAMA_NUM_GPU=999`.
+
+## Development / verification
+
+```sh
+make check   # syntax checks (py_compile + bash -n install.sh)
+make test    # unit tests (test_mradio.py — extract_json_item, split_title)
+make smoke   # mradio --version / --help
+```
+
+(Lint/typecheck convention: none beyond `make check` — stdlib-only project.)
+
+## Key terms / decisions
+
+- Provider priority is **opencode → ollama → api**, first configured AND
+  responding wins.
+- OpenOCode route is slowest (20–90 s/track) but richest; spinner shows
+  provider + elapsed (`▚ opencode 34s`).
+- Trivia aimed at ~750–850 chars.
+- Persisted files are written atomically (tmp + `os.replace`) and capped on
+  load — can't corrupt or grow unbounded.
+- Decide-and-keep: DO NOT change the provider fallback order, the Wikipedia
+  verification logic (`_resolve_wiki` / `_relevant`), or the atomic-write
+  pattern for cache.json / config.json — accepted as correct.
+
+## Open questions / possible next steps
+
+- 0.7.14 fixes are uncommitted; when the user wants, commit + tag `v0.7.14`
+  + push (only when asked).
+- `.opencode/MEMORY.md` and `.opencode/` are untracked — decide whether to
+  commit them (recommended) or keep them local.

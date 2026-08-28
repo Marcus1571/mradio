@@ -15,6 +15,7 @@ import json
 import os
 import queue
 import re
+import signal
 import socket
 import subprocess
 import sys
@@ -24,7 +25,7 @@ import time
 import urllib.request
 import urllib.parse
 
-VERSION = "0.7.13"
+VERSION = "0.7.14"
 
 LOG = os.environ.get("MRADIO_LOG",
                      os.path.expanduser("~/.local/share/mradio/mradio.log"))
@@ -106,6 +107,8 @@ CFG_FILE = os.environ.get("MRADIO_CFG",
                           os.path.expanduser("~/.local/share/mradio/config.json"))
 CACHE_FILE = os.environ.get("MRADIO_CACHE",
                             os.path.expanduser("~/.local/share/mradio/cache.json"))
+OC_PID = os.environ.get("MRADIO_OC_PID",
+                        os.path.expanduser("~/.local/share/mradio/opencode.pid"))
 PROVIDERS = ("opencode", "ollama", "openai")
 
 
@@ -118,6 +121,63 @@ def oc_port():
         return int(OC)
     except ValueError:
         return 4096
+
+
+def api_endpoint(base, suffix):
+    """Join an API path (`suffix`) onto a base URL, tolerating a base that
+    already carries the full endpoint or an arbitrary path prefix."""
+    base = (base or "").rstrip("/")
+    if not base:
+        return suffix
+    if base.endswith("/" + suffix):
+        return base
+    return urllib.parse.urljoin(base + "/", suffix)
+
+
+def proc_alive(pid):
+    if not pid or pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+
+
+def port_in_use(port, timeout=0.5):
+    try:
+        s = socket.create_connection(("127.0.0.1", port), timeout=timeout)
+        s.close()
+        return True
+    except OSError:
+        return False
+
+
+def read_pidfile():
+    try:
+        with open(OC_PID) as fh:
+            p, _, po = fh.read().strip().partition(" ")
+            return int(p), int(po)
+    except Exception:
+        return 0, 0
+
+
+def write_pidfile(pid, port):
+    try:
+        os.makedirs(os.path.dirname(OC_PID), exist_ok=True)
+        with open(OC_PID, "w") as fh:
+            fh.write(f"{pid} {port}\n")
+    except Exception as e:
+        log(f"pidfile write FAIL: {e}", "WARN")
+
+
+def remove_pidfile():
+    try:
+        os.unlink(OC_PID)
+    except OSError:
+        pass
 
 
 def provider_enabled(name):
@@ -325,7 +385,7 @@ class Enricher:
         self.started = {}
         self.epoch = 0
         self.provider = self._load_provider()
-        self._plock = threading.Lock()
+        self._lock = threading.RLock()
 
     def _load_cache(self):
         try:
@@ -339,7 +399,7 @@ class Enricher:
             return {}
 
     def persist_cache(self):
-        with self._plock:
+        with self._lock:
             try:
                 os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
                 tmp = CACHE_FILE + ".tmp"
@@ -354,24 +414,28 @@ class Enricher:
         return p if p in PROVIDERS else ""
 
     def active_provider(self):
-        order = ([self.provider] if provider_enabled(self.provider) else []) \
-            + [n for n in PROVIDERS if n != self.provider and provider_enabled(n)]
+        with self._lock:
+            prv = self.provider
+        order = ([prv] if provider_enabled(prv) else []) \
+            + [n for n in PROVIDERS if n != prv and provider_enabled(n)]
         return order[0] if order else ""
 
     def switch_provider(self, name):
         if name not in PROVIDERS or not provider_enabled(name):
             log(f"provider switch to {name} rejected (not configured)")
             return False
-        self.provider = name
-        self.offline_until = 0.0
+        with self._lock:
+            self.provider = name
+            self.offline_until = 0.0
         persist_cfg(provider=name)
         log(f"provider switched to {name}")
         return True
 
     def invalidate(self, key, artist, title, performer):
-        self.epoch += 1
-        self.cache.pop(key, None)
-        self.started.pop(key, None)
+        with self._lock:
+            self.epoch += 1
+            self.cache.pop(key, None)
+            self.started.pop(key, None)
         self.persist_cache()
         self.submit(key, artist, title, performer)
 
@@ -379,53 +443,62 @@ class Enricher:
         threading.Thread(target=self._worker, daemon=True).start()
 
     def blurb(self, key):
-        return self.cache.get(key) if self.provider_matches(key) else None
+        with self._lock:
+            return self.cache.get(key) if self.provider_matches(key) else None
 
     def provider_matches(self, key):
-        item = self.cache.get(key)
-        return (isinstance(item, dict) and item.get("provider") == self.provider
-                and not item.get("fail"))
+        with self._lock:
+            item = self.cache.get(key)
+            return (isinstance(item, dict) and item.get("provider") == self.provider
+                    and not item.get("fail"))
 
     def pending(self, key):
         if not ai_configured():
             return False
-        return self.last_key == key and not self.provider_matches(key)
+        with self._lock:
+            return self.last_key == key and not self.provider_matches(key)
 
     def submit(self, key, artist, title, performer):
-        self.last_key = key
-        if self.provider_matches(key):
-            return
-        self.started[key] = time.time()
+        with self._lock:
+            self.last_key = key
+            if self.provider_matches(key):
+                return
+            self.started[key] = time.time()
         self.q.put((key, artist, title, performer))
 
     def elapsed(self, key):
-        t = self.started.get(key)
+        with self._lock:
+            t = self.started.get(key)
         return int(time.time() - t) if t else 0
 
     def _worker(self):
         while True:
             key, artist, title, performer = self.q.get()
-            epoch = self.epoch
+            with self._lock:
+                epoch = self.epoch
             if not ai_configured():
                 log("ai not configured, skipping enrichment")
-                self.cache[key] = {"work": "", "trivia": "", "wiki": "",
-                                   "movement": 0, "provider": self.provider,
-                                   "fail": True}
-                self.started.pop(key, None)
+                with self._lock:
+                    self.cache[key] = {"work": "", "trivia": "", "wiki": "",
+                                       "movement": 0, "provider": self.provider,
+                                       "fail": True}
+                    self.started.pop(key, None)
                 continue
             if time.time() < self.offline_until:
                 log(f"offline cooldown until {time.strftime('%H:%M:%S', time.localtime(self.offline_until))}, skipping")
-                self.cache[key] = {"work": "", "trivia": "", "wiki": "",
-                                   "movement": 0, "provider": self.provider,
-                                   "fail": True}
-                self.started.pop(key, None)
+                with self._lock:
+                    self.cache[key] = {"work": "", "trivia": "", "wiki": "",
+                                       "movement": 0, "provider": self.provider,
+                                       "fail": True}
+                    self.started.pop(key, None)
                 continue
             t0 = time.time()
             log(f"enrich start: {artist!r} - {title!r}")
             item = self._ask(artist, title, performer)
             had_wiki = bool(item and item.get("wiki"))
             if item is None:
-                self.offline_until = time.time() + 120
+                with self._lock:
+                    self.offline_until = time.time() + 120
                 log("ALL providers failed -> offline 120s", "WARN")
                 item = {"work": "", "trivia": "", "wiki": "", "movement": 0,
                         "fail": True}
@@ -435,19 +508,24 @@ class Enricher:
                     wt0 = time.time()
                     item["wiki"] = self._resolve_wiki(item["wiki"], surname)
                     log(f"wiki resolve {item['wiki']!r} elapse={time.time()-wt0:.1f}s")
-            self.started.pop(key, None)
-            if epoch != self.epoch:
+            with self._lock:
+                self.started.pop(key, None)
+                stale = epoch != self.epoch
+            if stale:
                 log("stale reply discarded (provider/selection changed)")
                 continue
-            item["provider"] = self.provider
-            self.cache[key] = item
+            with self._lock:
+                item["provider"] = self.provider
+                self.cache[key] = item
+                # dict insertion order => pop(next(iter(...))) evicts the OLDEST
+                # entry, never this just-written (newest) one.
+                if len(self.cache) > 256:
+                    self.cache.pop(next(iter(self.cache)))
             self.persist_cache()
             log(f"enrich done elapse={time.time()-t0:.1f}s "
                 f"trivia={len(item.get('trivia') or '')}ch "
                 f"work={bool(item.get('work'))} "
                 f"wiki={had_wiki}->{bool(item.get('wiki'))}")
-            if len(self.cache) > 256:
-                self.cache.pop(next(iter(self.cache)))
 
     def _ask(self, artist, title, performer):
         question = (
@@ -517,7 +595,7 @@ class Enricher:
                             "num_gpu": OLLAMA_GPU},
             }
             req = urllib.request.Request(
-                OLLAMA + "/api/generate",
+                api_endpoint(OLLAMA, "api/generate"),
                 data=json.dumps(payload).encode(),
                 headers={"Content-Type": "application/json"},
                 method="POST",
@@ -539,7 +617,7 @@ class Enricher:
 
     def _llm_openai(self, prompt):
         try:
-            base = API_BASE if API_BASE.endswith("/chat/completions") else API_BASE + "/chat/completions"
+            base = api_endpoint(API_BASE, "chat/completions")
             payload = {
                 "model": API_MODEL,
                 "messages": [
@@ -574,7 +652,32 @@ class Enricher:
         except Exception:
             return False
 
+    def _kill_pid(self, pid):
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except Exception:
+            return
+        for _ in range(10):
+            if not proc_alive(pid):
+                return
+            time.sleep(0.2)
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except Exception:
+            pass
+
     def _oc_start(self, port):
+        # Reclaim a wedged instance we spawned in a previous session instead of
+        # stacking another `opencode serve` onto the same port.
+        old_pid, old_port = read_pidfile()
+        if old_pid and old_port == port and proc_alive(old_pid) \
+                and not self._oc_health(port, timeout=3):
+            log(f"stale opencode pid {old_pid} on :{port} wedged -> terminating", "WARN")
+            self._kill_pid(old_pid)
+            remove_pidfile()
+        if port_in_use(port) and not self._oc_health(port, timeout=2):
+            log(f":{port} held by an untracked listener and unhealthy; not spawning", "WARN")
+            return False
         try:
             sd = open(SERVE_LOG, "a")
             self._oc_proc = subprocess.Popen(
@@ -582,9 +685,12 @@ class Enricher:
                 stdin=subprocess.DEVNULL, stdout=sd, stderr=sd)
             for _ in range(20):
                 if self._oc_health(port):
+                    write_pidfile(self._oc_proc.pid, port)
                     return True
                 time.sleep(0.5)
             log(f"opencode serve on :{port} did not become healthy; see {SERVE_LOG}", "WARN")
+            self._kill_pid(self._oc_proc.pid)
+            remove_pidfile()
         except Exception as e:
             log(f"opencode spawn FAIL: {e}", "WARN")
         return False
@@ -642,6 +748,14 @@ class Enricher:
                 self._oc_proc.terminate()
             except Exception:
                 pass
+            try:
+                self._oc_proc.wait(timeout=2)
+            except Exception:
+                try:
+                    self._oc_proc.kill()
+                except Exception:
+                    pass
+            remove_pidfile()
 
     def _resolve_wiki(self, query, surname=""):
         ua = {"User-Agent": "mradio/0.3 (educational music enrichment) python-urllib"}
@@ -725,7 +839,8 @@ class Enricher:
         return overlap and surname_hit
 
     def _pn(self, key):
-        return self.last_key == key and key not in self.cache
+        with self._lock:
+            return self.last_key == key and key not in self.cache
 
 
 def add(std, y, x, text, pair, attr=0):
@@ -735,6 +850,26 @@ def add(std, y, x, text, pair, attr=0):
         std.attroff(curses.color_pair(pair) | attr)
     except curses.error:
         pass
+
+
+def draw_info(std, s, y, tw):
+    if s["artist"]:
+        add(std, y, 1, s["artist"][:tw], 4, curses.A_BOLD)
+        y += 1
+    add(std, y, 1, s["title"][:tw], 2, curses.A_BOLD)
+    y += 1
+    if s["performer"]:
+        add(std, y, 1, s["performer"][:tw], 6)
+        y += 1
+    if s["work_label"]:
+        add(std, y, 1, ("Work: " + s["work_label"])[:tw], 7)
+        y += 1
+    return y
+
+
+def draw_help(std, s, y, tw, keys):
+    line = keys + ("   o:open article" if s["wiki_url"] else "")
+    add(std, y, 1, line[:tw], 6)
 
 
 def render(std, elapsed, s):
@@ -761,17 +896,7 @@ def render(std, elapsed, s):
     y += 2
 
     if s.get("details"):
-        if s["artist"]:
-            add(std, y, 1, s["artist"][:tw], 4, curses.A_BOLD)
-            y += 1
-        add(std, y, 1, s["title"][:tw], 2, curses.A_BOLD)
-        y += 1
-        if s["performer"]:
-            add(std, y, 1, s["performer"][:tw], 6)
-            y += 1
-        if s["work_label"]:
-            add(std, y, 1, ("Work: " + s["work_label"])[:tw], 7)
-            y += 1
+        y = draw_info(std, s, y, tw)
         y += 1
         blurb = s.get("blurb") or ""
         z0 = y
@@ -786,26 +911,13 @@ def render(std, elapsed, s):
                 (f" now:{s.get('ai_provider') or ''}   "
                  "z:collapse   q:quit   space:pause   r:reconnect")[:tw], 3)
         if h >= 1:
-            if s["wiki_url"]:
-                add(std, h - 1, 1,
-                    " z:collapse   q:quit   space:pause   r:reconnect   o:open article", 6)
-            else:
-                add(std, h - 1, 1, " z:collapse   q:quit   space:pause   r:reconnect", 6)
+            draw_help(std, s, h - 1, tw,
+                      " z:collapse   q:quit   space:pause   r:reconnect")
         std.refresh()
         return
 
     if h - y > 9:
-        if s["artist"]:
-            add(std, y, 1, s["artist"][:tw], 4, curses.A_BOLD)
-            y += 1
-        add(std, y, 1, s["title"][:tw], 2, curses.A_BOLD)
-        y += 1
-        if s["performer"]:
-            add(std, y, 1, s["performer"][:tw], 6)
-            y += 1
-        if s["work_label"]:
-            add(std, y, 1, ("Work: " + s["work_label"])[:tw], 7)
-            y += 1
+        y = draw_info(std, s, y, tw)
         blurb = s.get("blurb") or ""
         if blurb:
             z0 = y
@@ -850,10 +962,8 @@ def render(std, elapsed, s):
              "press to re-request")[:tw], 3)
 
     if h >= 1:
-        if s["wiki_url"]:
-            add(std, h - 1, 1, " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   z:expand   o:open article", 6)
-        else:
-            add(std, h - 1, 1, " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   z:expand", 6)
+        draw_help(std, s, h - 1, tw,
+                  " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   z:expand")
 
     std.refresh()
 
@@ -906,6 +1016,8 @@ def main():
             pass
 
     exit_code = 0
+    proc = None
+    enrich = None
     try:
         proc = launch_mpv(url)
         mpc = Mpc(SOCK)
@@ -1030,20 +1142,28 @@ def main():
                 init_colors(state["theme"])
                 persist_cfg(theme=state["theme"])
                 log(f"theme switched to {state['theme']}")
-        proc.terminate()
-        try:
-            proc.wait(timeout=2)
-        except Exception:
-            proc.kill()
     except KeyboardInterrupt:
         exit_code = 130
     except Exception:
         exit_code = 1
     finally:
-        try:
-            enrich.shutdown()
-        except Exception:
-            pass
+        if proc is not None:
+            try:
+                proc.terminate()
+            except Exception:
+                pass
+            try:
+                proc.wait(timeout=2)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+        if enrich is not None:
+            try:
+                enrich.shutdown()
+            except Exception:
+                pass
         try:
             os.unlink(SOCK)
         except OSError:

@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Thread safety:** `Enricher.cache`/`started`/`last_key`/`epoch`/`provider`/
+  `offline_until` were read and written from both the main thread and the
+  enrichment worker with no lock (only the cache file write was guarded).
+  All shared state now goes through a single `RLock`, so behavior no longer
+  depends on GIL timing.
+- **URL construction:** the ollama and OpenAI-compatible endpoints were built
+  by string concatenation / `rstrip("/")`, which breaks `MRADIO_API_BASE`
+  values carrying an existing path segment. Both now resolve through
+  `urllib.parse.urljoin` (via `api_endpoint()`), and a base that already ends
+  in `/chat/completions` is left untouched.
+- **opencode process management:** `_oc_start` always spawned a fresh
+  `opencode serve` on failure, even when a previous instance on the same port
+  was alive but wedged, letting zombies pile up over long sessions. It now
+  keeps a pidfile (`opencode.pid`), reaps a wedged instance it owns before
+  spawning, refuses to spawn when an untracked listener holds the port
+  unhealthily, kills a spawned serve that never becomes healthy, and reaps the
+  process on shutdown.
+- **Cleanup on every exit path:** `main()` only terminated mpv on the normal
+  `q` path; an exception mid-loop (or terminal-resize edge cases) left mpv
+  running with audio playing after the TUI died. mpv termination is now in
+  `finally` and guarded so KeyboardInterrupt / exceptions always reap mpv,
+  shut the Enricher down, and unlink the IPC socket.
+
+### Changed
+
+- `render()` extracts the duplicated artist/title/performer/work block and the
+  wiki-link footer conditional into shared helpers (`draw_info`, `draw_help`).
+
+### Added
+
+- `make test` — stdlib `unittest` suite (`test_mradio.py`, 13 cases) covering
+  `extract_json_item()` against malformed LLM output (missing fields, trailing
+  prose, nested braces, markdown fences, escaped quotes) and `split_title()`
+  against real icy-title samples with cp1252 mojibake repair.
+- `make smoke` — runs `mradio --version` / `--help`.
+
 ## [0.7.11] - 2026-08-27
 
 ### Added

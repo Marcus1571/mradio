@@ -10,4 +10,11 @@ check:
 	python3 -m py_compile mradio
 	bash -n install.sh
 
-.PHONY: install uninstall check
+test:
+	python3 test_mradio.py
+
+smoke:
+	python3 mradio --version
+	python3 mradio --help
+
+.PHONY: install uninstall check test smoke
