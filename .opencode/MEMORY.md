@@ -51,16 +51,18 @@
 
 ## Current state
 
-- **Latest version:** `0.7.18` (in-code `VERSION`); unreleased, under `[Unreleased]`
+- **Latest version:** `0.7.21` (in-code `VERSION`); unreleased, under `[Unreleased]`
   in CHANGELOG.
-- **Previous release:** `0.7.17` — a dummy placeholder release (version bump
-  only, no assets) cut so the installed 0.7.16 binary would show the UPDATE
-  pill for validation. Tag `v0.7.17` = commit `dd33cfa`.
-- **0.7.18 work (uncommitted until c.p'd):** `U`-key self-update — downloads
-  the newest release's `mradio` asset, validates (compile + version), backs up
-  to `mradio.old`, atomic `os.replace`; never executes; falls back to browser.
-  `u` keeps opening the release page. Hints now `u:page  U:apply`. 22 unit
-  tests.
+- **Latest release:** `0.7.20` (tag + GitHub Release, assets mradio/install.sh).
+  The U self-update flow was validated live earlier (v0.7.18 → v0.7.19 → apply
+  on restart) and is documented as tested in the 0.7.20 changelog.
+- **0.7.21 work (uncommitted until c.p'd):** `v` key forces a version check
+  without quitting — `force_check(state)` serializes via `_forced_lock` /
+  `_check_lock`, flashes outcome via `_latest["note"]` → `update_msg`
+  ("new version vX — press U" / "up to date (vX)" / "check failed"). Hints now
+  `u:page  U:apply  v:check`. 25 unit tests.
+- **NOTE:** user prefers to update locally themselves via the `U` key
+  (self-update) — do NOT run `install.sh` for them unless asked.
 
 ## Why mpv as the engine
 
@@ -120,6 +122,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `o` | open the verified Wikipedia article |
 | `u` | open the release page when an update is available |
 | `U` | auto-update in place (download validated release asset → restart) |
+| `v` | force a version check now (flashes the result in the AI row) |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
 | `p` | swap dark/light palette (remembered) |
@@ -161,8 +164,11 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   `draw_right` renders version (bottom-right in row h-1) + ` UPDATE ` pill
   (row h-2, pair 10 = black-on-yellow chip) → mouse zone `update_zone` and
   `u` key open it. Startup thread is `update_watcher` (loops forever), NOT
-  single `check_update`. `_latest` = `{"version", "etag", "tag"}`; the tag
-  feeds `apply_update()` which downloads
+  single `check_update`. `_latest` = `{"version", "etag", "tag", "note"}`;
+  `_check_lock` serializes all feed requests; `_forced_lock` guards the `v`-key
+  path (`force_check(state)`), which refreshes `update_msg` with "checking…"
+  then the `_latest["note"]` result. The tag feeds `apply_update()` which
+  downloads
   `https://github.com/{REPO}/releases/download/{tag}/mradio`, validates with
   `compile()` + VERSION parse, backs up to `mradio.old`, `os.replace`s, and
   NEVER executes. `U` = apply (fallback browser on any failure), `u`/click =

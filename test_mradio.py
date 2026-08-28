@@ -183,6 +183,67 @@ class TestReleaseFeed(unittest.TestCase):
         finally:
             _mradio._latest = saved
 
+    def test_force_check_reports_when_busy(self):
+        _old = _mradio._latest
+        _mradio._latest = dict(_old)
+        lock = _mradio._forced_lock
+        self.assertTrue(lock.acquire(blocking=False))
+        try:
+            s = {"update_msg": "", "update_msg_t": 0}
+            _mradio.force_check(s)
+            self.assertIn("already running", s["update_msg"])
+        finally:
+            lock.release()
+            _mradio._latest = _old
+
+    def test_check_update_note_when_current(self):
+        _old = _mradio._latest
+        _mradio._latest = dict(_old)
+        _mradio._latest["etag"] = ""
+        _mradio._latest["note"] = ""
+        saved = _mradio.urllib.request.urlopen
+
+        class _Resp:
+            headers = {"ETag": '"t"'}
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self):
+                return ('<entry><link href="https://github.com/Marcus1571/'
+                        f'mradio/releases/tag/v{_mradio.VERSION}"/></entry>'
+                        ).encode()
+
+        _mradio.urllib.request.urlopen = lambda req, timeout=6: _Resp()
+        try:
+            _mradio.check_update()
+            self.assertIn("up to date", _mradio._latest["note"])
+        finally:
+            _mradio.urllib.request.urlopen = saved
+            _mradio._latest = _old
+
+    def test_check_update_note_newer(self):
+        _old = _mradio._latest
+        _mradio._latest = dict(_old)
+        _mradio._latest["etag"] = ""
+        _mradio._latest["note"] = ""
+        saved = _mradio.urllib.request.urlopen
+
+        class _Resp:
+            headers = {"ETag": '"t"'}
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self):
+                return (b'<entry><link href="https://github.com/Marcus1571/'
+                        b'mradio/releases/tag/v0.9.0"/></entry>')
+
+        _mradio.urllib.request.urlopen = lambda req, timeout=6: _Resp()
+        try:
+            _mradio.check_update()
+            self.assertIn("press U", _mradio._latest["note"])
+            self.assertEqual(_mradio._latest["version"], "0.9.0")
+        finally:
+            _mradio.urllib.request.urlopen = saved
+            _mradio._latest = _old
+
     def test_update_interval_default_hourly(self):
         self.assertEqual(_mradio.UPDATE_INTERVAL, 3600)
 

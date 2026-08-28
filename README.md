@@ -83,6 +83,7 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `o`        | open the verified Wikipedia article      |
 | `u`        | open the release page when an update is available |
 | `U`        | auto-update: download & apply the newest release (restart to finish) |
+| `v`        | force a version check now (flashes the result) |
 | `z`        | expand/collapse the full trivia note: fills the screen with the complete text. Long notes that don't fit the window show a `…` marker instead of being silently cut. Click-to-toggle is **off by default** to keep the terminal text selectable — opt in with `mouse = 1` in `config.json` |
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
 | `p`        | swap color scheme: dark-terminal vs light-terminal palette. Instant, no reload, and remembered for next sessions (your current theme + key appear right after the LIVE pill up top) |
@@ -122,6 +123,10 @@ If `U` can't apply an update (not writable, release lacks the `mradio` asset,
 validation fails, or you're running from a git checkout), mradio shows a short
 status message and opens the release page instead — it never breaks the
 running install.
+
+Between hourly checks (or if you don't want to restart to find out), press
+**`v`** to force a check now — it flashes `new version vX.Y.Z — press U`,
+`up to date (vX.Y.Z)` or `check failed` in the AI row.
 
 ## Usage
 

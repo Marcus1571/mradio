@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`v` key forces an update check** without quitting: runs one background
+  check on demand (serialized if another check is in flight) and flashes the
+  outcome in the AI row — "new version vX.Y.Z — press U", "up to date
+  (vX.Y.Z)", or "check failed".
+
 ## [0.7.20] - 2026-08-28
 
 ### Changed

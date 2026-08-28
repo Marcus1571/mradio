@@ -26,13 +26,15 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.20"
+VERSION = "0.7.21"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
     f"https://github.com/{UPDATE_REPO}/releases/latest"
 UPDATE_INTERVAL = max(60, int(os.environ.get("MRADIO_UPDATE_INTERVAL", "3600")))
-_latest = {"version": None, "etag": "", "tag": None}
+_latest = {"version": None, "etag": "", "tag": None, "note": ""}
+_check_lock = threading.Lock()
+_forced_lock = threading.Lock()
 
 LOG = os.environ.get("MRADIO_LOG",
                      os.path.expanduser("~/.local/share/mradio/mradio.log"))
@@ -323,27 +325,63 @@ def check_update():
     the feed's ETag is sent back (If-None-Match), so an unchanged feed returns
     a cheap 304 that does not count against GitHub's rate limits. GitHub's
     unauthenticated REST limit is 60 req/hr; hourly polling (24/day) plus
-    ETags is ~0 effective requests for a typical week."""
-    try:
-        headers = {"User-Agent": "mradio/" + VERSION}
-        if _latest["etag"]:
-            headers["If-None-Match"] = _latest["etag"]
-        req = urllib.request.Request(
-            f"https://github.com/{UPDATE_REPO}/releases.atom",
-            headers=headers)
-        with urllib.request.urlopen(req, timeout=6) as r:
-            _latest["etag"] = r.headers.get("ETag") or _latest["etag"]
-            body = r.read().decode("utf-8", "replace")
-        _latest["tag"] = latest_release_tag(body)
-        _latest["version"] = latest_release_version(body)
-        log(f"update check: latest={_latest['version']} current={VERSION}")
-    except urllib.error.HTTPError as e:
-        if e.code == 304:
-            log("update check: unchanged (304)")
-        else:
+    ETags is ~0 effective requests for a typical week. On completion
+    _latest["note"] holds a one-line result (shown when `v` is pressed)."""
+    with _check_lock:
+        try:
+            headers = {"User-Agent": "mradio/" + VERSION}
+            if _latest["etag"]:
+                headers["If-None-Match"] = _latest["etag"]
+            req = urllib.request.Request(
+                f"https://github.com/{UPDATE_REPO}/releases.atom",
+                headers=headers)
+            with urllib.request.urlopen(req, timeout=6) as r:
+                _latest["etag"] = r.headers.get("ETag") or _latest["etag"]
+                body = r.read().decode("utf-8", "replace")
+            _latest["tag"] = latest_release_tag(body)
+            _latest["version"] = latest_release_version(body)
+            log(f"update check: latest={_latest['version']} current={VERSION}")
+            v = _latest["version"]
+            if v and ver_key(v) > ver_key(VERSION):
+                _latest["note"] = f"new version v{v} — press U"
+            else:
+                _latest["note"] = f"up to date (v{VERSION})"
+        except urllib.error.HTTPError as e:
+            if e.code == 304:
+                log("update check: unchanged (304)")
+                _latest["note"] = f"up to date (v{VERSION})"
+            else:
+                log(f"update check FAIL: {e}", "WARN")
+                _latest["note"] = "check failed"
+        except Exception as e:
             log(f"update check FAIL: {e}", "WARN")
-    except Exception as e:
-        log(f"update check FAIL: {e}", "WARN")
+            _latest["note"] = "check failed"
+
+
+def force_check(state):
+    """One-off background update check for the `v` key.
+
+    Flashes the result in the AI row via state["update_msg"]. Requests are
+    kept serial (GitHub best practice): if a check is already in flight this
+    only reports that instead of stacking a concurrent one."""
+    if not _forced_lock.acquire(blocking=False):
+        state["update_msg"] = "update check already running…"
+        state["update_msg_t"] = time.time()
+        return
+
+    def run():
+        try:
+            state["update_msg"] = "checking for updates…"
+            state["update_msg_t"] = time.time()
+            check_update()
+            note = _latest.get("note")
+            if note:
+                state["update_msg"] = note
+                state["update_msg_t"] = time.time()
+        finally:
+            _forced_lock.release()
+
+    threading.Thread(target=run, daemon=True).start()
 
 
 def update_watcher():
@@ -1061,7 +1099,7 @@ def render(std, elapsed, s):
         rlim = draw_right(std, s, h, w)
         lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
         if h >= 2 and ai_configured():
-            upd = "   u:page  U:apply" if s.get("update_url") else ""
+            upd = "   u:page  U:apply  v:check" if s.get("update_url") else ""
             line = (f" now:{s.get('ai_provider') or ''}   "
                     f"z:collapse   q:quit   space:pause   r:reconnect{upd}")
             via = "update_msg"
@@ -1118,7 +1156,7 @@ def render(std, elapsed, s):
 
     if h >= 2 and ai_configured():
         prov = s.get("ai_provider") or ""
-        upd = "   u:page  U:apply" if s.get("update_url") else ""
+        upd = "   u:page  U:apply  v:check" if s.get("update_url") else ""
         line = (f" AI: 1=opencode  2=ollama  3=api   now:{prov}   "
                 f"press to re-request{upd}")
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
@@ -1289,6 +1327,8 @@ def main():
                     state["update_msg_t"] = time.time()
                     if not ok:
                         subprocess.Popen(["open", state["update_url"]])
+            elif ch == ord("v"):
+                force_check(state)
             elif ch in (ord("r"), ord("R")):
                 proc.terminate()
                 time.sleep(0.2)
