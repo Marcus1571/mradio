@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.17] - 2026-08-28
+
+### Changed
+
+- **Dummy placeholder release (version bump only, no functional changes).**
+  Released so the in-app `UPDATE` pill can be validated end-to-end against a
+  release newer than the currently installed binary.
+
+## [0.7.16] - 2026-08-28
+
 ### Changed
 
 - **Update check now runs hourly while mradio is open** (the app may stay up
