@@ -1,5 +1,13 @@
 # mradio — project memory
 
+## IMPORTANT RULES BETWEEN US
+
+- **`c.p` means: commit & push.** Whenever the user says `c.p`, do a full
+  `git add` of the relevant files, commit with a clear message, and `git push`
+  to origin — then confirm with the resulting commit hash. Never leave work
+  uncommitted/unpushed after a task; committing AND pushing correctly is
+  critical and has been the source of past mistakes.
+
 > Read this first in every session so we can pick up where we left off.
 > Update it whenever the project state changes significantly.
 
