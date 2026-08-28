@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.18] - 2026-08-28
+
 ### Added
 
 - **Self-update on `U`:** when the `UPDATE` pill is showing, uppercase `U`
