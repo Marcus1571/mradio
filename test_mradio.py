@@ -107,6 +107,46 @@ class TestSplitTitle(unittest.TestCase):
         self.assertEqual(performer, "")
 
 
+class _FakeStd:
+    def __init__(self, h, w):
+        self._h, self._w, self.calls = h, w, []
+    def erase(self): pass
+    def attron(self, *a): pass
+    def attroff(self, *a): pass
+    def refresh(self): pass
+    def getmaxyx(self): return self._h, self._w
+    def addstr(self, y, x, text): self.calls.append((y, x, text))
+
+
+class TestRightFooter(unittest.TestCase):
+    def test_version_bottom_right(self):
+        s = _mradio.make_state()
+        f = _FakeStd(24, 100)
+        _old = _mradio.curses.color_pair
+        _mradio.curses.color_pair = lambda p: p
+        try:
+            _mradio.render(f, 12, s)
+        finally:
+            _mradio.curses.color_pair = _old
+        ver = "v" + _mradio.VERSION
+        matching = [c for c in f.calls if c[2] == ver and c[0] == f._h - 1]
+        self.assertTrue(matching, "version not drawn on the bottom row")
+
+    def test_update_pill_when_newer_release(self):
+        s = _mradio.make_state()
+        s["update_url"] = _mradio.UPDATE_URL
+        f = _FakeStd(24, 100)
+        _old = _mradio.curses.color_pair
+        _mradio.curses.color_pair = lambda p: p
+        try:
+            _mradio.render(f, 12, s)
+        finally:
+            _mradio.curses.color_pair = _old
+        self.assertTrue(any(c[2] == " UPDATE " and c[0] == f._h - 2
+                            for c in f.calls), "UPDATE pill not drawn")
+        self.assertIsNotNone(s.get("update_zone"))
+
+
 class TestReleaseFeed(unittest.TestCase):
     def test_latest_release_version(self):
         body = (
