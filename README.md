@@ -82,6 +82,7 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `r`        | reconnect (revive a dead stream/station) |
 | `o`        | open the verified Wikipedia article      |
 | `u`        | open the release page when an update is available |
+| `U`        | auto-update: download & apply the newest release (restart to finish) |
 | `z`        | expand/collapse the full trivia note: fills the screen with the complete text. Long notes that don't fit the window show a `…` marker instead of being silently cut. Click-to-toggle is **off by default** to keep the terminal text selectable — opt in with `mouse = 1` in `config.json` |
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
 | `p`        | swap color scheme: dark-terminal vs light-terminal palette. Instant, no reload, and remembered for next sessions (your current theme + key appear right after the LIVE pill up top) |
@@ -94,11 +95,15 @@ configured; the enrichment spinner also shows which provider is working
 
 The cornerstone of the right edge of the screen:
 
-- the **current version** is always shown at the bottom-right (e.g. `v0.7.16`);
+- the **current version** is always shown at the bottom-right (e.g. `v0.7.18`);
 - if a newer release exists, a black-on-yellow **`UPDATE`** pill appears right
-  above it. Click it (opt in with `"mouse": 1` in `config.json`) or press **`u`**
-  to open the release page on GitHub and upgrade with the usual
-  `git pull && ./install.sh`.
+  above it. Click it (opt in with `"mouse": 1` in `config.json`), press **`u`**
+  for the release page, or press **`U`** to **auto-update in place**:
+  mradio downloads the newest release's `mradio` asset, validates it (Python
+  syntax + version, requires newer-than-current), backs up the running file to
+  `mradio.old` and swaps it in atomically. The downloaded code is never
+  executed — the update applies on your next restart.
+  Upgrade manually with the usual `git pull && ./install.sh`.
 
 mradio checks the GitHub releases feed hourly (24 requests/day — far under
 GitHub's 60 req/hr anonymous REST limit) in a background daemon thread, and
@@ -112,6 +117,11 @@ a different repo with `MRADIO_REPO` (owner/name) or set `MRADIO_UPDATE_URL`
 Because the app can stay open for days, the check runs once at startup and
 then repeats every hour so a release cut mid-session still lights up the
 pill.
+
+If `U` can't apply an update (not writable, release lacks the `mradio` asset,
+validation fails, or you're running from a git checkout), mradio shows a short
+status message and opens the release page instead — it never breaks the
+running install.
 
 ## Usage
 

@@ -26,13 +26,13 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.17"
+VERSION = "0.7.18"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
     f"https://github.com/{UPDATE_REPO}/releases/latest"
 UPDATE_INTERVAL = max(60, int(os.environ.get("MRADIO_UPDATE_INTERVAL", "3600")))
-_latest = {"version": None, "etag": ""}
+_latest = {"version": None, "etag": "", "tag": None}
 
 LOG = os.environ.get("MRADIO_LOG",
                      os.path.expanduser("~/.local/share/mradio/mradio.log"))
@@ -310,6 +310,11 @@ def latest_release_version(body):
     return tags[0] if tags else None
 
 
+def latest_release_tag(body):
+    tags = re.findall(r"releases/tag/([^\"'<>]+)", body or "")
+    return tags[0].rstrip("/") if tags else None
+
+
 def check_update():
     """Fetch the newest release tag from the GitHub releases atom feed.
 
@@ -329,6 +334,7 @@ def check_update():
         with urllib.request.urlopen(req, timeout=6) as r:
             _latest["etag"] = r.headers.get("ETag") or _latest["etag"]
             body = r.read().decode("utf-8", "replace")
+        _latest["tag"] = latest_release_tag(body)
         _latest["version"] = latest_release_version(body)
         log(f"update check: latest={_latest['version']} current={VERSION}")
     except urllib.error.HTTPError as e:
@@ -345,6 +351,75 @@ def update_watcher():
     while True:
         check_update()
         time.sleep(UPDATE_INTERVAL)
+
+
+def apply_update():
+    """Download the newest release's mradio asset, validate it, back up the
+    running script and atomically swap it in place.
+
+    The downloaded code is NEVER executed — it only replaces the file on disk,
+    so the change takes effect on the next restart. Returns (ok, message). Any
+    web/failure path returns ok=False so the caller can fall back to the
+    release page. A release cut without a mradio asset simply fails this way."""
+    tag = _latest.get("tag")
+    new_ver = _latest.get("version")
+    if not tag or not new_ver or ver_key(new_ver) <= ver_key(VERSION):
+        return False, "no newer release"
+    script = os.path.realpath(__file__)
+    here = os.path.dirname(script)
+    if os.path.isdir(os.path.join(here, ".git")):
+        return False, "running from a source checkout — use git pull"
+    if not os.access(here, os.W_OK):
+        return False, f"{here} is not writable"
+    url = f"https://github.com/{UPDATE_REPO}/releases/download/{tag}/mradio"
+    tmp = script + ".new"
+    try:
+        req = urllib.request.Request(url,
+                                     headers={"User-Agent": "mradio/" + VERSION})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            body = r.read()
+    except Exception as e:
+        log(f"self-update download FAIL: {e}", "WARN")
+        return False, "download failed"
+    if not body:
+        return False, "download was empty"
+    text = body.decode("utf-8", "replace")
+    m = re.search(r'^VERSION\s*=\s*"([^"]+)"', text, re.M)
+    got = m.group(1) if m else ""
+    if not got or ver_key(got) != ver_key(new_ver):
+        return False, f"downloaded version {got or '?'} != {new_ver}"
+    try:
+        compile(text, "mradio self-update", "exec")
+    except SyntaxError as e:
+        return False, f"downloaded file failed syntax check: {e}"
+    try:
+        with open(tmp, "wb") as fh:
+            fh.write(body)
+    except OSError as e:
+        log(f"self-update write FAIL: {e}", "WARN")
+        return False, "cannot write staging file"
+    backup = script + ".old"
+    try:
+        os.replace(script, backup)
+    except OSError as e:
+        log(f"self-update backup FAIL: {e}", "WARN")
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        return False, f"cannot move current file aside: {e}"
+    try:
+        os.replace(tmp, script)
+        os.chmod(script, 0o755)
+    except OSError as e:
+        try:
+            os.replace(backup, script)
+        except OSError:
+            pass
+        log(f"self-update swap FAIL: {e}", "WARN")
+        return False, f"swap failed: {e}"
+    log(f"self-update: {VERSION} -> {new_ver} (asset {tag})")
+    return True, f"updated to v{new_ver} — restart mradio to apply"
 
 
 def extract_json_item(raw):
@@ -418,6 +493,7 @@ def make_state():
             "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
             "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None,
             "update_url": "", "update_zone": None,
+            "update_msg": "", "update_msg_t": 0,
             "station": "", "station_resolved": False}
 
 
@@ -985,10 +1061,13 @@ def render(std, elapsed, s):
         rlim = draw_right(std, s, h, w)
         lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
         if h >= 2 and ai_configured():
-            upd = "   u:update" if s.get("update_url") else ""
-            add(std, h - 2, 1,
-                (f" now:{s.get('ai_provider') or ''}   "
-                 f"z:collapse   q:quit   space:pause   r:reconnect{upd}")[:lw], 3)
+            upd = "   u:page  U:apply" if s.get("update_url") else ""
+            line = (f" now:{s.get('ai_provider') or ''}   "
+                    f"z:collapse   q:quit   space:pause   r:reconnect{upd}")
+            via = "update_msg"
+            if s.get(via) and time.time() - (s.get(via + "_t") or 0) < 6:
+                line = s[via]
+            add(std, h - 2, 1, line[:lw], 3)
         if h >= 1:
             draw_help(std, s, h - 1, lw,
                       " z:collapse   q:quit   space:pause   r:reconnect")
@@ -1039,10 +1118,12 @@ def render(std, elapsed, s):
 
     if h >= 2 and ai_configured():
         prov = s.get("ai_provider") or ""
-        upd = "   u:update" if s.get("update_url") else ""
-        add(std, h - 2, 1,
-            (f" AI: 1=opencode  2=ollama  3=api   now:{prov}   "
-             f"press to re-request{upd}")[:lw], 3)
+        upd = "   u:page  U:apply" if s.get("update_url") else ""
+        line = (f" AI: 1=opencode  2=ollama  3=api   now:{prov}   "
+                f"press to re-request{upd}")
+        if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
+            line = s["update_msg"]
+        add(std, h - 2, 1, line[:lw], 3)
 
     if h >= 1:
         draw_help(std, s, h - 1, lw,
@@ -1198,9 +1279,16 @@ def main():
             elif ch in (ord("o"), ord("O")):
                 if state["wiki_url"]:
                     subprocess.Popen(["open", state["wiki_url"]])
-            elif ch in (ord("u"), ord("U")):
+            elif ch == ord("u"):
                 if state.get("update_url"):
                     subprocess.Popen(["open", state["update_url"]])
+            elif ch == ord("U"):
+                if state.get("update_url"):
+                    ok, msg = apply_update()
+                    state["update_msg"] = msg
+                    state["update_msg_t"] = time.time()
+                    if not ok:
+                        subprocess.Popen(["open", state["update_url"]])
             elif ch in (ord("r"), ord("R")):
                 proc.terminate()
                 time.sleep(0.2)

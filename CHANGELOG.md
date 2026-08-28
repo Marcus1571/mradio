@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Self-update on `U`:** when the `UPDATE` pill is showing, uppercase `U`
+  downloads the newest release's `mradio` asset, validates it (Python syntax
+  check + version parse, must be newer than the running version), backs up the
+  running file to `mradio.old` and atomically swaps it in place. The
+  downloaded code is never executed — the new file runs on the next restart. A
+  short status message replaces the AI row for a few seconds. `u` still opens
+  the release page; any failure (unwritable dir, release without the asset,
+  git-checkout run, validation error) falls back to opening the release page.
+
 ## [0.7.17] - 2026-08-28
 
 ### Changed

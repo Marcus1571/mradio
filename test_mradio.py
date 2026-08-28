@@ -19,6 +19,7 @@ _loader.exec_module(_mradio)
 extract_json_item = _mradio.extract_json_item
 split_title = _mradio.split_title
 latest_release_version = _mradio.latest_release_version
+latest_release_tag = _mradio.latest_release_tag
 ver_key = _mradio.ver_key
 
 
@@ -165,6 +166,22 @@ class TestReleaseFeed(unittest.TestCase):
         self.assertEqual(ver_key("0.7.15-beta"), [0, 7, 15])
         self.assertGreater(ver_key("0.7.15"), ver_key("0.7.14"))
         self.assertLess(ver_key("0.7.2"), ver_key("0.7.10"))
+
+    def test_latest_release_tag(self):
+        body = (
+            '<entry><link href="https://github.com/Marcus1571/mradio/'
+            'releases/tag/v0.7.17"/></entry>'
+        )
+        self.assertEqual(latest_release_tag(body), "v0.7.17")
+
+    def test_apply_update_no_newer_release(self):
+        saved = dict(_mradio._latest)
+        _mradio._latest = {"version": "0.7.16", "etag": "", "tag": None}
+        try:
+            ok, _ = _mradio.apply_update()
+            self.assertFalse(ok)
+        finally:
+            _mradio._latest = saved
 
     def test_update_interval_default_hourly(self):
         self.assertEqual(_mradio.UPDATE_INTERVAL, 3600)

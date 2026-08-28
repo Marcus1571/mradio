@@ -51,16 +51,16 @@
 
 ## Current state
 
-- **Latest version:** `0.7.16` (in-code `VERSION`); unreleased, under `[Unreleased]`
+- **Latest version:** `0.7.18` (in-code `VERSION`); unreleased, under `[Unreleased]`
   in CHANGELOG.
-- **Previous release:** `0.7.15` (tag + GitHub Release pushed).
-- **0.7.16 work (uncommitted until c.p'd):** hourly update check via
-  `update_watcher()` daemon thread — checks immediately then every
-  `UPDATE_INTERVAL` (60 s min, default 3600, env `MRADIO_UPDATE_INTERVAL`).
-  Conditional requests: sends `_latest["etag"]` as `If-None-Match`; `304` keeps
-  the previous result and costs nothing against GitHub's 60 req/hr anonymous
-  limit. `UPDATE` pill restyled to black-on-yellow (pair 10). 20 unit tests.
-- **Open decision:** none pending.
+- **Previous release:** `0.7.17` — a dummy placeholder release (version bump
+  only, no assets) cut so the installed 0.7.16 binary would show the UPDATE
+  pill for validation. Tag `v0.7.17` = commit `dd33cfa`.
+- **0.7.18 work (uncommitted until c.p'd):** `U`-key self-update — downloads
+  the newest release's `mradio` asset, validates (compile + version), backs up
+  to `mradio.old`, atomic `os.replace`; never executes; falls back to browser.
+  `u` keeps opening the release page. Hints now `u:page  U:apply`. 22 unit
+  tests.
 
 ## Why mpv as the engine
 
@@ -119,6 +119,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `r` | reconnect (revive dead stream/station) |
 | `o` | open the verified Wikipedia article |
 | `u` | open the release page when an update is available |
+| `U` | auto-update in place (download validated release asset → restart) |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
 | `p` | swap dark/light palette (remembered) |
@@ -160,7 +161,13 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   `draw_right` renders version (bottom-right in row h-1) + ` UPDATE ` pill
   (row h-2, pair 10 = black-on-yellow chip) → mouse zone `update_zone` and
   `u` key open it. Startup thread is `update_watcher` (loops forever), NOT
-  single `check_update`.
+  single `check_update`. `_latest` = `{"version", "etag", "tag"}`; the tag
+  feeds `apply_update()` which downloads
+  `https://github.com/{REPO}/releases/download/{tag}/mradio`, validates with
+  `compile()` + VERSION parse, backs up to `mradio.old`, `os.replace`s, and
+  NEVER executes. `U` = apply (fallback browser on any failure), `u`/click =
+  browser only. Hints: `u:page  U:apply`. Running from a git checkout refuses
+  ("use git pull").
 - Default model: `gemma3:4b`; default API base: `https://api.openai.com/v1`;
   default API model: `gpt-4o-mini`.
 - Ollama telemetry reported (`eval=… rate=… tok/s`); low `rate` + idle GPU ⇒
