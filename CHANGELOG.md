@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.15] - 2026-08-28
+
 ### Added
 
 - **In-app update check (report-only):** on startup mradio makes one lightweight
