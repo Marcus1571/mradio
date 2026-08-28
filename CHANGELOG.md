@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.19] - 2026-08-28
+
+### Changed
+
+- **Placeholder release (version bump only — no functional changes).** Cut so
+  the `U` self-update path can be validated end-to-end from the running
+  v0.7.18 install: the newer release appears in the pill, its `mradio` asset
+  downloads, validates and atomically replaces the binary on restart.
+
 ## [0.7.18] - 2026-08-28
 
 ### Added
