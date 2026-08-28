@@ -16,6 +16,12 @@
       (assets = `mradio` + `install.sh`, notes = the CHANGELOG section body);
    5. **verify** with `gh release list | head` that the new version is marked
       `Latest` — do not report "released" until this confirms.
+3. **After changing `mradio` code on this machine, also install it** so the
+   running copy matches the source: `./install.sh` then confirm
+   `mradio --version`. The TUI's bottom-right version reflects the INSTALLED
+   binary, not the src tree — if a feature seems missing, the installed copy is
+   stale. Quit + reopen mradio to pick up a reinstall (running instances keep
+   their in-memory copy).
 3. Every release the user asks for must be **pushed to origin, then created as
    a GitHub Release with the two assets**, and confirmed `Latest`. If only a
    tag was pushed, say so and finish the job — do not declare success.
