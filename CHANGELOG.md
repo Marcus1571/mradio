@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.33] - 2026-08-29
+
+### Fixed
+
+- **`v` flashes its result again** even without AI configured — the check
+  status now shows in the always-present footer mid row, not only on the
+  AI-only row.
+
+### Added
+
+- **`k` / `K` opens the knowledge base in your browser** (player screen; shown
+  as `k:kb` in the footer mid row). Points at the repo's `KB.md`, fork-aware.
+- **README install section now points to the KB**, which gained full
+  step-by-step install recipes: macOS (Homebrew → mpv → mradio), Debian/
+  Ubuntu/Mint (apt), Fedora (dnf), Arch/Manjaro/EndeavourOS (pacman), and
+  WSL — plus `PATH` setup and verification steps.
+- **Repo hygiene:** releases now push `main` too, so the repo always reflects
+  the latest release (not just the tag).
+
 ## [0.7.32] - 2026-08-29
 
 ### Added

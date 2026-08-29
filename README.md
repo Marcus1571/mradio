@@ -63,10 +63,17 @@ any modern Unix-like system with Python and mpv installed:
 
 ## Install
 
+The full distro-by-distro guide (macOS/Homebrew step-by-step, Debian/Ubuntu,
+Fedora, Arch/Manjaro, plus WSL) lives in the
+[**Knowledge Base §2 — Requirements & install**](KB.md#2-requirements--install).
+
+Quick path (any OS that already has `python3` + `mpv`):
+
 ```sh
-git clone https://github.com/<you>/mradio.git
+git clone https://github.com/Marcus1571/mradio.git
 cd mradio
-./install.sh        # copies mradio to ~/.local/bin
+./install.sh        # copies mradio to ~/.local/bin — no root needed
+mradio --version
 ```
 
 or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
@@ -89,6 +96,7 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
 | `p`        | rotate color schemes live (no reload, remembered): `dark` → `light` → `light-navy` → `light-mauve`. Catppuccin-inspired on 256-color terminals, classic ANSI otherwise. `light-navy` pairs a bold navy title with a cinnamon-brown performer; `light-mauve` goes royal-blue + tan. The active scheme shows right after the LIVE pill up top |
 | `f`        | open your **favorites** menu (numbered list backed by `~/.local/share/mradio/stations.json`; `1-9`,`0` quick-pick — main row or numeric pad — arrows/Enter, `q`/`Esc` back) |
+| `k`        | open the project knowledge base ([KB.md](KB.md)) in your browser |
 | `s`        | open the **all-stations** list (labels `S01…Snn`; arrows/Enter to choose, `a` copies the row into your favorites). Bare launch without a stream URL opens `f` first |
 
 A second help line near the bottom shows the current AI provider whenever AI is

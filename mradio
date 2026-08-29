@@ -3,7 +3,7 @@
 
 Usage: mradio [stream-url] [station-name]       play (defaults to VCR1)
        mradio --version | --help | --settings
-Keys: q quit · space pause · + / - volume · m mute · r reconnect · o open article · s all stations · f favorites
+Keys: q quit · space pause · + / - volume · m mute · r reconnect · o open article · s all stations · f favorites · k KB
       z expand/collapse the full trivia text · 1/2/3 pick AI provider
       p toggle dark/light palette
 Config: self-contained in ~/.local/share/mradio/ (settings.json, config.json,
@@ -26,11 +26,12 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.32"
+VERSION = "0.7.33"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
     f"https://github.com/{UPDATE_REPO}/releases/latest"
+KB_URL = f"https://github.com/{UPDATE_REPO}/blob/main/KB.md"
 UPDATE_INTERVAL = max(60, int(os.environ.get("MRADIO_UPDATE_INTERVAL", "3600")))
 _latest = {"version": None, "etag": "", "tag": None, "note": ""}
 _check_lock = threading.Lock()
@@ -1266,10 +1267,12 @@ def render(std, elapsed, s):
                 line = s["update_msg"]
             add(std, h - 3, 1, line[:lw], 3)
         if h >= 2:
-            add(std, h - 2, 1,
-                (f" f:favorites   s:all   v:check" +
-                 ("   u:page   U:apply" if s.get("update_url") else ""))[:lw],
-                5, curses.A_DIM)
+            if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
+                mid = f" {s['update_msg']}"
+            else:
+                mid = (f" f:favorites   s:all   k:kb   v:check" +
+                       ("   u:page   U:apply" if s.get("update_url") else ""))
+            add(std, h - 2, 1, mid[:lw], 5, curses.A_DIM)
         if h >= 1:
             draw_help(std, s, h - 1, lw,
                       " q:quit   space:pause   + / -:volume   m:mute   r:reconnect")
@@ -1319,10 +1322,12 @@ def render(std, elapsed, s):
     lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
 
     if h >= 2:
-        add(std, h - 2, 1,
-            (f" f:favorites   s:all   v:check" +
-             ("   u:page   U:apply" if s.get("update_url") else ""))[:lw],
-            5, curses.A_DIM)
+        if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
+            mid = f" {s['update_msg']}"
+        else:
+            mid = (f" f:favorites   s:all   k:kb   v:check" +
+                   ("   u:page   U:apply" if s.get("update_url") else ""))
+        add(std, h - 2, 1, mid[:lw], 5, curses.A_DIM)
 
     if h >= 3 and ai_configured():
         prov = s.get("ai_provider") or ""
@@ -1670,6 +1675,8 @@ def main():
                         subprocess.Popen(["open", state["update_url"]])
             elif ch == ord("v"):
                 force_check(state)
+            elif ch in (ord("k"), ord("K")):
+                subprocess.Popen(["open", KB_URL])
             elif ch == ord("s"):
                 menu = "all"
             elif ch == ord("f"):

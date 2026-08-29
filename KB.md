@@ -47,16 +47,125 @@ are no pip dependencies: `python3` + `mpv` are all it needs.
 
 ## 2. Requirements & install
 
+### Requirements
+
 | Requirement | Notes |
 | ----------- | ----- |
 | **python3** | 3.8+; stdlib only, no pip packages |
-| **mpv**     | `brew install mpv` (macOS), `apt install mpv`, `dnf install mpv`, `pacman -S mpv`, … |
+| **mpv**     | the audio engine — the only real dependency |
+| **git**     | needed for the clone-and-install path (the prebuilt `install.sh`) |
 
 | OS     | Status |
 | ------ | ------ |
 | macOS  | ✅ fully tested |
 | Linux  | ✅ any distro with `python3` + `mpv` |
 | Windows | ❌ no native support (official Python lacks `curses`) — use **WSL** |
+
+mradio installs to **`~/.local/bin`** with **no root** needed (via `install.sh`),
+or to a system prefix with `make install` / `sudo install`. Every step below
+ends with the same three verification commands:
+
+```sh
+mradio --version            # prints mradio <version>
+mradio --help               # prints the key map
+mradio                      # opens your favorites menu
+```
+
+You need `~/.local/bin` on your `PATH`. If `mradio` isn't found after install,
+add this to `~/.zshrc` (zsh) or `~/.bashrc` (bash):
+
+```sh
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### macOS (Homebrew)
+
+1. **Install Homebrew** (if you don't have it — check with `brew --version`):
+
+   ```sh
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+   After installation, make sure `brew` is on your `PATH` — Apple Silicon:
+   `eval "$(/opt/homebrew/bin/brew shellenv)"` (Intel: `/usr/local/bin/brew`).
+   The installer's own output tells you the exact command to paste.
+
+2. **Install mpv**:
+
+   ```sh
+   brew install mpv
+   ```
+
+3. **Install mradio**:
+
+   ```sh
+   git clone https://github.com/Marcus1571/mradio.git
+   cd mradio
+   ./install.sh
+   ```
+
+4. **Verify** with the three commands above, then `mradio` to browse stations.
+
+> Upgrading later: press **`U`** inside mradio to self-update, or
+> `git pull && ./install.sh`.
+
+### Linux
+
+Python 3 ships with essentially every distro; you only need to install **mpv**
+and then mradio. Pick your branch:
+
+#### Debian / Ubuntu / Linux Mint (apt line)
+
+1. **Install mpv** (and python3, if somehow missing):
+
+   ```sh
+   sudo apt update
+   sudo apt install -y mpv python3
+   ```
+
+2. **Install mradio**:
+
+   ```sh
+   git clone https://github.com/Marcus1571/mradio.git
+   cd mradio
+   ./install.sh
+   ```
+
+#### Fedora (dnf line)
+
+1. **Install mpv**:
+
+   ```sh
+   sudo dnf install -y mpv python3
+   ```
+
+2. **Install mradio** (clone, then `./install.sh`, as above).
+
+#### Arch / Manjaro / EndeavourOS (pacman line)
+
+1. **Install mpv**:
+
+   ```sh
+   sudo pacman -S --noconfirm mpv python
+   ```
+
+2. **Install mradio** (clone, then `./install.sh`, as above).
+
+### Windows → WSL
+
+The official Windows Python build has no `curses`, so mradio runs under
+**WSL** instead. `wsl --install` (or your distro of choice), then follow the
+**Debian/Ubuntu** branch above inside the WSL terminal.
+
+### Alternative installs (any OS)
+
+```sh
+make install                                   # copies to ~/.local/bin
+sudo make install                              # system-wide
+sudo install -m755 mradio /usr/local/bin/mradio
+# or run it straight from the checkout:
+./mradio
+```
 
 Install:
 
@@ -120,7 +229,8 @@ Top to bottom, on the player screen:
     re-request hint, and `z:expand`/`z:collapse` (z toggles the trivia note —
     it belongs to the AI row because it expands AI output).
   - **row 2 (mid, dark grey)** — `f:favorites`, `s:all` (open the two station
-    menus), `v:check` (force an update check); when an update exists this row
+    menus), `k:kb` (open this knowledge base in your browser), `v:check`
+    (force an update check); when an update exists this row
     also gains `u:page` and `U:apply`. The black-on-yellow **`UPDATE`** pill
     sits at its right edge.
   - **row 3 (bottom)** — transport keys `q`, `space`, `+/−`, `m`, `r`; the
@@ -142,7 +252,8 @@ Top to bottom, on the player screen:
 | `z` / `Z`   | expand/collapse the full trivia note (fills the screen); no note = toggles detail view |
 | `p` / `P`   | rotate color theme (`p`); choice is remembered in `config.json` |
 | `1` `2` `3` | pick AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice **and** re-requests the current track immediately — even if a cached note exists |
-| `v`         | force a version check now; result flashes in the AI row |
+| `v`         | force a version check now; result flashes in the footer's mid row (works with or without AI configured) |
+| `k` / `K`   | open the project knowledge base (KB.md) in your browser — this is the manual you're reading |
 | `u`         | when an update is available: open the release page |
 | `U`         | when an update is available: auto-update in place (applies on next restart) |
 | `f`         | open the **favorites** menu |

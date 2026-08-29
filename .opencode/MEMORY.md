@@ -154,7 +154,8 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `o` | open the verified Wikipedia article |
 | `u` | open the release page when an update is available |
 | `U` | auto-update in place (download validated release asset → restart) |
-| `v` | force a version check now (flashes the result in the AI row) |
+| ``v`` | force a version check now (flashes the result in the footer mid row) |
+| `k`/`K` | open KB.md in the browser (player screen; `k` = cursor-up inside station menus) |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
 | `f` | open your favorites (`1-9`,`0` quick-pick, pads work too; `~/.local/share/mradio/stations.json`) |
