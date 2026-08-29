@@ -171,7 +171,7 @@ def render_pick(std, theme, cur, msg, msg_t):
     else:
         add(std, h - 2, 1, " pick a number — returns to the player", 3)
     add(std, h - 1, 1,
-        (" s/Esc:back  ↑/↓:move  Enter:pick  1-9:pick  p:scheme")
+        (" q/Esc:back  ↑/↓:move  Enter:pick  1-9:pick  p:scheme")
         [:max(8, w - len(right) - 6)], 6)
 
 
