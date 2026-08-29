@@ -7,6 +7,13 @@
   to origin — then confirm with the resulting commit hash. Never leave work
   uncommitted/unpushed after a task; committing AND pushing correctly is
   critical and has been the source of past mistakes.
+- **DOCS MUST STAY IN SYNC (my responsibility):** whenever a bug is corrected
+  or a feature is added, altered or removed, it is MY job to reflect that in
+  **README.md** and — above all — in **KB.md**, inside the same change/commit,
+  never as an afterthought or a later "oops". README = short appetizer
+  (details point to the KB); KB.md = the complete, single source of truth.
+  If a release ships a behavior change, the docs for it ship in the same
+  release.
 
 > Read this first in every session so we can pick up where we left off.
 > Update it whenever the project state changes significantly.
@@ -43,7 +50,7 @@
 **mpv** as its audio engine over an IPC socket, plus optional **AI enrichment**
 (trivia note / Work line / verified Wikipedia link) for the now-playing track.
 
-- Single self-contained file: `./mradio` (~1058 lines), Python 3.8+, **stdlib
+- Single self-contained file: `./mradio` (~1790 lines), Python 3.8+, **stdlib
   only, no pip dependencies**.
 - Repo: `git@github.com:Marcus1571/mradio.git` (user: `Marcus1571`).
 - No local demo branch conventions — trivial `main` history, semantic-version
@@ -51,39 +58,44 @@
 
 ## Current state
 
-- **Latest version:** `0.7.24` (in-code `VERSION`; released tag + GitHub
-  Release with assets, `Latest`).
+- **Latest version / release:** `0.7.40` (in-code `VERSION`, released tag +
+  GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
+  `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
   (256-color Catppuccin-inspired, ANSI fallback; pair 5 = muted subtext).
-- **Sub-project — station presets:** see `.opencode/stationsproject.md` for
-  the living candidate/approved station list. **The user personally approves
-  each station; the assistant must NEVER add stations to the file on its own
-  initiative.** Approved: `WQXR`, `Radio Swiss Classic` (label "Swiss Classic
-  I" — Italian feed). Shipped in releases: station menu (0.7.25), reordered
-  defaults + honest help (0.7.26), picker `v`/`u`/`U` keys (0.7.27),
-  favorites vs all-stations split (0.7.28): `f` = your numbered list from
-  `~/.local/share/mradio/stations.json` (key `"favorites"`, seeded once from
-  `DEFAULT_STATIONS`, releases never touch it), `s` = the curated `S01…Snn`
-  list (grows per release, `a` adds a row to favorites), bare launch opens
-  `f`. **On `main`, unreleased (next = 0.7.29):** favorites go up to 10
-  (`1-9` then `0`); numeric-pad digits (terminal-sent `Esc`-prefixed
-  sequences) resolve to the same hot-picks as the main number row.
-  Legacy `config.json` → `"stations"` migrated on first run;
-  `MRADIO_STATIONS` overrides the path.
-- **Docs:** `README.md` = quick start; **`KB.md`** = the full reference manual
-  (every key, menu, config/`stations.json`, env vars, update flow, AI
-  enrichment, troubleshooting, privacy) — keep in sync when features change;
-  `CHANGELOG.md` = release history.
-- **Latest release:** `0.7.28` (tag + GitHub Release, assets mradio/install.sh,
-  `Latest`). The U self-update flow was validated live earlier (v0.7.18 →
-  v0.7.19 → apply on restart).
-- **0.7.21 work (uncommitted until c.p'd):** `v` key forces a version check
-  without quitting — `force_check(state)` serializes via `_forced_lock` /
-  `_check_lock`, flashes outcome via `_latest["note"]` → `update_msg`
-  ("new version vX — press U" / "up to date (vX)" / "check failed"). Hints now
-  `u:page  U:apply  v:check`. 25 unit tests.
-- **NOTE:** user prefers to update locally themselves via the `U` key
-  (self-update) — do NOT run `install.sh` for them unless asked.
+- **Station model (0.7.28+):** two deliberate lists.
+  - **Favorites** (`f`): user's list in
+    `~/.local/share/mradio/stations.json` (key `"favorites"`), max **10** hot
+    slots (`1-9` + `0`; numpad digits resolve via `_follow_esc`). Seeded once,
+    on first run, from the **first 10** of `DEFAULT_STATIONS`; legacy
+    `config.json` `"stations"` migrated once (trimmed to 10). Releases never
+    touch it. `a` (in the `s` menu) adds a row but refuses when full ("favorites
+    full"). `MRADIO_STATIONS` overrides the path.
+  - **All stations** (`s`): the curated `S01…Snn` list shipped in the code
+    (`DEFAULT_STATIONS`, currently 12) — this is how the project pushes new
+    stations without overriding the user's list.
+  - **Names:** both lists now use the real broadcast names (icy): `VCR
+    Auditorium | Venice Classic Radio Italia`, `VCR Classica+ | Venice Classic
+    Radio Italia`, `NPO Klassiek`. At runtime an icy-name also overrides the
+    JSON label (label is only a fallback; the v0.7.34 fix).
+- **Footer (0.7.30+):** 3 rows — h-3 AI (`z:expand`), h-2 dark-grey mid
+  (`f:favorites s:all k:kb v:check`; update pill + `u:page U:apply` there; the
+  `v` check result flashes here, works without AI), h-1 transport + version.
+- **Docs:** `README.md` = short marketing appetite (tagline, screenshots,
+  every paragraph links to the KB); **`KB.md`** = the complete reference
+  (keys, menus, install recipes per distro incl. Omarchy, stations, config,
+  env vars, updates, AI, FAQ) — **single source of truth; keep in sync every
+  change** (see the DOCS rule above). `CHANGELOG.md` = release history.
+  `screenshots/` = REAL captures of the running app (not mocks — the mock
+  renderer was deleted so nothing overwrites them).
+- **Update flow:** `update_watcher()` daemon thread checks at every startup
+  (one immediate ETag check, then hourly). `U` self-updates in place; user
+  prefers to run `U` themselves — never run `install.sh` for them unless asked.
+  `v` forces a check mid-session.
+- **AI enrichment:** Enricher thread, provider order opencode → ollama → API
+  (`1/2/3` live-switch), cache keyed per track+provider, verified Wikipedia
+  links. Defaults: model `gemma3:4b`; API base `https://api.openai.com/v1`
+  (`MRADIO_API_BASE`), default `gpt-4o-mini`.
 
 ## Why mpv as the engine
 
@@ -158,7 +170,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `k`/`K` | open KB.md in the browser (player screen; `k` = cursor-up inside station menus) |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
-| `f` | open your favorites (`1-9`,`0` quick-pick, pads work too; `~/.local/share/mradio/stations.json`) |
+| `f` | open your favorites (`1-9`,`0` quick-pick — max **10**, pads work too; `~/.local/share/mradio/stations.json`) |
 | `s` | open the all-stations list (`S01…Snn`; `a` adds the row to favorites) |
 | `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
 
@@ -178,10 +190,36 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   terminal text selection works; opt in with `"mouse": 1`.
 - **0.7.13** — station name from stream's own icy-name metadata (instead of CDN
   host); optional second arg `<url> "<name>"` to override.
-- **0.7.14** *(unreleased)* — thread-safety lock for all Enricher shared state;
-  `urljoin` endpoint building; opencode pidfile + port-probe zombie prevention;
+- **0.7.14** — thread-safety lock for all Enricher shared state; `urljoin`
+  endpoint building; opencode pidfile + port-probe zombie prevention;
   guaranteed mpv/Enricher/socket cleanup on every exit path; render() dedup
   helpers; `make test` / `make smoke` / `test_mradio.py` (13 unit tests).
+- **0.7.25** — station menu/picker (pick your stream at startup).
+- **0.7.26** — reordered default stations + honest help line.
+- **0.7.27** — picker keys `v`/`u`/`U`.
+- **0.7.28** — **favorites vs all-stations split**: `f` = your `stations.json`
+  list (seeded once, never touched again), `s` = curated `S01…Snn` (`a` adds
+  a row), bare launch opens favorites, legacy `config.json` migration,
+  `MRADIO_STATIONS`.
+- **0.7.29** — favorites up to 10 (`1-9` then `0`); numpad digits resolve to
+  the hot-picks (`_follow_esc`).
+- **0.7.30** — 3-row footer (AI / mid + update pill / transport); help cleanup.
+- **0.7.31** — mid row dark-grey (pair 5 + A_DIM); `z:expand` on the AI row;
+  `f`/`s`/`v` on the mid row.
+- **0.7.32** — **KB.md** created (full reference manual), linked from README.
+- **0.7.33** — `k`/`K` opens KB in browser; `v` flash moved to the always-
+  present mid row (works without AI); README install → points to rich KB
+  install recipes; releases push `main` too.
+- **0.7.34** — **icy-name wins again**: preset picks no longer lock the label,
+  the stream's broadcast name replaces the short JSON name.
+- **0.7.35/36** — README becomes a marketing piece with screenshots (initial
+  mock renders, then CoreText attempts, then…).
+- **0.7.38** — **real screenshots** of the running app replace the generated
+  mocks (`screenshots/*.png`); mock renderer deleted.
+- **0.7.39** — all-stations (`DEFAULT_STATIONS`) names updated to the real
+  broadcast names (matches favorites).
+- **0.7.40** — **favorites capped at 10** everywhere: seed `[:10]`, migration
+  trimmed, `a` refuses when full, menu renders only the 10 hot rows.
 
 ## Env vars (optional overrides; settings.json is the source of truth)
 
@@ -239,7 +277,6 @@ make smoke   # mradio --version / --help
 
 ## Open questions / possible next steps
 
-- 0.7.14 fixes are uncommitted; when the user wants, commit + tag `v0.7.14`
-  + push (only when asked).
-- `.opencode/MEMORY.md` and `.opencode/` are untracked — decide whether to
-  commit them (recommended) or keep them local.
+- Nothing outstanding. `.opencode/MEMORY.md` + `.opencode/stationsproject.md`
+  are tracked in the repo. House rule: keep both, plus README and KB.md, in
+  sync with every change (see the DOCS rule at the top).
