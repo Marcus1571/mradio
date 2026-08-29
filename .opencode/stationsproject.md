@@ -56,7 +56,9 @@ does not add stations on its own initiative.
   `~/.local/share/mradio/stations.json` (key `"favorites"`, opened by `f`),
   seeded once from `DEFAULT_STATIONS` on first run; afterwards the file is
   entirely the user's (releases never touch it). `a` inside the `s` menu
-  copies a row into favorites. `MRADIO_STATIONS` overrides the path; a legacy
+  copies a row into favorites. Favorite hot-keys are `1-9` then **`0`** (10th);
+  the numeric keypad behaves like the main number row. `MRADIO_STATIONS`
+  overrides the path; a legacy
   `config.json` → `"stations"` list is migrated on first run.
 - Most picks are **public-service or non-profit** → no commercial ad breaks
   (Classic FM is the exception: commercial, with ad breaks; Naim is a brand

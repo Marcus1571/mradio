@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.28"
+VERSION = "0.7.29"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -250,6 +250,38 @@ def persist_cfg(provider=None, theme=None, volume=None):
         os.replace(tmp, CFG_FILE)
     except Exception as e:
         log(f"config persist FAIL: {e}", "WARN")
+
+
+def fav_index(ch):
+    """Map a digit key ('1'-'9' or '0') to a favorites index; 0 = #10."""
+    if ord("1") <= ch <= ord("9"):
+        return ch - ord("1")
+    if ch == ord("0"):
+        return 9
+    return None
+
+
+def _follow_esc(std):
+    """Resolve an `Esc` that may start an application-keypad sequence so the
+    numeric pad behaves like the main number row (digits '1'-'9','0', pad
+    Enter). A bare `Esc` (nothing follows) stays `27`; unknown sequences are
+    ignored (-1)."""
+    std.nodelay(True)
+    try:
+        time.sleep(0.03)
+        nxt = std.getch()
+        if nxt == -1:
+            return 27
+        if nxt in (ord("O"), ord("[")):
+            d = std.getch()
+            if d != -1 and nxt == ord("O") and ord("0") <= d <= ord("9"):
+                return d
+            if d == ord("M") and nxt == ord("O"):
+                return 13
+            return -1
+        return -1
+    finally:
+        std.nodelay(False)
 
 
 def load_favorites():
@@ -1332,7 +1364,7 @@ def render_menu(std, s, mode, cur):
             break
         if i == cur:
             add(std, y, 1, "▶", 2, curses.A_BOLD)
-        tag = f"S{i + 1:02d}" if mode == "all" else f"{i + 1}"
+        tag = f"S{i + 1:02d}" if mode == "all" else (f"{i + 1}" if i < 9 else "0")
         add(std, y, 4, tag, 1)
         name = (ent.get("name") or "?").strip()
         nlim = max(1, w - 26)
@@ -1356,7 +1388,7 @@ def render_menu(std, s, mode, cur):
         add(std, h - 2, 1, line[:lw], 3)
     if h >= 1:
         if mode == "fav":
-            help_txt = "1-9:pick  ↑/↓:move  q/Esc:back  s:all  v:check"
+            help_txt = "1-9,0:pick  ↑/↓:move  q/Esc:back  s:all  v:check"
         else:
             help_txt = "Enter:pick  a:fav  f:my  ↑/↓:move  s:all  q/Esc:back  v:check"
         add(std, h - 1, 1, help_txt[:lw], 6)
@@ -1477,6 +1509,8 @@ def main():
                        else state["all_stations"])
                 render_menu(stdscr, state, menu, min(cur_st, max(0, len(lst) - 1)))
                 ch = stdscr.getch()
+                if ch == 27:
+                    ch = _follow_esc(stdscr)
                 if ch == curses.KEY_RESIZE:
                     continue
                 if ch in (ord("q"), 27):
@@ -1529,11 +1563,11 @@ def main():
                     if cur_st < len(lst):
                         switch_stream(lst[cur_st])
                         menu = None
-                elif menu == "fav" and ord("1") <= ch <= ord("9"):
-                    i = ch - ord("1")
-                    if i < len(lst):
-                        cur_st = i
-                        switch_stream(lst[i])
+                elif menu == "fav":
+                    idx = fav_index(ch)
+                    if idx is not None and idx < len(lst):
+                        cur_st = idx
+                        switch_stream(lst[idx])
                         menu = None
                 continue
             if _latest["version"] and \

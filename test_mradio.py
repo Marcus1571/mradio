@@ -317,6 +317,16 @@ class TestStations(unittest.TestCase):
             host = ent["url"].split("/")[2]
             self.assertIn(".", host)
 
+    def test_fav_index_main_row(self):
+        for d in range(1, 10):
+            self.assertEqual(_mradio.fav_index(ord(str(d))), d - 1)
+        self.assertEqual(_mradio.fav_index(ord("0")), 9)
+
+    def test_fav_index_rejects_others(self):
+        self.assertIsNone(_mradio.fav_index(ord("a")))
+        self.assertIsNone(_mradio.fav_index(ord(" ")))
+        self.assertIsNone(_mradio.fav_index(-1))
+
     def test_load_favorites_seeds_from_defaults(self):
         import tempfile
         saved = _mradio.STATIONS_FILE

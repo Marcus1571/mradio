@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.29] - 2026-08-29
+
+### Fixed
+
+- **Favorites go to 10** — keys `1-9` then `0` for the 10th; the menu labels
+  the last row `0`.
+- **Numeric pad == main row.** Keypad digits (sent as `Esc`-prefixed sequences
+  by macOS/Unix terminals) are resolved so `1-0` hot-picks the same favorite
+  from the pad; pad Enter acts like Enter.
+
 ## [0.7.28] - 2026-08-29
 
 ### Added

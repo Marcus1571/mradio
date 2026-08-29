@@ -87,7 +87,7 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `z`        | expand/collapse the full trivia note: fills the screen with the complete text. Long notes that don't fit the window show a `…` marker instead of being silently cut. Click-to-toggle is **off by default** to keep the terminal text selectable — opt in with `mouse = 1` in `config.json` |
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
 | `p`        | rotate color schemes live (no reload, remembered): `dark` → `light` → `light-navy` → `light-mauve`. Catppuccin-inspired on 256-color terminals, classic ANSI otherwise. `light-navy` pairs a bold navy title with a cinnamon-brown performer; `light-mauve` goes royal-blue + tan. The active scheme shows right after the LIVE pill up top |
-| `f`        | open your **favorites** menu (numbered list backed by `~/.local/share/mradio/stations.json`; `1-9` quick-pick, arrows/Enter, `q`/`Esc` back) |
+| `f`        | open your **favorites** menu (numbered list backed by `~/.local/share/mradio/stations.json`; `1-9`,`0` quick-pick — main row or numeric pad — arrows/Enter, `q`/`Esc` back) |
 | `s`        | open the **all-stations** list (labels `S01…Snn`; arrows/Enter to choose, `a` copies the row into your favorites). Bare launch without a stream URL opens `f` first |
 
 A second help line near the bottom shows the current AI provider whenever AI is
@@ -139,9 +139,10 @@ mradio https://some-radio-url/stream.mp3 "My Station"   # force the display name
 mradio --version | --help
 ```
 
-With no arguments the favorites menu opens first — pick `1-9` (quick-pick) or
-arrows/Enter and mradio tunes in; `f` reopens favorites and `s` the full list
-from anywhere, and `q`/`Esc` returns to the player.
+With no arguments the favorites menu opens first — pick `1-9` (quick-pick;
+`0` grabs the 10th, and the numeric pad behaves exactly like the main number
+row) or arrows/Enter and mradio tunes in; `f` reopens favorites and `s` the
+full list from anywhere, and `q`/`Esc` returns to the player.
 
 The station name shown in the top bar is normally read automatically from the
 stream's own icy-name metadata, e.g. `VCR Auditorium | Venice Classic Radio
