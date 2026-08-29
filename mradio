@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.38"
+VERSION = "0.7.39"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -58,8 +58,10 @@ DEFAULT_URL = "https://uk2.streamingpulse.com/ssl/vcr1"
 # numbered 1-9 quick-pick — live in stations.json (key "favorites") and are
 # seeded from this list on first run; afterwards they are the user's own.
 DEFAULT_STATIONS = [
-    {"name": "VCR Auditorium", "url": "https://uk2.streamingpulse.com/ssl/vcr1"},
-    {"name": "VCR Classica+", "url": "https://uk2.streamingpulse.com/ssl/vcr2"},
+    {"name": "VCR Auditorium | Venice Classic Radio Italia",
+     "url": "https://uk2.streamingpulse.com/ssl/vcr1"},
+    {"name": "VCR Classica+ | Venice Classic Radio Italia",
+     "url": "https://uk2.streamingpulse.com/ssl/vcr2"},
     {"name": "Radio Swiss Classic",
      "url": "https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128"},
     {"name": "Naim Classical",
@@ -72,7 +74,7 @@ DEFAULT_STATIONS = [
     {"name": "radio klassik Stephansdom",
      "url": "http://radioklassikstephansdom.ice.infomaniak.ch/"
             "radioklassikstephansdom.mp3"},
-    {"name": "NPO Radio 4 / Klassiek",
+    {"name": "NPO Klassiek",
      "url": "https://icecast.omroep.nl/radio4-bb-mp3"},
     {"name": "France Musique",
      "url": "https://icecast.radiofrance.fr/francemusique-midfi.mp3"},

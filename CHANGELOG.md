@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.39] - 2026-08-29
+
+### Fixed
+
+- **All-stations names match favorites.** `DEFAULT_STATIONS` (the `s` menu's
+  curated list, also the fresh-install seed) still carried the short names
+  after the favorites were updated to their real broadcast names. Now shipped
+  with the same corrected names: `VCR Auditorium | Venice Classic Radio Italia`,
+  `VCR Classica+ | Venice Classic Radio Italia`, and `NPO Klassiek`.
+
 ## [0.7.38] - 2026-08-29
 
 ### Changed
