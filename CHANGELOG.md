@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.38] - 2026-08-29
+
+### Changed
+
+- **README screenshots are now real captures** of the running app (taken on
+  the user's terminal) instead of generated mockups. They show the true UI:
+  hot-key columns, host column under each station, pills, vol state, and real
+  AI liner notes. The mock renderer (`shot.swift`, `make screens`) is gone so
+  nothing can overwrite them.
+
 ## [0.7.37] - 2026-08-29
 
 ### Fixed
