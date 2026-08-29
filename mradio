@@ -3,7 +3,7 @@
 
 Usage: mradio [stream-url] [station-name]       play (defaults to VCR1)
        mradio --version | --help | --settings
-Keys: q quit · space pause · + / - volume · m mute · r reconnect · o open article · s stations
+Keys: q quit · space pause · + / - volume · m mute · r reconnect · o open article · s all stations · f favorites
       z expand/collapse the full trivia text · 1/2/3 pick AI provider
       p toggle dark/light palette
 Config: self-contained in ~/.local/share/mradio/ (settings.json, config.json,
@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.27"
+VERSION = "0.7.28"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -53,9 +53,9 @@ def log(msg, level="INFO"):
 SOCK = "/tmp/mpv-radio.sock"
 DEFAULT_URL = "https://uk2.streamingpulse.com/ssl/vcr1"
 
-# Preselected stations for the `s` picker. Shown when mradio is launched
-# without a stream URL and reachable anytime with `s`. Overridable in
-# config.json under "stations" (list of {name, url}).
+# Curated station list for the `s` menu (S01... labels). Favorites — the
+# numbered 1-9 quick-pick — live in stations.json (key "favorites") and are
+# seeded from this list on first run; afterwards they are the user's own.
 DEFAULT_STATIONS = [
     {"name": "VCR Auditorium", "url": "https://uk2.streamingpulse.com/ssl/vcr1"},
     {"name": "VCR Classica+", "url": "https://uk2.streamingpulse.com/ssl/vcr2"},
@@ -144,6 +144,8 @@ CFG_FILE = os.environ.get("MRADIO_CFG",
                           os.path.expanduser("~/.local/share/mradio/config.json"))
 CACHE_FILE = os.environ.get("MRADIO_CACHE",
                             os.path.expanduser("~/.local/share/mradio/cache.json"))
+STATIONS_FILE = os.environ.get("MRADIO_STATIONS",
+                               os.path.expanduser("~/.local/share/mradio/stations.json"))
 OC_PID = os.environ.get("MRADIO_OC_PID",
                         os.path.expanduser("~/.local/share/mradio/opencode.pid"))
 PROVIDERS = ("opencode", "ollama", "openai")
@@ -250,21 +252,63 @@ def persist_cfg(provider=None, theme=None, volume=None):
         log(f"config persist FAIL: {e}", "WARN")
 
 
-def load_stations():
-    """Station presets: config.json "stations" list, else DEFAULT_STATIONS."""
-    try:
-        lst = load_cfg().get("stations")
-    except Exception:
-        lst = None
-    if isinstance(lst, list) and lst and all(
-            isinstance(x, dict) and x.get("url") for x in lst):
+def load_favorites():
+    """Your numbered 'favorites' list (the 1-9 quick-pick row).
+
+    Read from stations.json ("favorites" key). First run on a new machine
+    auto-seeds that file with the curated DEFAULT_STATIONS so the menu is
+    useful immediately; afterwards the file is entirely the user's and
+    releases never touch it again. A legacy config.json "stations" list is
+    honored (and migrated into stations.json) when no stations.json exists."""
+    def norm(lst):
         out = []
         for x in lst:
-            u = str(x["url"]).strip()
+            u = str(x.get("url") or "").strip()
+            if not u:
+                continue
             out.append({"name": str(x.get("name") or u.split("/")[2]).strip(),
                         "url": u})
         return out
-    return list(DEFAULT_STATIONS)
+    lst = None
+    try:
+        with open(STATIONS_FILE) as fh:
+            d = json.load(fh)
+        if isinstance(d, dict):
+            lst = d.get("favorites")
+    except FileNotFoundError:
+        lst = None
+    except Exception:
+        log(f"favorites read FAIL (invalid {STATIONS_FILE})", "WARN")
+        return list(DEFAULT_STATIONS)
+    if isinstance(lst, list):
+        return norm(lst)
+    try:
+        cfg_lst = load_cfg().get("stations")
+        if isinstance(cfg_lst, list) and cfg_lst:
+            out = norm(cfg_lst)
+            if out:
+                save_favorites(out)
+                return out
+    except Exception:
+        pass
+    out = list(DEFAULT_STATIONS)
+    if not save_favorites(out):
+        log("favorites seed FAIL (wrote nothing)", "WARN")
+    return out
+
+
+def save_favorites(lst):
+    """Atomically write the favorites file; return True on success."""
+    try:
+        os.makedirs(os.path.dirname(STATIONS_FILE), exist_ok=True)
+        tmp = STATIONS_FILE + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump({"favorites": list(lst)}, fh, indent=2)
+        os.replace(tmp, STATIONS_FILE)
+        return True
+    except Exception as e:
+        log(f"favorites save FAIL: {e}", "WARN")
+        return False
 
 
 DARK_PALETTE = {1: curses.COLOR_CYAN, 2: curses.COLOR_WHITE,
@@ -614,7 +658,7 @@ def make_state():
             "cache": None, "vol": 0, "mute": False, "pause": False,
             "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
             "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None,
-            "picker": False, "stations": [],
+            "fav_stations": [], "all_stations": [],
             "update_url": "", "update_zone": None,
             "update_msg": "", "update_msg_t": 0,
             "station": "", "station_resolved": False}
@@ -1193,7 +1237,7 @@ def render(std, elapsed, s):
             add(std, h - 2, 1, line[:lw], 3)
         if h >= 1:
             draw_help(std, s, h - 1, lw,
-                      " s:stations   z:collapse   q:quit   space:pause   r:reconnect")
+                      " f:favorites   s:all   z:collapse   q:quit   space:pause   r:reconnect")
         std.refresh()
         return
 
@@ -1250,22 +1294,28 @@ def render(std, elapsed, s):
 
     if h >= 1:
         draw_help(std, s, h - 1, lw,
-                  " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   s:stations   z:expand")
+                  " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   f:favorites   s:all   z:expand")
 
     std.refresh()
 
 
-def render_picker(std, s, cur):
-    """Draw the 'Preselected stations' picker (opened with `s`)."""
+def render_menu(std, s, mode, cur):
+    """Draw a station menu: `f` = your favorites (1-9), `s` = all stations (S01...)."""
     std.erase()
     h, w = std.getmaxyx()
-    sts = s.get("stations") or []
+    if mode == "fav":
+        sts = s.get("fav_stations") or []
+        label = " my stations "
+        heading = "Your stations"
+    else:
+        sts = s.get("all_stations") or []
+        label = " all stations "
+        heading = "All stations"
     badge = " ● RADIO "
     add(std, 0, 0, badge, 3)
     x = len(badge)
     add(std, 0, x, " ▸ ", 1)
     x += 3
-    label = " pick a station "
     add(std, 0, x, label, 2, curses.A_BOLD)
     x += len(label)
     add(std, 0, x, " ▸ ", 1)
@@ -1275,19 +1325,20 @@ def render_picker(std, s, cur):
     add(std, 0, x, f" {s.get('theme') or 'dark'} (p)", 1)
 
     y = 2
-    add(std, y, 1, "Preselected stations", 1, curses.A_BOLD)
+    add(std, y, 1, heading, 1, curses.A_BOLD)
     y += 1
     for i, ent in enumerate(sts):
         if y >= h - 2:
             break
         if i == cur:
             add(std, y, 1, "▶", 2, curses.A_BOLD)
-        add(std, y, 4, f"{i + 1}", 1)
+        tag = f"S{i + 1:02d}" if mode == "all" else f"{i + 1}"
+        add(std, y, 4, tag, 1)
         name = (ent.get("name") or "?").strip()
         nlim = max(1, w - 26)
-        add(std, y, 7, name[:nlim], 6)
+        add(std, y, 8, name[:nlim], 6)
         host = (ent.get("url") or "").split("/")[2]
-        sx = 7 + min(len(name), nlim) + 2
+        sx = 8 + min(len(name), nlim) + 2
         if sx < w - 4:
             add(std, y, sx, host[:w - sx - 1], 5, curses.A_DIM)
         y += 1
@@ -1296,12 +1347,19 @@ def render_picker(std, s, cur):
     rlim = min(w, (s.get("update_zone") or (0, w))[1]) if s.get("update_zone") else w
     lw = max(8, min(w - 2, rlim - 2)) if rlim < w else w - 2
     if h >= 2:
-        line = f" pick a number — {len(sts)} preset(s)"
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             line = s["update_msg"]
+        elif mode == "fav":
+            line = f" pick a number — {len(sts)} favorite(s)"
+        else:
+            line = " ↑/↓ move · Enter pick · a add to favorites"
         add(std, h - 2, 1, line[:lw], 3)
     if h >= 1:
-        add(std, h - 1, 1, (" ⏎/1-9:pick   ↑/↓:move   q/Esc:back   v:check")[:lw], 6)
+        if mode == "fav":
+            help_txt = "1-9:pick  ↑/↓:move  q/Esc:back  s:all  v:check"
+        else:
+            help_txt = "Enter:pick  a:fav  f:my  ↑/↓:move  s:all  q/Esc:back  v:check"
+        add(std, h - 1, 1, help_txt[:lw], 6)
     std.refresh()
 
 
@@ -1322,8 +1380,8 @@ def main():
                 ("provider", load_cfg().get("provider", "")),
                 ("theme", load_cfg().get("theme", "dark")),
                 ("mouse", load_cfg().get("mouse", 0)),
-                ("stations", f"{len(load_stations())} presets "
-                             f"(config '{CFG_FILE}', key 'stations')")]
+                ("stations", f"{len(load_favorites())} favorites "
+                             f"('{STATIONS_FILE}', key 'favorites')")]
         for k, v in rows:
             print(f"{k} = {v}")
         key = API_KEY
@@ -1361,8 +1419,9 @@ def main():
         mpc = Mpc(SOCK)
         saved_vol = load_cfg().get("volume")
         state = make_state()
-        stations = load_stations()
-        state["stations"] = stations
+        stations = load_favorites()
+        state["fav_stations"] = stations
+        state["all_stations"] = list(DEFAULT_STATIONS)
         ab = load_cfg().get("theme", "dark")
         state["theme"] = ab if ab in SCHEMES else "dark"
         enrich = Enricher()
@@ -1373,8 +1432,7 @@ def main():
         proc = None
         url = url0
         cur_st = 0
-        picker = url is None
-        state["picker"] = picker
+        menu = "fav" if url is None else None
 
         def switch_stream(ent):
             nonlocal url, proc, mpc
@@ -1400,28 +1458,52 @@ def main():
             mpc = Mpc(SOCK)
             apply_volume(mpc, saved_vol)
 
-        if not picker:
+        if menu is None:
             state["station"] = ovr_name or url.split("/")[2]
             state["station_resolved"] = bool(ovr_name)
             proc = launch_mpv(url)
             apply_volume(mpc, saved_vol)
 
+        def show_favorites():
+            nonlocal cur_st
+            favs = load_favorites()
+            state["fav_stations"] = favs
+            cur_st = min(cur_st, max(0, len(favs) - 1))
+
         while True:
             t = time.time()
-            if picker:
-                render_picker(stdscr, state, cur_st)
+            if menu is not None:
+                lst = (state["fav_stations"] if menu == "fav"
+                       else state["all_stations"])
+                render_menu(stdscr, state, menu, min(cur_st, max(0, len(lst) - 1)))
                 ch = stdscr.getch()
                 if ch == curses.KEY_RESIZE:
                     continue
                 if ch in (ord("q"), 27):
                     if proc is None:
                         break
-                    picker = False
-                    state["picker"] = False
+                    menu = None
+                elif ch == ord("f"):
+                    if menu != "fav":
+                        show_favorites()
+                    menu = "fav"
                 elif ch == ord("s"):
-                    if proc is not None:
-                        picker = False
-                        state["picker"] = False
+                    menu = "all"
+                elif ch == ord("a") and menu == "all":
+                    ent = state["all_stations"][
+                        min(cur_st, len(state["all_stations"]) - 1)]
+                    if any(x.get("url") == ent["url"]
+                           for x in state["fav_stations"]):
+                        state["update_msg"] = \
+                            f"already in favorites: {ent['name']}"
+                    elif save_favorites(list(state["fav_stations"]) + [dict(ent)]):
+                        state["fav_stations"] = \
+                            list(state["fav_stations"]) + [dict(ent)]
+                        state["update_msg"] = \
+                            f"a added to favorites: {ent['name']}"
+                    else:
+                        state["update_msg"] = "could not save favorites"
+                    state["update_msg_t"] = time.time()
                 elif ch == ord("p"):
                     state["theme"] = next_theme(state["theme"])
                     init_colors(state["theme"])
@@ -1439,21 +1521,20 @@ def main():
                             subprocess.Popen(["open", state["update_url"]])
                 elif ch == ord("v"):
                     force_check(state)
-                elif ch in (curses.KEY_DOWN, ord("j")) and cur_st < len(stations) - 1:
+                elif ch in (curses.KEY_DOWN, ord("j")) and cur_st < len(lst) - 1:
                     cur_st += 1
                 elif ch in (curses.KEY_UP, ord("k")) and cur_st > 0:
                     cur_st -= 1
                 elif ch in (10, 13, curses.KEY_ENTER):
-                    switch_stream(stations[cur_st])
-                    picker = False
-                    state["picker"] = False
-                elif ord("1") <= ch <= ord("9"):
+                    if cur_st < len(lst):
+                        switch_stream(lst[cur_st])
+                        menu = None
+                elif menu == "fav" and ord("1") <= ch <= ord("9"):
                     i = ch - ord("1")
-                    if i < len(stations):
+                    if i < len(lst):
                         cur_st = i
-                        switch_stream(stations[i])
-                        picker = False
-                        state["picker"] = False
+                        switch_stream(lst[i])
+                        menu = None
                 continue
             if _latest["version"] and \
                     ver_key(_latest["version"]) > ver_key(VERSION):
@@ -1548,8 +1629,10 @@ def main():
             elif ch == ord("v"):
                 force_check(state)
             elif ch == ord("s"):
-                picker = True
-                state["picker"] = True
+                menu = "all"
+            elif ch == ord("f"):
+                show_favorites()
+                menu = "fav"
             elif ch in (ord("r"), ord("R")):
                 proc.terminate()
                 time.sleep(0.2)

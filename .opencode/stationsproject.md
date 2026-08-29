@@ -51,8 +51,13 @@ does not add stations on its own initiative.
 ## Research notes
 
 - **Wired into mradio:** these 12 presets are baked in as `DEFAULT_STATIONS`
-  in `./mradio` and shown by the picker (`s` key / bare launch). Override
-  them per-machine via `config.json` → `"stations"` (no code change needed).
+  in `./mradio` and shown by the **`s` all-stations menu** (labels `S01…Snn`,
+  arrows/Enter to pick). Your **number-`1-9` favorites** live in
+  `~/.local/share/mradio/stations.json` (key `"favorites"`, opened by `f`),
+  seeded once from `DEFAULT_STATIONS` on first run; afterwards the file is
+  entirely the user's (releases never touch it). `a` inside the `s` menu
+  copies a row into favorites. `MRADIO_STATIONS` overrides the path; a legacy
+  `config.json` → `"stations"` list is migrated on first run.
 - Most picks are **public-service or non-profit** → no commercial ad breaks
   (Classic FM is the exception: commercial, with ad breaks; Naim is a brand
   radio). WQXR is member-supported with occasional underwriting.

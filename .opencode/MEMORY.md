@@ -59,13 +59,17 @@
   the living candidate/approved station list. **The user personally approves
   each station; the assistant must NEVER add stations to the file on its own
   initiative.** Approved: `WQXR`, `Radio Swiss Classic` (label "Swiss Classic
-  I" — Italian feed). **Implemented (unreleased, on `main`):** `mradio` now
-  starts in a "Preselected stations" picker when launched without a URL, and
-  `s` opens it anytime; presets in `config.json` key `stations`, defaulting
-  to the 12 stations in the doc (see `DEFAULT_STATIONS` in `./mradio`).
-- **Latest release:** `0.7.20` (tag + GitHub Release, assets mradio/install.sh).
-  The U self-update flow was validated live earlier (v0.7.18 → v0.7.19 → apply
-  on restart) and is documented as tested in the 0.7.20 changelog.
+  I" — Italian feed). Shipped in releases: station menu (0.7.25), reordered
+  defaults + honest help (0.7.26), picker `v`/`u`/`U` keys (0.7.27). **On
+  `main`, unreleased (next = 0.7.28):** favorites vs all-stations split —
+  `f` = your numbered list from `~/.local/share/mradio/stations.json` (key
+  `"favorites"`, seeded once from `DEFAULT_STATIONS`, releases never touch it),
+  `s` = the curated `S01…Snn` list (grows per release, `a` adds a row to
+  favorites), bare launch opens `f`. Legacy `config.json` → `"stations"`
+  migrated on first run; `MRADIO_STATIONS` overrides the path.
+- **Latest release:** `0.7.27` (tag + GitHub Release, assets mradio/install.sh,
+  `Latest`). The U self-update flow was validated live earlier (v0.7.18 →
+  v0.7.19 → apply on restart).
 - **0.7.21 work (uncommitted until c.p'd):** `v` key forces a version check
   without quitting — `force_check(state)` serializes via `_forced_lock` /
   `_check_lock`, flashes outcome via `_latest["note"]` → `update_msg`
@@ -146,6 +150,8 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `v` | force a version check now (flashes the result in the AI row) |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
+| `f` | open your favorites (`1-9` quick-pick; `~/.local/share/mradio/stations.json`) |
+| `s` | open the all-stations list (`S01…Snn`; `a` adds the row to favorites) |
 | `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
 
 ## Full feature history (CHANGELOG)

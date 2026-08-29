@@ -87,7 +87,8 @@ or `make install` / `sudo install -m755 mradio /usr/local/bin/mradio`.
 | `z`        | expand/collapse the full trivia note: fills the screen with the complete text. Long notes that don't fit the window show a `…` marker instead of being silently cut. Click-to-toggle is **off by default** to keep the terminal text selectable — opt in with `mouse = 1` in `config.json` |
 | `1` `2` `3`| select AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice and re-requests the current track's trivia immediately — **even if a cached note exists** |
 | `p`        | rotate color schemes live (no reload, remembered): `dark` → `light` → `light-navy` → `light-mauve`. Catppuccin-inspired on 256-color terminals, classic ANSI otherwise. `light-navy` pairs a bold navy title with a cinnamon-brown performer; `light-mauve` goes royal-blue + tan. The active scheme shows right after the LIVE pill up top |
-| `s`        | open the **Preselected stations** menu (`1-9` quick-pick, arrows/Enter to navigate+choose, `s`/`Esc`/`q` back to the player). Also shown automatically when mradio is launched without a stream URL |
+| `f`        | open your **favorites** menu (numbered list backed by `~/.local/share/mradio/stations.json`; `1-9` quick-pick, arrows/Enter, `q`/`Esc` back) |
+| `s`        | open the **all-stations** list (labels `S01…Snn`; arrows/Enter to choose, `a` copies the row into your favorites). Bare launch without a stream URL opens `f` first |
 
 A second help line near the bottom shows the current AI provider whenever AI is
 configured; the enrichment spinner also shows which provider is working
@@ -132,15 +133,15 @@ Between hourly checks (or if you don't want to restart to find out), press
 ## Usage
 
 ```sh
-mradio                                # opens the "Preselected stations" picker
+mradio                                # opens your favorites menu
 mradio https://some-radio-url/stream.mp3
 mradio https://some-radio-url/stream.mp3 "My Station"   # force the display name
 mradio --version | --help
 ```
 
-With no arguments the Preselected-stations menu opens first — pick `1-9`
-(quick-pick) or arrows/Enter and mradio tunes in; `s` opens it from anywhere
-and `s`/`Esc`/`q` returns to the player.
+With no arguments the favorites menu opens first — pick `1-9` (quick-pick) or
+arrows/Enter and mradio tunes in; `f` reopens favorites and `s` the full list
+from anywhere, and `q`/`Esc` returns to the player.
 
 The station name shown in the top bar is normally read automatically from the
 stream's own icy-name metadata, e.g. `VCR Auditorium | Venice Classic Radio
@@ -180,21 +181,33 @@ Reload with `source ~/.zshrc` (or `source ~/.bashrc` / `~/.bash_aliases`) or
 just open a new terminal window, then run `vcra`. Streams without a forced name
 still display their icy-name automatically.
 
-### Preselected stations
+### Stations: favorites + full list
 
-The `s` menu is seeded with 12 ad-free-ish classical/internet stations via
-`DEFAULT_STATIONS` in the `mradio` script. To keep your own shortlist (no code
-editing), write a `stations` array into `~/.local/share/mradio/config.json`:
+Two menus:
+
+- **`f` — your favorites** (numbered `1-9`, digit = instant pick). This list is
+  *yours*: it lives in `~/.local/share/mradio/stations.json` and releases never
+  touch it.
+- **`s` — the full list** (labels `S01…Snn`, navigate with `↑/↓` + `Enter`).
+  Curated by us and shipped with each release, so it can grow over time. Press
+  `a` on a row to copy it into your favorites.
+
+Bare launch (`mradio` with no URL) opens your favorites. The favorites file is
+auto-seeded once on first run with the current curated selection; afterwards
+edit `~/.local/share/mradio/stations.json` freely:
 
 ```json
-{ "stations": [
+{ "favorites": [
     { "name": "WQXR", "url": "https://stream.wqxr.org/wqxr.mp3" },
     { "name": "Radio Swiss Classic",
       "url": "https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128" }
 ] }
 ```
 
-`{name, url}` entries, in display order; the menu numbers them `1…n`.
+`{name, url}` entries, in display order. An empty `"favorites": []` is valid —
+you start with no quick-picks. (`MRADIO_STATIONS` overrides the file path; a
+legacy `stations` key in `config.json` is honored and migrated on the first
+run after upgrading.)
 
 ## AI enrichment (optional, opt-in)
 
@@ -331,6 +344,7 @@ cat ~/.local/share/mradio/serve.log    # opencode serve internals (if used)
 | `MRADIO_SERVE_LOG`       | `~/.local/share/mradio/serve.log`     | `opencode serve` output log   |
 | `MRADIO_CFG`             | `~/.local/share/mradio/config.json`   | remembered provider choice    |
 | `MRADIO_CACHE`           | `~/.local/share/mradio/cache.json`    | past-enrichment cache         |
+| `MRADIO_STATIONS`        | `~/.local/share/mradio/stations.json` | your favorites list           |
 
 ## Development
 

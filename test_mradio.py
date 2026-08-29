@@ -317,47 +317,64 @@ class TestStations(unittest.TestCase):
             host = ent["url"].split("/")[2]
             self.assertIn(".", host)
 
-    def test_load_stations_returns_custom_cfg(self):
+    def test_load_favorites_seeds_from_defaults(self):
         import tempfile
-        saved = _mradio.CFG_FILE
+        saved = _mradio.STATIONS_FILE
         with tempfile.TemporaryDirectory() as td:
-            _mradio.CFG_FILE = os.path.join(td, "config.json")
-            with open(_mradio.CFG_FILE, "w") as fh:
-                json.dump({"stations": [
-                    {"name": "Alpha", "url": "https://a.example/stream.mp3"},
-                    {"name": "Beta", "url": "https://b.example/stream.aac"},
-                ]}, fh)
+            _mradio.STATIONS_FILE = os.path.join(td, "stations.json")
             try:
-                sts = _mradio.load_stations()
+                sts = _mradio.load_favorites()
+                self.assertEqual(sts, list(_mradio.DEFAULT_STATIONS))
+                self.assertTrue(os.path.exists(_mradio.STATIONS_FILE))
+            finally:
+                _mradio.STATIONS_FILE = saved
+
+    def test_load_favorites_reads_user_file(self):
+        import tempfile
+        saved = _mradio.STATIONS_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.STATIONS_FILE = os.path.join(td, "stations.json")
+            _mradio.save_favorites([
+                {"name": "Alpha", "url": "https://a.example/stream.mp3"},
+                {"name": "Beta", "url": "https://b.example/stream.aac"},
+            ])
+            try:
+                sts = _mradio.load_favorites()
                 self.assertEqual(len(sts), 2)
                 self.assertEqual(sts[0]["name"], "Alpha")
                 self.assertEqual(sts[1]["url"], "https://b.example/stream.aac")
             finally:
-                _mradio.CFG_FILE = saved
+                _mradio.STATIONS_FILE = saved
 
-    def test_load_stations_falls_back_for_bad_cfg(self):
+    def test_load_favorites_honors_empty_user_file(self):
         import tempfile
-        saved = _mradio.CFG_FILE
+        saved = _mradio.STATIONS_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.STATIONS_FILE = os.path.join(td, "stations.json")
+            with open(_mradio.STATIONS_FILE, "w") as fh:
+                json.dump({"favorites": []}, fh)
+            try:
+                self.assertEqual(_mradio.load_favorites(), [])
+            finally:
+                _mradio.STATIONS_FILE = saved
+
+    def test_load_favorites_migrates_legacy_cfg(self):
+        import tempfile
+        saved_cfg, saved_st = _mradio.CFG_FILE, _mradio.STATIONS_FILE
         with tempfile.TemporaryDirectory() as td:
             _mradio.CFG_FILE = os.path.join(td, "config.json")
+            _mradio.STATIONS_FILE = os.path.join(td, "stations.json")
             with open(_mradio.CFG_FILE, "w") as fh:
-                json.dump({"stations": [{"url": ""}]}, fh)
+                json.dump({"stations": [
+                    {"name": "Alpha", "url": "https://a.example/stream.mp3"},
+                ]}, fh)
             try:
-                sts = _mradio.load_stations()
-                self.assertEqual(sts, list(_mradio.DEFAULT_STATIONS))
+                sts = _mradio.load_favorites()
+                self.assertEqual(sts[0]["name"], "Alpha")
+                self.assertTrue(os.path.exists(_mradio.STATIONS_FILE))
             finally:
-                _mradio.CFG_FILE = saved
-
-    def test_load_stations_falls_back_without_file(self):
-        import tempfile
-        saved = _mradio.CFG_FILE
-        with tempfile.TemporaryDirectory() as td:
-            _mradio.CFG_FILE = os.path.join(td, "missing.json")
-            try:
-                self.assertEqual(_mradio.load_stations(),
-                                 list(_mradio.DEFAULT_STATIONS))
-            finally:
-                _mradio.CFG_FILE = saved
+                _mradio.CFG_FILE = saved_cfg
+                _mradio.STATIONS_FILE = saved_st
 
 
 if __name__ == "__main__":

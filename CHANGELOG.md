@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.28] - 2026-08-29
+
+### Added
+
+- **Favorites vs. full list.** Your numbered quick-pick list now lives in its
+  own file, `~/.local/share/mradio/stations.json` (key `"favorites"`), pointed
+  to by **`f`** and seeded once from the curated selection on the first run —
+  afterwards it is entirely yours and releases never touch it again.
+  **`s`** now opens the full **all-stations** list labeled `S01…Snn`
+  (arrows/Enter to choose), which we can keep growing every release. Press
+  **`a`** inside it to copy the highlighted station into your favorites.
+  Bare launch opens favorites. A legacy `stations` key in `config.json` is
+  honored and migrated into `stations.json` on the first run. `MRADIO_STATIONS`
+  overrides the file path.
+
 ## [0.7.27] - 2026-08-29
 
 ### Fixed
