@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.37] - 2026-08-29
+
+### Fixed
+
+- **README screenshots, finally laid out correctly.** The previous attempt
+  had an AppKit coordinate bug (header/title/footer displaced, empty space).
+  The CoreText renderer now uses a correct bottom-origin layout; header sits
+  on top, body in the middle, footer reaches the very bottom. Verified with
+  pixel probes + OCR.
+- **README title is `mradio` again** — the in-app `● RADIO` is only the UI
+  badge, not the project name.
+
 ## [0.7.36] - 2026-08-29
 
 ### Fixed

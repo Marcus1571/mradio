@@ -1,8 +1,10 @@
-# ● RADIO
+# mradio
 
 > **A tiny terminal radio with big ears.** Live classical & jazz from curated
 > streams, AI liner notes on whatever is playing, and a UI that behaves — all
 > in one ~1700-line Python file with **zero dependencies**.
+>
+> Its header greets you as `● RADIO` — that's just the in-app badge.
 
 <p align="center">
   <img src="screenshots/player.png" alt="mradio player" width="860">
