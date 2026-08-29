@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **README rewritten as a short marketing piece** — tagline, appetizers for
+  every feature, real screenshots (`screenshots/player.png`,
+  `screenshots/favorites.png`, `screenshots/all-stations.png`), and a
+  KB-link after every paragraph. The full details stay in KB.md. Screenshots
+  are re-renderable via `make screens`.
+
 ## [0.7.34] - 2026-08-29
 
 ### Fixed
