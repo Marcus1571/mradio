@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.29"
+VERSION = "0.7.30"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1252,21 +1252,23 @@ def render(std, elapsed, s):
         blurb = s.get("blurb") or ""
         z0 = y
         for line in (textwrap.wrap(blurb, width=tw) if blurb else []):
-            if y >= h - 2:
+            if y >= h - 3:
                 break
             add(std, y, 1, line, 5, curses.A_DIM)
             y += 1
         s["txt_zone"] = (z0, max(z0, y - 1)) if blurb else None
         rlim = draw_right(std, s, h, w)
         lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
-        if h >= 2 and ai_configured():
-            upd = "   u:page  U:apply  v:check" if s.get("update_url") else ""
-            line = (f" now:{s.get('ai_provider') or ''}   "
-                    f"z:collapse   q:quit   space:pause   r:reconnect{upd}")
-            via = "update_msg"
-            if s.get(via) and time.time() - (s.get(via + "_t") or 0) < 6:
-                line = s[via]
-            add(std, h - 2, 1, line[:lw], 3)
+        if h >= 3 and ai_configured():
+            line = (f" AI: 1=opencode  2=ollama  3=api   "
+                    f"now:{s.get('ai_provider') or ''}   press to re-request")
+            if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
+                line = s["update_msg"]
+            add(std, h - 3, 1, line[:lw], 3)
+        if h >= 2:
+            add(std, h - 2, 1,
+                (f" v:check" +
+                 ("   u:page   U:apply" if s.get("update_url") else ""))[:lw], 3)
         if h >= 1:
             draw_help(std, s, h - 1, lw,
                       " f:favorites   s:all   z:collapse   q:quit   space:pause   r:reconnect")
@@ -1315,14 +1317,18 @@ def render(std, elapsed, s):
     rlim = draw_right(std, s, h, w)
     lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
 
-    if h >= 2 and ai_configured():
+    if h >= 2:
+        add(std, h - 2, 1,
+            (f" v:check" +
+             ("   u:page   U:apply" if s.get("update_url") else ""))[:lw], 3)
+
+    if h >= 3 and ai_configured():
         prov = s.get("ai_provider") or ""
-        upd = "   u:page  U:apply  v:check" if s.get("update_url") else ""
         line = (f" AI: 1=opencode  2=ollama  3=api   now:{prov}   "
-                f"press to re-request{upd}")
+                f"press to re-request")
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             line = s["update_msg"]
-        add(std, h - 2, 1, line[:lw], 3)
+        add(std, h - 3, 1, line[:lw], 3)
 
     if h >= 1:
         draw_help(std, s, h - 1, lw,
@@ -1390,7 +1396,7 @@ def render_menu(std, s, mode, cur):
         if mode == "fav":
             help_txt = "1-9,0:pick  ↑/↓:move  q/Esc:back  s:all  v:check"
         else:
-            help_txt = "Enter:pick  a:fav  f:my  ↑/↓:move  s:all  q/Esc:back  v:check"
+            help_txt = "Enter:pick  f:fav  ↑/↓:move  q/Esc:back  v:check"
         add(std, h - 1, 1, help_txt[:lw], 6)
     std.refresh()
 

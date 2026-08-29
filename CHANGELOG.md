@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.30] - 2026-08-29
+
+### Changed
+
+- **Player footer is now three rows** so the hints don't overflow: AI provider
+  line on its own (row three from bottom), update row on row two
+  (`v:check`, plus `u:page`/`U:apply` when an update exists), and the main
+  key legend (`q`…`z`) on the bottom row. Applies to the detail view too.
+
 ## [0.7.29] - 2026-08-29
 
 ### Fixed
