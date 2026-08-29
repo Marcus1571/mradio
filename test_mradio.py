@@ -7,6 +7,7 @@ installation is required. Run with: make test  (or python3 test_mradio.py)
 
 import importlib.machinery
 import importlib.util
+import json
 import os
 import unittest
 
@@ -303,6 +304,60 @@ class TestReleaseFeed(unittest.TestCase):
 
     def test_update_interval_floor(self):
         self.assertGreaterEqual(_mradio.UPDATE_INTERVAL, 60)
+
+
+class TestStations(unittest.TestCase):
+    def test_default_stations_shape(self):
+        sts = _mradio.DEFAULT_STATIONS
+        self.assertGreaterEqual(len(sts), 2)
+        for ent in sts:
+            self.assertIn("name", ent)
+            self.assertIn("url", ent)
+            self.assertTrue(ent["name"].strip())
+            host = ent["url"].split("/")[2]
+            self.assertIn(".", host)
+
+    def test_load_stations_returns_custom_cfg(self):
+        import tempfile
+        saved = _mradio.CFG_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.CFG_FILE = os.path.join(td, "config.json")
+            with open(_mradio.CFG_FILE, "w") as fh:
+                json.dump({"stations": [
+                    {"name": "Alpha", "url": "https://a.example/stream.mp3"},
+                    {"name": "Beta", "url": "https://b.example/stream.aac"},
+                ]}, fh)
+            try:
+                sts = _mradio.load_stations()
+                self.assertEqual(len(sts), 2)
+                self.assertEqual(sts[0]["name"], "Alpha")
+                self.assertEqual(sts[1]["url"], "https://b.example/stream.aac")
+            finally:
+                _mradio.CFG_FILE = saved
+
+    def test_load_stations_falls_back_for_bad_cfg(self):
+        import tempfile
+        saved = _mradio.CFG_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.CFG_FILE = os.path.join(td, "config.json")
+            with open(_mradio.CFG_FILE, "w") as fh:
+                json.dump({"stations": [{"url": ""}]}, fh)
+            try:
+                sts = _mradio.load_stations()
+                self.assertEqual(sts, list(_mradio.DEFAULT_STATIONS))
+            finally:
+                _mradio.CFG_FILE = saved
+
+    def test_load_stations_falls_back_without_file(self):
+        import tempfile
+        saved = _mradio.CFG_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.CFG_FILE = os.path.join(td, "missing.json")
+            try:
+                self.assertEqual(_mradio.load_stations(),
+                                 list(_mradio.DEFAULT_STATIONS))
+            finally:
+                _mradio.CFG_FILE = saved
 
 
 if __name__ == "__main__":

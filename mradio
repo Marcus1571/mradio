@@ -3,7 +3,7 @@
 
 Usage: mradio [stream-url] [station-name]       play (defaults to VCR1)
        mradio --version | --help | --settings
-Keys: q quit · space pause · + / - volume · m mute · r reconnect · o open article
+Keys: q quit · space pause · + / - volume · m mute · r reconnect · o open article · s stations
       z expand/collapse the full trivia text · 1/2/3 pick AI provider
       p toggle dark/light palette
 Config: self-contained in ~/.local/share/mradio/ (settings.json, config.json,
@@ -52,6 +52,34 @@ def log(msg, level="INFO"):
 
 SOCK = "/tmp/mpv-radio.sock"
 DEFAULT_URL = "https://uk2.streamingpulse.com/ssl/vcr1"
+
+# Preselected stations for the `s` picker. Shown when mradio is launched
+# without a stream URL and reachable anytime with `s`. Overridable in
+# config.json under "stations" (list of {name, url}).
+DEFAULT_STATIONS = [
+    {"name": "WQXR", "url": "https://stream.wqxr.org/wqxr.mp3"},
+    {"name": "Radio Swiss Classic",
+     "url": "https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128"},
+    {"name": "VCR Auditorium", "url": "https://uk2.streamingpulse.com/ssl/vcr1"},
+    {"name": "VCR Classica+", "url": "https://uk2.streamingpulse.com/ssl/vcr2"},
+    {"name": "Naim Classical",
+     "url": "http://mscp3.live-streams.nl:8250/class-high.aac"},
+    {"name": "Classic FM", "url": "http://ice-the.musicradio.com/ClassicFMMP3"},
+    {"name": "Radio Paradise",
+     "url": "https://stream-uk1.radioparadise.com/mp3-128"},
+    {"name": "Swiss Jazz", "url": "http://stream.srg-ssr.ch/m/rsj/mp3_128"},
+    {"name": "radio klassik Stephansdom",
+     "url": "http://radioklassikstephansdom.ice.infomaniak.ch/"
+            "radioklassikstephansdom.mp3"},
+    {"name": "NPO Radio 4 / Klassiek",
+     "url": "https://icecast.omroep.nl/radio4-bb-mp3"},
+    {"name": "France Musique",
+     "url": "https://icecast.radiofrance.fr/francemusique-midfi.mp3"},
+    {"name": "BBC Radio 3",
+     "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-"
+            "C1984642FA4B/audio/simulcast/hls/nonuk/audio_syndication_low_sbr_"
+            "v1/ak/bbc_radio_three.m3u8"},
+]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))
 
@@ -220,6 +248,23 @@ def persist_cfg(provider=None, theme=None, volume=None):
         os.replace(tmp, CFG_FILE)
     except Exception as e:
         log(f"config persist FAIL: {e}", "WARN")
+
+
+def load_stations():
+    """Station presets: config.json "stations" list, else DEFAULT_STATIONS."""
+    try:
+        lst = load_cfg().get("stations")
+    except Exception:
+        lst = None
+    if isinstance(lst, list) and lst and all(
+            isinstance(x, dict) and x.get("url") for x in lst):
+        out = []
+        for x in lst:
+            u = str(x["url"]).strip()
+            out.append({"name": str(x.get("name") or u.split("/")[2]).strip(),
+                        "url": u})
+        return out
+    return list(DEFAULT_STATIONS)
 
 
 DARK_PALETTE = {1: curses.COLOR_CYAN, 2: curses.COLOR_WHITE,
@@ -569,6 +614,7 @@ def make_state():
             "cache": None, "vol": 0, "mute": False, "pause": False,
             "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
             "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None,
+            "picker": False, "stations": [],
             "update_url": "", "update_zone": None,
             "update_msg": "", "update_msg_t": 0,
             "station": "", "station_resolved": False}
@@ -1147,7 +1193,7 @@ def render(std, elapsed, s):
             add(std, h - 2, 1, line[:lw], 3)
         if h >= 1:
             draw_help(std, s, h - 1, lw,
-                      " z:collapse   q:quit   space:pause   r:reconnect")
+                      " s:stations   z:collapse   q:quit   space:pause   r:reconnect")
         std.refresh()
         return
 
@@ -1204,8 +1250,55 @@ def render(std, elapsed, s):
 
     if h >= 1:
         draw_help(std, s, h - 1, lw,
-                  " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   z:expand")
+                  " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   s:stations   z:expand")
 
+    std.refresh()
+
+
+def render_picker(std, s, cur):
+    """Draw the 'Preselected stations' picker (opened with `s`)."""
+    std.erase()
+    h, w = std.getmaxyx()
+    sts = s.get("stations") or []
+    badge = " ● RADIO "
+    add(std, 0, 0, badge, 3)
+    x = len(badge)
+    add(std, 0, x, " ▸ ", 1)
+    x += 3
+    label = " pick a station "
+    add(std, 0, x, label, 2, curses.A_BOLD)
+    x += len(label)
+    add(std, 0, x, " ▸ ", 1)
+    x += 3
+    add(std, 0, x, " SELECT ", 8)
+    x += 8
+    add(std, 0, x, f" {s.get('theme') or 'dark'} (p)", 1)
+
+    y = 2
+    add(std, y, 1, "Preselected stations", 1, curses.A_BOLD)
+    y += 1
+    for i, ent in enumerate(sts):
+        if y >= h - 2:
+            break
+        if i == cur:
+            add(std, y, 1, "▶", 2, curses.A_BOLD)
+        add(std, y, 4, f"{i + 1}", 1)
+        name = (ent.get("name") or "?").strip()
+        nlim = max(1, w - 26)
+        add(std, y, 7, name[:nlim], 6)
+        host = (ent.get("url") or "").split("/")[2]
+        sx = 7 + min(len(name), nlim) + 2
+        if sx < w - 4:
+            add(std, y, sx, host[:w - sx - 1], 5, curses.A_DIM)
+        y += 1
+
+    draw_right(std, s, h, w)
+    rlim = min(w, (s.get("update_zone") or (0, w))[1]) if s.get("update_zone") else w
+    lw = max(8, min(w - 2, rlim - 2)) if rlim < w else w - 2
+    if h >= 2:
+        add(std, h - 2, 1, f" pick a number — {len(sts)} preset(s)", 3)
+    if h >= 1:
+        add(std, h - 1, 1, (" ⏎ / 1-9:pick   ↑/↓:move   s/Esc:back   q:quit")[:lw], 6)
     std.refresh()
 
 
@@ -1225,7 +1318,9 @@ def main():
                 ("opencode", OC), ("opencode_timeout", OC_TIMEOUT),
                 ("provider", load_cfg().get("provider", "")),
                 ("theme", load_cfg().get("theme", "dark")),
-                ("mouse", load_cfg().get("mouse", 0))]
+                ("mouse", load_cfg().get("mouse", 0)),
+                ("stations", f"{len(load_stations())} presets "
+                             f"(config '{CFG_FILE}', key 'stations')")]
         for k, v in rows:
             print(f"{k} = {v}")
         key = API_KEY
@@ -1233,7 +1328,7 @@ def main():
                               else ("…" if key else "")))
         print(f"settings file: {SETTINGS_FILE}")
         return
-    url = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_URL
+    url0 = sys.argv[1] if len(sys.argv) > 1 else None
     ovr_name = sys.argv[2] if len(sys.argv) > 2 else None
     try:
         os.unlink(SOCK)
@@ -1260,13 +1355,11 @@ def main():
     proc = None
     enrich = None
     try:
-        proc = launch_mpv(url)
         mpc = Mpc(SOCK)
         saved_vol = load_cfg().get("volume")
-        apply_volume(mpc, saved_vol)
         state = make_state()
-        state["station"] = ovr_name or url.split("/")[2]
-        state["station_resolved"] = bool(ovr_name)
+        stations = load_stations()
+        state["stations"] = stations
         ab = load_cfg().get("theme", "dark")
         state["theme"] = ab if ab in SCHEMES else "dark"
         enrich = Enricher()
@@ -1274,8 +1367,79 @@ def main():
         threading.Thread(target=update_watcher, daemon=True).start()
         state["ai_provider"] = enrich.active_provider()
         started = time.time()
+        proc = None
+        url = url0
+        cur_st = 0
+        picker = url is None
+        state["picker"] = picker
+
+        def switch_stream(ent):
+            nonlocal url, proc, mpc
+            nurl = (ent.get("url") or "").strip()
+            if not nurl:
+                return
+            url = nurl
+            state["station_resolved"] = True
+            state["station"] = (ent.get("name") or url.split("/")[2]).strip()
+            state["raw_title"] = ""
+            state["title"] = "connecting…"
+            state["artist"] = state["performer"] = state["blurb"] = ""
+            state["work_label"] = state["wiki_url"] = state["pn"] = ""
+            state["kbps"] = state["khz"] = state["codec"] = state["cache"] = None
+            state["details"] = False
+            if proc is not None:
+                try:
+                    proc.terminate()
+                except Exception:
+                    pass
+                time.sleep(0.2)
+            proc = launch_mpv(url)
+            mpc = Mpc(SOCK)
+            apply_volume(mpc, saved_vol)
+
+        if not picker:
+            state["station"] = ovr_name or url.split("/")[2]
+            state["station_resolved"] = bool(ovr_name)
+            proc = launch_mpv(url)
+            apply_volume(mpc, saved_vol)
+
         while True:
             t = time.time()
+            if picker:
+                render_picker(stdscr, state, cur_st)
+                ch = stdscr.getch()
+                if ch == curses.KEY_RESIZE:
+                    continue
+                if ch in (ord("q"), 27):
+                    if proc is None:
+                        break
+                    picker = False
+                    state["picker"] = False
+                elif ch == ord("s"):
+                    if proc is not None:
+                        picker = False
+                        state["picker"] = False
+                elif ch == ord("p"):
+                    state["theme"] = next_theme(state["theme"])
+                    init_colors(state["theme"])
+                    persist_cfg(theme=state["theme"])
+                    log(f"theme switched to {state['theme']}")
+                elif ch in (curses.KEY_DOWN, ord("j")) and cur_st < len(stations) - 1:
+                    cur_st += 1
+                elif ch in (curses.KEY_UP, ord("k")) and cur_st > 0:
+                    cur_st -= 1
+                elif ch in (10, 13, curses.KEY_ENTER):
+                    switch_stream(stations[cur_st])
+                    picker = False
+                    state["picker"] = False
+                elif ord("1") <= ch <= ord("9"):
+                    i = ch - ord("1")
+                    if i < len(stations):
+                        cur_st = i
+                        switch_stream(stations[i])
+                        picker = False
+                        state["picker"] = False
+                continue
             if _latest["version"] and \
                     ver_key(_latest["version"]) > ver_key(VERSION):
                 state["update_url"] = UPDATE_URL
@@ -1368,6 +1532,9 @@ def main():
                         subprocess.Popen(["open", state["update_url"]])
             elif ch == ord("v"):
                 force_check(state)
+            elif ch == ord("s"):
+                picker = True
+                state["picker"] = True
             elif ch in (ord("r"), ord("R")):
                 proc.terminate()
                 time.sleep(0.2)

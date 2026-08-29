@@ -55,12 +55,14 @@
   Release with assets, `Latest`).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
   (256-color Catppuccin-inspired, ANSI fallback; pair 5 = muted subtext).
-- **Sub-project — station presets (exploration):** see
-  `.opencode/stationsproject.md` for the living candidate/approved station
-  list and the plan to add station toggles to the TUI. **The user personally
-  approves each station; the assistant must NEVER add stations to the file on
-  its own initiative.** Approved so far: `WQXR`, `Radio Swiss Classic` (label: "Swiss Classic I" —
-  Italian feed).
+- **Sub-project — station presets:** see `.opencode/stationsproject.md` for
+  the living candidate/approved station list. **The user personally approves
+  each station; the assistant must NEVER add stations to the file on its own
+  initiative.** Approved: `WQXR`, `Radio Swiss Classic` (label "Swiss Classic
+  I" — Italian feed). **Implemented (unreleased, on `main`):** `mradio` now
+  starts in a "Preselected stations" picker when launched without a URL, and
+  `s` opens it anytime; presets in `config.json` key `stations`, defaulting
+  to the 12 stations in the doc (see `DEFAULT_STATIONS` in `./mradio`).
 - **Latest release:** `0.7.20` (tag + GitHub Release, assets mradio/install.sh).
   The U self-update flow was validated live earlier (v0.7.18 → v0.7.19 → apply
   on restart) and is documented as tested in the 0.7.20 changelog.

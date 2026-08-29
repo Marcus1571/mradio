@@ -50,6 +50,9 @@ does not add stations on its own initiative.
 
 ## Research notes
 
+- **Wired into mradio:** these 12 presets are baked in as `DEFAULT_STATIONS`
+  in `./mradio` and shown by the picker (`s` key / bare launch). Override
+  them per-machine via `config.json` → `"stations"` (no code change needed).
 - Most picks are **public-service or non-profit** → no commercial ad breaks
   (Classic FM is the exception: commercial, with ad breaks; Naim is a brand
   radio). WQXR is member-supported with occasional underwriting.

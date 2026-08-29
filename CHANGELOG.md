@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Preselected-stations picker.** Launching `mradio` with no stream URL now
+  shows a picker first; `s` opens it anytime from the player. Choose with
+  `1-9` (quick-pick) or arrows/Enter; `s`/`Esc` returns to the player. The
+  preset list lives in `config.json` under `"stations"` (list of
+  `{name, url}`), defaulting to the 12 stations tracked in
+  `.opencode/stationsproject.md`.
+
 ## [0.7.24] - 2026-08-28
 
 ### Changed
