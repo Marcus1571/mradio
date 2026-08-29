@@ -179,6 +179,7 @@ class TestPalettes(unittest.TestCase):
                 _mradio.curses.COLORS = _old_c
             _mradio.curses.init_pair = _old
         self.assertEqual(pairs[2], (18, -1), "navy title color")
+        self.assertEqual(pairs[5], (242, -1), "grey subtext color")
         self.assertEqual(pairs[6], (130, -1), "cinnamon performer color")
         self.assertEqual(pairs[8], (15, 28), "white on green LIVE chip")
 

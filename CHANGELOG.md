@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.24] - 2026-08-28
+
+### Changed
+
+- **AI description no longer shares the title's color.** The trivia note gets
+  its own muted "subtext" slot (pair 5, a dim grey on light themes,
+  lavender-grey on dark) instead of being the title color + `A_DIM`. A bold
+  colorful title (e.g. navy in `light-navy`) can no longer be confused with
+  the body text.
+
 ## [0.7.23] - 2026-08-28
 
 ### Changed

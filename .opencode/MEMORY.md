@@ -113,9 +113,10 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   rotate and `init_colors()` picks the 256 map when `curses.COLORS >= 256` else
   ANSI (new light arrangements fall back to classic light ANSI). Pair meaning:
   1 = arrows/version/theme/vol label, 2 = title (navy `18` in light-navy,
-  royal `19` in mauve), 4 = composer/artist + meter, 6 = performer (cinnamon
-  `130` / tan `137`), 7 = work label/spinner, chips 3/8/9/10 = RADIO, LIVE,
-  PAUSED, UPDATE.
+  royal `19` in mauve), 4 = composer/artist + meter, 5 = muted subtext (AI
+  description/prose, drawn `+ A_DIM`), 6 = performer (cinnamon `130` / tan
+  `137`), 7 = work label/spinner, chips 3/8/9/10 = RADIO, LIVE, PAUSED,
+  UPDATE.
 - `main()` — mpv reaping lives in `finally` (terminate → wait 2s → kill),
   guarded by `proc is not None`; all exit paths (q, Ctrl-C, exceptions, resize)
   reap mpv, run `Enricher.shutdown()`, and unlink the IPC socket.
