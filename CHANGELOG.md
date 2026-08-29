@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.41] - 2026-08-29
+
+### Changed
+
+- **Docs & memory housekeeping.** README's `all-stations` screenshot refreshed
+  to the real post-fix capture (names show `VCR Auditorium | Venice Classic
+  Radio Italia` … `NPO Klassiek`). Project memory (`.opencode/MEMORY.md`)
+  gained a hard rule: every bug fix or feature add/altered/remove must be
+  reflected in README.md and KB.md in the same change, and its current-state
+  section now tracks 0.7.40.
+
 ## [0.7.40] - 2026-08-29
 
 ### Changed
