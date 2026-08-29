@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.31] - 2026-08-29
+
+### Changed
+
+- **Three-row footer colors/roles:** mid row (`f:favorites  s:all  v:check`
+  + `u:page`/`U:apply` on update) is now **dark grey**, `z:expand`/`z:collapse`
+  moved up to the AI row, and the bottom row keeps the transport keys
+  (`q`/`space`/`+`/`-`/`m`/`r`).
+
 ## [0.7.30] - 2026-08-29
 
 ### Changed

@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.30"
+VERSION = "0.7.31"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1261,17 +1261,18 @@ def render(std, elapsed, s):
         lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
         if h >= 3 and ai_configured():
             line = (f" AI: 1=opencode  2=ollama  3=api   "
-                    f"now:{s.get('ai_provider') or ''}   press to re-request")
+                    f"now:{s.get('ai_provider') or ''}   press to re-request   z:collapse")
             if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
                 line = s["update_msg"]
             add(std, h - 3, 1, line[:lw], 3)
         if h >= 2:
             add(std, h - 2, 1,
-                (f" v:check" +
-                 ("   u:page   U:apply" if s.get("update_url") else ""))[:lw], 3)
+                (f" f:favorites   s:all   v:check" +
+                 ("   u:page   U:apply" if s.get("update_url") else ""))[:lw],
+                5, curses.A_DIM)
         if h >= 1:
             draw_help(std, s, h - 1, lw,
-                      " f:favorites   s:all   z:collapse   q:quit   space:pause   r:reconnect")
+                      " q:quit   space:pause   + / -:volume   m:mute   r:reconnect")
         std.refresh()
         return
 
@@ -1319,20 +1320,21 @@ def render(std, elapsed, s):
 
     if h >= 2:
         add(std, h - 2, 1,
-            (f" v:check" +
-             ("   u:page   U:apply" if s.get("update_url") else ""))[:lw], 3)
+            (f" f:favorites   s:all   v:check" +
+             ("   u:page   U:apply" if s.get("update_url") else ""))[:lw],
+            5, curses.A_DIM)
 
     if h >= 3 and ai_configured():
         prov = s.get("ai_provider") or ""
         line = (f" AI: 1=opencode  2=ollama  3=api   now:{prov}   "
-                f"press to re-request")
+                f"press to re-request   z:expand")
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             line = s["update_msg"]
         add(std, h - 3, 1, line[:lw], 3)
 
     if h >= 1:
         draw_help(std, s, h - 1, lw,
-                  " q:quit   space:pause   + / -:volume   m:mute   r:reconnect   f:favorites   s:all   z:expand")
+                  " q:quit   space:pause   + / -:volume   m:mute   r:reconnect")
 
     std.refresh()
 
