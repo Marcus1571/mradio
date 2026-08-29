@@ -271,7 +271,7 @@ Both menus share their housekeeping keys; only picking differs.
 | `1`…`9` `0` | **instant pick** (`0` = 10th favorite) | — |
 | `↑`/`↓` or `j`/`k` | move selection | move selection |
 | `Enter` | play selected | play selected |
-| `a` | — | **add** the highlighted station to your favorites (flash confirms/duplicates) |
+| `a` | — | **add** the highlighted station to your favorites (flash confirms; ignored once your 10 slots are full) |
 | `f` | switch to favorites | switch to favorites |
 | `s` | switch to all stations | stay on all stations |
 | `q` / `Esc` | back to player while something is playing; **quit** if you're in the bare-launch screen | same |
@@ -304,11 +304,12 @@ Two distinct lists — this split is deliberate:
         "url": "https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128" }
   ] }
   ```
-  Numbered `1-0` for instant hot-picks, in display order. **Releases never
-  touch this file** once it exists — you own it. An empty `"favorites": []`
-  is valid (start with no quick-picks). On the first run of a fresh machine the
-  file is **auto-seeded once** with the current curated selection so the menu
-  is useful immediately; after that it's yours to edit.
+  Numbered `1-0` for instant hot-picks (a maximum of **10** slots), in display
+  order. **Releases never touch this file** once it exists — you own it. An
+  empty `"favorites": []` is valid (start with no quick-picks). On the first
+  run of a fresh machine the file is **auto-seeded once** with the first 10 of
+  the current curated selection so the menu is useful immediately; after that
+  it's yours to edit.
 - **All stations** (`s`) — *our* curated list, shipped in the program (labels
   `S01`, `S02`, …). It can grow with every release; use `a` to copy any row
   into your favorites. This is how the project can keep "pushing" new stations

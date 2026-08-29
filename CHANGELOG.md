@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.40] - 2026-08-29
+
+### Changed
+
+- **Favorites are capped at 10** (the `1-9` + `0` hot slots), as originally
+  agreed. The auto-seed now writes the first 10 curated stations (not all 12),
+  legacy-config migration is trimmed to 10, and `a` no longer grows the list
+  past 10 (it flashes "favorites full"). The favorites menu also renders only
+  the 10 hot rows, so stray extras no longer show as fake `0` entries.
+
+### Fixed
+
+- Favorites menu no longer labels rows beyond #10 with `0`.
+
 ## [0.7.39] - 2026-08-29
 
 ### Fixed

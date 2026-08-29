@@ -334,7 +334,7 @@ class TestStations(unittest.TestCase):
             _mradio.STATIONS_FILE = os.path.join(td, "stations.json")
             try:
                 sts = _mradio.load_favorites()
-                self.assertEqual(sts, list(_mradio.DEFAULT_STATIONS))
+                self.assertEqual(sts, list(_mradio.DEFAULT_STATIONS)[:10])
                 self.assertTrue(os.path.exists(_mradio.STATIONS_FILE))
             finally:
                 _mradio.STATIONS_FILE = saved

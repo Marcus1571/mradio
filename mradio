@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.39"
+VERSION = "0.7.40"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -288,7 +288,7 @@ def _follow_esc(std):
 
 
 def load_favorites():
-    """Your numbered 'favorites' list (the 1-9 quick-pick row).
+    """Your numbered 'favorites' list (the 1-9 + 0 quick-pick rows, max 10).
 
     Read from stations.json ("favorites" key). First run on a new machine
     auto-seeds that file with the curated DEFAULT_STATIONS so the menu is
@@ -314,19 +314,19 @@ def load_favorites():
         lst = None
     except Exception:
         log(f"favorites read FAIL (invalid {STATIONS_FILE})", "WARN")
-        return list(DEFAULT_STATIONS)
+        return list(DEFAULT_STATIONS)[:10]
     if isinstance(lst, list):
         return norm(lst)
     try:
         cfg_lst = load_cfg().get("stations")
         if isinstance(cfg_lst, list) and cfg_lst:
-            out = norm(cfg_lst)
+            out = norm(cfg_lst)[:10]
             if out:
                 save_favorites(out)
                 return out
     except Exception:
         pass
-    out = list(DEFAULT_STATIONS)
+    out = list(DEFAULT_STATIONS)[:10]
     if not save_favorites(out):
         log("favorites seed FAIL (wrote nothing)", "WARN")
     return out
@@ -1375,6 +1375,8 @@ def render_menu(std, s, mode, cur):
     add(std, y, 1, heading, 1, curses.A_BOLD)
     y += 1
     for i, ent in enumerate(sts):
+        if mode == "fav" and i >= 10:
+            break
         if y >= h - 2:
             break
         if i == cur:
@@ -1540,8 +1542,10 @@ def main():
                 elif ch == ord("a") and menu == "all":
                     ent = state["all_stations"][
                         min(cur_st, len(state["all_stations"]) - 1)]
-                    if any(x.get("url") == ent["url"]
-                           for x in state["fav_stations"]):
+                    if len(state["fav_stations"]) >= 10:
+                        state["update_msg"] = "favorites full - 10 max (a ignored)"
+                    elif any(x.get("url") == ent["url"]
+                             for x in state["fav_stations"]):
                         state["update_msg"] = \
                             f"already in favorites: {ent['name']}"
                     elif save_favorites(list(state["fav_stations"]) + [dict(ent)]):
