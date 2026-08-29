@@ -37,6 +37,7 @@ automatically. Only BBC (HLS) has no icy metadata — pass the name as arg 2.
 | candidate | **VCR Classica+** | `https://uk2.streamingpulse.com/ssl/vcr2` | Venice Classic Radio Italia, 128k MP3 | yes | icy-name `VCR Classica+ \| Venice Classic Radio Italia`. |
 | candidate | **Naim Classical** | `http://mscp3.live-streams.nl:8250/class-high.aac` | Naim Audio radio, 320k AAC | yes | icy-name `Naim Classical`; brand radio (naimaudio.com). |
 | candidate | **Classic FM** | `http://ice-the.musicradio.com/ClassicFMMP3` | UK commercial (Global), 128k MP3 | yes | icy-name `Classic FM`. **Has ad breaks** — not commercial-free (user auditioning anyway). |
+| candidate | **Radio Paradise** | `https://stream-uk1.radioparadise.com/mp3-128` | US listener-supported, 128k MP3 | yes | icy-name `Radio Paradise (128k mp3)`. Eclectic (not classical): rock/electronica/world. icy: "Always 100% commercial-free". |
 | candidate | **VRT Klara Continuo** | `https://icecast.vrtcdn.be/klaracontinuo-high.mp3` | Belgium public, 128k MP3 | yes | 24/7 pure classical, zero talk/interruption. |
 | candidate | **VRT Klara** | `https://icecast.vrtcdn.be/klara-high.mp3` | Belgium public, 128k MP3 | yes | Classical + jazz, lightly presented. |
 | candidate | **Radio Swiss Classic** | `https://stream.srg-ssr.ch/srgssr/rsc_de/mp3/128` | Swiss public, 128k MP3 | yes | "Ohne Werbung" (no ads), German-language. |
