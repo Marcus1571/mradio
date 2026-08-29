@@ -320,9 +320,11 @@ Related behaviors:
   config files) is honored **and migrated** into `stations.json` on the first
   run after upgrading.
 - `MRADIO_STATIONS` overrides the favorites file path.
-- **Streams with no icy-name** (e.g. some HLS feeds) show the forced name or
-  the URL host instead; you can always force a name with the second CLI
-  argument or an alias.
+- **The JSON `name` is only a fallback label.** When the stream broadcasts a
+  richer `icy-name` (e.g. `VCR Auditorium | Venice Classic Radio Italia`), it
+  replaces the short label, exactly as a hand-typed URL would behave. Streams
+  with **no icy-name** (some HLS feeds) keep the label; force your own label
+  with the second CLI argument or an alias.
 
 The current curated list (the `S01…Snn` seed) is tracked in
 `.opencode/stationsproject.md`. Favorites presets can also be extra *aliases*:

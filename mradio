@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.33"
+VERSION = "0.7.34"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1485,7 +1485,6 @@ def main():
             if not nurl:
                 return
             url = nurl
-            state["station_resolved"] = True
             state["station"] = (ent.get("name") or url.split("/")[2]).strip()
             state["raw_title"] = ""
             state["title"] = "connecting…"

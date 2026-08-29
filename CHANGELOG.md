@@ -5,10 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.7.34] - 2026-08-29
 
 ### Fixed
 
+- **Preset picks show the full `icy-name` again.** A station picked from the
+  menus used the short `stations.json` label instead of the stream's
+  broadcast name (e.g. `VCR Auditorium | Venice Classic Radio Italia`) because
+  the pick path locked the name before `icy-name` could arrive. The JSON name
+  is now only a connecting/fallback label; `icy-name` takes over when it
+  broadcasts — matching hand-typed URL behavior.
 - **README/install list:** the KB Arch branch now includes **Omarchy** (Arch
   family) alongside Manjaro/EndeavourOS.
 
