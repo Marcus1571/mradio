@@ -18,9 +18,7 @@ smoke:
 	python3 mradio --help
 
 screens:
-	cd screenshots && for h in player favorites all-stations; do \
-		qlmanage -t -s 2600 -o . $$h.html >/dev/null 2>&1; \
-		mv $$h.html.png $$h.png; \
-	done
+	cd screenshots && swiftc -O shot.swift -o shot && \
+		./shot player player.png && ./shot fav favorites.png && ./shot all all-stations.png
 
 .PHONY: install uninstall check test smoke screens
