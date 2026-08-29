@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """mradio station-picker UI mockup (standalone, NOT part of mradio).
 
-Run interactively:   python3 stations_mockup.py
-Print one text frame: python3 stations_mockup.py --shot
+Run interactively:      python3 stations_mockup.py
+Print main frame:       python3 stations_mockup.py --shot
+Print picker frame:     python3 stations_mockup.py --shot-pick
 
-Idea being explored: launch mradio with no station → this picker appears;
-press 1-9 (or navigate + Enter) to choose a preselected station.
-Keys: j/k or up/down = move, Enter = pick, 1-9 = quick-pick visible rows,
-p = cycle colour scheme, q = quit.
+Concept being explored: the now-playing screen stays as-is, and a letter key
+`s` opens the "Preselected stations" menu; 1-9 or arrows+Enter pick a station,
+Esc/s/q returns to the player.
+Keys: s = stations menu · 1-9 = pick · arrows/Enter = pick · p = theme · q = quit
 """
 
 import curses
@@ -72,7 +73,62 @@ def add(std, y, x, text, pair, attr=0):
         pass
 
 
-def render(std, theme, cur, off, msg, msg_t, elapsed):
+def render_main(std, theme, cur_st, msg, msg_t):
+    std.erase()
+    h, w = std.getmaxyx()
+    tw = max(8, w - 2)
+
+    badge = " ● RADIO "
+    add(std, 0, 0, badge, 3)
+    x = len(badge)
+    add(std, 0, x, " ▸ ", 1)
+    x += 3
+    add(std, 0, x, " " + cur_st + " ", 2)
+    x += len(cur_st) + 2
+    add(std, 0, x, " ▸ ", 1)
+    x += 3
+    add(std, 0, x, " LIVE ", 8)
+    x += 6
+    add(std, 0, x, f" {theme} (p)", 1)
+
+    y = 2
+    add(std, y, 1, "Ludwig van Beethoven", 4, curses.A_BOLD); y += 1
+    add(std, y, 1, "Symphony No. 9 in D minor, Op. 125", 2, curses.A_BOLD); y += 1
+    add(std, y, 1, "Berliner Philharmoniker · Herbert von Karajan", 6); y += 1
+    add(std, y, 1, "Work: Symphony No. 9 · IV. Presto", 7); y += 1
+    y += 1
+
+    blurb = ("Schiller's 'Ode to Joy' — the finale Beethoven never heard "
+             "performed. Mock trivia line to show the dim subtext slot.")
+    for line in ([] if h < 14 else [blurb]):
+        add(std, y, 1, line[:tw], 5, curses.A_DIM); y += 1
+    y += 1
+
+    if h - y > 6:
+        add(std, y, 1, " 128 kbps · 44.1 kHz · mp3 · cache 2.3s · "
+                       "stream 00:42", 7); y += 1
+
+    if h - y > 4:
+        vw = max(10, w - 14)
+        add(std, y, 1, " vol ", 1)
+        add(std, y + 1, 1, " " + ("█" * 7 + "░" * (vw - 7))[:vw], 4)
+        add(std, y + 1, 1 + vw + 2, " 72%", 2)
+
+    right = "v" + VERSION + " · mock"
+    add(std, h - 1, max(0, w - len(right) - 1), right, 1)
+
+    if msg and time.time() - msg_t < 2.5:
+        line = "► launching " + msg + " … (mock)"
+    else:
+        line = (" AI: 1=opencode  2=ollama  3=api   now:opencode   "
+                "press to re-request")
+    add(std, h - 2, 1, line, 3)
+    add(std, h - 1, 1,
+        (" q:quit  sp:pause  +/-:vol  m:mute  r:reconnect  s:stations")
+        [:max(8, w - len(right) - 6)], 6)
+
+
+def render_pick(std, theme, cur, msg, msg_t):
     std.erase()
     h, w = std.getmaxyx()
 
@@ -92,14 +148,7 @@ def render(std, theme, cur, off, msg, msg_t, elapsed):
     y = 2
     add(std, y, 1, "Preselected stations", 1, curses.A_BOLD)
     y += 1
-
-    rows = []
-    for i, (app, name, sub) in enumerate(STATIONS):
-        rows.append(f"{i+1:>2}  {'★' if app else '·'}  {name}")
-    top = max(0, min(off, len(rows) - 1))
-    for i in range(len(rows)):
-        if i < top:
-            continue
+    for i in range(len(STATIONS)):
         if y >= h - 2:
             break
         vis = STATIONS[i]
@@ -117,16 +166,13 @@ def render(std, theme, cur, off, msg, msg_t, elapsed):
     right = "v" + VERSION + " · mock"
     add(std, h - 1, max(0, w - len(right) - 1), right, 1)
 
-    footer = " pick a number to try it (mock: no audio)"
     if msg and time.time() - msg_t < 2.5:
-        footer = "► launching " + msg + " … (mock)"
-    add(std, h - 2, 1, footer, 3)
-
-    lw = max(8, w - len(right) - 6)
-    add(std, h - 1, 1, (" q:quit   ↑/↓:move   Enter:pick   "
-                        "1-9:quick-pick   p:scheme")[:lw], 6)
-
-    std.refresh()
+        add(std, h - 2, 1, "► launching " + msg + " … (mock)", 3)
+    else:
+        add(std, h - 2, 1, " pick a number — returns to the player", 3)
+    add(std, h - 1, 1,
+        (" s/Esc:back  ↑/↓:move  Enter:pick  1-9:pick  p:scheme")
+        [:max(8, w - len(right) - 6)], 6)
 
 
 def run(std):
@@ -135,32 +181,47 @@ def run(std):
     curses.use_default_colors()
     theme = "dark"
     init_colors(theme)
+    mode = "main"
     cur = 0
+    cur_st = STATIONS[0][1]
     msg = None
     msg_t = 0.0
-    t0 = time.time()
     while True:
-        render(std, theme, cur, 0, msg, msg_t, time.time() - t0)
+        if mode == "pick":
+            render_pick(std, theme, cur, msg, msg_t)
+        else:
+            render_main(std, theme, cur_st, msg, msg_t)
+        std.refresh()
         c = std.getch()
-        if c == ord("q") or c == 27:
-            break
+        if c in (ord("q"), 27):
+            if mode == "pick":
+                mode = "main"
+            else:
+                break
+        elif c == ord("s"):
+            mode = "pick" if mode == "main" else "main"
         elif c == ord("p"):
             theme = SCHEMES[(SCHEMES.index(theme) + 1) % len(SCHEMES)]
             init_colors(theme)
-        elif c in (curses.KEY_DOWN, ord("j")) and cur < len(STATIONS) - 1:
-            cur += 1
-        elif c in (curses.KEY_UP, ord("k")) and cur > 0:
-            cur -= 1
-        elif c in (10, 13, curses.KEY_ENTER):
-            msg, msg_t = STATIONS[cur][1], time.time()
-        elif c >= ord("1") and c <= ord("9"):
-            i = c - ord("1")
-            if i < len(STATIONS):
-                cur = i
-                msg, msg_t = STATIONS[i][1], time.time()
+        elif mode == "pick":
+            if c in (curses.KEY_DOWN, ord("j")) and cur < len(STATIONS) - 1:
+                cur += 1
+            elif c in (curses.KEY_UP, ord("k")) and cur > 0:
+                cur -= 1
+            elif c in (10, 13, curses.KEY_ENTER):
+                cur_st = STATIONS[cur][1]
+                msg, msg_t = cur_st, time.time()
+                mode = "main"
+            elif ord("1") <= c <= ord("9"):
+                i = c - ord("1")
+                if i < len(STATIONS):
+                    cur = i
+                    cur_st = STATIONS[i][1]
+                    msg, msg_t = cur_st, time.time()
+                    mode = "main"
 
 
-def shot():
+def shot(mode="main"):
     std = curses.initscr()
     try:
         curses.start_color()
@@ -169,7 +230,10 @@ def shot():
         curses.cbreak()
         curses.curs_set(0)
         init_colors("dark")
-        render(std, "dark", 0, 0, None, 0.0, 0.0)
+        if mode == "pick":
+            render_pick(std, "dark", 0, None, 0.0)
+        else:
+            render_main(std, "dark", STATIONS[0][1], None, 0.0)
         curses.doupdate()
         lines = []
         h, w = std.getmaxyx()
@@ -185,7 +249,9 @@ def shot():
 
 
 if __name__ == "__main__":
-    if "--shot" in sys.argv:
-        shot()
+    if "--shot-pick" in sys.argv:
+        shot("pick")
+    elif "--shot" in sys.argv:
+        shot("main")
     else:
         curses.wrapper(run)
