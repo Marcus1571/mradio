@@ -35,14 +35,14 @@ does not add stations on its own initiative.
 
 | Status | Station | Stream (as verified) | Origin / quality | icy | Notes |
 |---|---|---|---|---|---|
-| 👍 | **WQXR** | `https://stream.wqxr.org/wqxr.mp3` | US, member-supported, 128k MP3 | yes | User-tested and OK. No ad breaks, occasional underwriting. |
-| 👍 | **Radio Swiss Classic** | `https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128` | Swiss public, 128k MP3 | yes | icy-name `Swiss Classic I` — the **Italian-language** feed (D = German, F = French variants exist). "Ohne Werbung" (no ads). |
 | candidate | **VCR Auditorium** | `https://uk2.streamingpulse.com/ssl/vcr1` | Venice Classic Radio Italia, 128k MP3 | yes | icy-name `VCR Auditorium \| Venice Classic Radio Italia`. |
 | candidate | **VCR Classica+** | `https://uk2.streamingpulse.com/ssl/vcr2` | Venice Classic Radio Italia, 128k MP3 | yes | icy-name `VCR Classica+ \| Venice Classic Radio Italia`. |
+| 👍 | **Radio Swiss Classic** | `https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128` | Swiss public, 128k MP3 | yes | icy-name `Swiss Classic I` — the **Italian-language** feed (D = German, F = French variants exist). "Ohne Werbung" (no ads). |
 | candidate | **Naim Classical** | `http://mscp3.live-streams.nl:8250/class-high.aac` | Naim Audio radio, 320k AAC | yes | icy-name `Naim Classical`; brand radio (naimaudio.com). |
+| 👍 | **WQXR** | `https://stream.wqxr.org/wqxr.mp3` | US, member-supported, 128k MP3 | yes | User-tested and OK. No ad breaks, occasional underwriting. |
 | candidate | **Classic FM** | `http://ice-the.musicradio.com/ClassicFMMP3` | UK commercial (Global), 128k MP3 | yes | icy-name `Classic FM`. **Has ad breaks** — not commercial-free (user auditioning anyway). |
-| candidate | **Radio Paradise** | `https://stream-uk1.radioparadise.com/mp3-128` | US listener-supported, 128k MP3 | yes | icy-name `Radio Paradise (128k mp3)`. Eclectic (not classical): rock/electronica/world. icy: "Always 100% commercial-free". |
 | candidate | **Swiss Jazz** | `http://stream.srg-ssr.ch/m/rsj/mp3_128` | Swiss public, 128k MP3 | yes | icy-name `Swiss Jazz`; jazz (sibling of Radio Swiss Classic). |
+| candidate | **Radio Paradise** | `https://stream-uk1.radioparadise.com/mp3-128` | US listener-supported, 128k MP3 | yes | icy-name `Radio Paradise (128k mp3)`. Eclectic (not classical): rock/electronica/world. icy: "Always 100% commercial-free". |
 | candidate | **radio klassik Stephansdom** | `http://radioklassikstephansdom.ice.infomaniak.ch/radioklassikstephansdom.mp3` | Austria, non-profit, 128k MP3 | yes | Vienna classical radio, donation-funded. http (not https). |
 | candidate | **NPO Radio 4 / Klassiek** | `https://icecast.omroep.nl/radio4-bb-mp3` | Dutch public, 192k MP3 | yes | icy-name "NPO Klassiek", genre Classical. |
 | candidate | **France Musique** | `https://icecast.radiofrance.fr/francemusique-midfi.mp3` (or `.aac` for 96k) | French public, 128k MP3 | yes | Classical + jazz + live concerts. |

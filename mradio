@@ -57,17 +57,17 @@ DEFAULT_URL = "https://uk2.streamingpulse.com/ssl/vcr1"
 # without a stream URL and reachable anytime with `s`. Overridable in
 # config.json under "stations" (list of {name, url}).
 DEFAULT_STATIONS = [
-    {"name": "WQXR", "url": "https://stream.wqxr.org/wqxr.mp3"},
-    {"name": "Radio Swiss Classic",
-     "url": "https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128"},
     {"name": "VCR Auditorium", "url": "https://uk2.streamingpulse.com/ssl/vcr1"},
     {"name": "VCR Classica+", "url": "https://uk2.streamingpulse.com/ssl/vcr2"},
+    {"name": "Radio Swiss Classic",
+     "url": "https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128"},
     {"name": "Naim Classical",
      "url": "http://mscp3.live-streams.nl:8250/class-high.aac"},
+    {"name": "WQXR", "url": "https://stream.wqxr.org/wqxr.mp3"},
     {"name": "Classic FM", "url": "http://ice-the.musicradio.com/ClassicFMMP3"},
+    {"name": "Swiss Jazz", "url": "http://stream.srg-ssr.ch/m/rsj/mp3_128"},
     {"name": "Radio Paradise",
      "url": "https://stream-uk1.radioparadise.com/mp3-128"},
-    {"name": "Swiss Jazz", "url": "http://stream.srg-ssr.ch/m/rsj/mp3_128"},
     {"name": "radio klassik Stephansdom",
      "url": "http://radioklassikstephansdom.ice.infomaniak.ch/"
             "radioklassikstephansdom.mp3"},
