@@ -141,7 +141,7 @@ and then mradio. Pick your branch:
 
 2. **Install mradio** (clone, then `./install.sh`, as above).
 
-#### Arch / Manjaro / EndeavourOS (pacman line)
+#### Arch / Manjaro / EndeavourOS / Omarchy (pacman line)
 
 1. **Install mpv**:
 
