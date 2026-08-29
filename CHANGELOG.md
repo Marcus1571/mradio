@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.32] - 2026-08-29
+
+### Added
+
+- **`KB.md` — full knowledge base** (linked from the README header): every key,
+  both station menus, favorites/all-stations model, the self-update flow,
+  AI enrichment providers + cache, complete `MRADIO_*` environment variable
+  table, config/persistence reference, troubleshooting FAQ, development notes
+  and a privacy section.
+
 ## [0.7.31] - 2026-08-29
 
 ### Changed

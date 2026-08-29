@@ -70,6 +70,10 @@
   sequences) resolve to the same hot-picks as the main number row.
   Legacy `config.json` → `"stations"` migrated on first run;
   `MRADIO_STATIONS` overrides the path.
+- **Docs:** `README.md` = quick start; **`KB.md`** = the full reference manual
+  (every key, menu, config/`stations.json`, env vars, update flow, AI
+  enrichment, troubleshooting, privacy) — keep in sync when features change;
+  `CHANGELOG.md` = release history.
 - **Latest release:** `0.7.28` (tag + GitHub Release, assets mradio/install.sh,
   `Latest`). The U self-update flow was validated live earlier (v0.7.18 →
   v0.7.19 → apply on restart).
