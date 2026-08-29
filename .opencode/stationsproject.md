@@ -35,6 +35,7 @@ automatically. Only BBC (HLS) has no icy metadata — pass the name as arg 2.
 | 👍 | **WQXR** | `https://stream.wqxr.org/wqxr.mp3` | US, member-supported, 128k MP3 | yes | User-tested and OK. No ad breaks, occasional underwriting. |
 | candidate | **VCR Auditorium** | `https://uk2.streamingpulse.com/ssl/vcr1` | Venice Classic Radio Italia, 128k MP3 | yes | icy-name `VCR Auditorium \| Venice Classic Radio Italia`. |
 | candidate | **VCR Classica+** | `https://uk2.streamingpulse.com/ssl/vcr2` | Venice Classic Radio Italia, 128k MP3 | yes | icy-name `VCR Classica+ \| Venice Classic Radio Italia`. |
+| candidate | **Naim Classical** | `http://mscp3.live-streams.nl:8250/class-high.aac` | Naim Audio radio, 320k AAC | yes | icy-name `Naim Classical`; brand radio (naimaudio.com). |
 | candidate | **VRT Klara Continuo** | `https://icecast.vrtcdn.be/klaracontinuo-high.mp3` | Belgium public, 128k MP3 | yes | 24/7 pure classical, zero talk/interruption. |
 | candidate | **VRT Klara** | `https://icecast.vrtcdn.be/klara-high.mp3` | Belgium public, 128k MP3 | yes | Classical + jazz, lightly presented. |
 | candidate | **Radio Swiss Classic** | `https://stream.srg-ssr.ch/srgssr/rsc_de/mp3/128` | Swiss public, 128k MP3 | yes | "Ohne Werbung" (no ads), German-language. |
