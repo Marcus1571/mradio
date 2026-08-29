@@ -36,7 +36,7 @@ does not add stations on its own initiative.
 | Status | Station | Stream (as verified) | Origin / quality | icy | Notes |
 |---|---|---|---|---|---|
 | 👍 | **WQXR** | `https://stream.wqxr.org/wqxr.mp3` | US, member-supported, 128k MP3 | yes | User-tested and OK. No ad breaks, occasional underwriting. |
-| 👍 | **Radio Swiss Classic** | `https://stream.srg-ssr.ch/srgssr/rsc_de/mp3/128` | Swiss public, 128k MP3 | yes | icy-name `Swiss Classic D` — the **German-language** feed (F = French, I = Italian variants exist). "Ohne Werbung" (no ads). |
+| 👍 | **Radio Swiss Classic** | `https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128` | Swiss public, 128k MP3 | yes | icy-name `Swiss Classic I` — the **Italian-language** feed (D = German, F = French variants exist). "Ohne Werbung" (no ads). |
 | candidate | **VCR Auditorium** | `https://uk2.streamingpulse.com/ssl/vcr1` | Venice Classic Radio Italia, 128k MP3 | yes | icy-name `VCR Auditorium \| Venice Classic Radio Italia`. |
 | candidate | **VCR Classica+** | `https://uk2.streamingpulse.com/ssl/vcr2` | Venice Classic Radio Italia, 128k MP3 | yes | icy-name `VCR Classica+ \| Venice Classic Radio Italia`. |
 | candidate | **Naim Classical** | `http://mscp3.live-streams.nl:8250/class-high.aac` | Naim Audio radio, 320k AAC | yes | icy-name `Naim Classical`; brand radio (naimaudio.com). |

@@ -59,8 +59,8 @@
   `.opencode/stationsproject.md` for the living candidate/approved station
   list and the plan to add station toggles to the TUI. **The user personally
   approves each station; the assistant must NEVER add stations to the file on
-  its own initiative.** Approved so far: `WQXR`, `Radio Swiss Classic`
-  (label: "Swiss Classic D" — German feed; F/I variants also exist).
+  its own initiative.** Approved so far: `WQXR`, `Radio Swiss Classic` (label: "Swiss Classic I" —
+  Italian feed).
 - **Latest release:** `0.7.20` (tag + GitHub Release, assets mradio/install.sh).
   The U self-update flow was validated live earlier (v0.7.18 → v0.7.19 → apply
   on restart) and is documented as tested in the 0.7.20 changelog.
