@@ -51,8 +51,14 @@
 
 ## Current state
 
-- **Latest version:** `0.7.21` (in-code `VERSION`); unreleased, under `[Unreleased]`
-  in CHANGELOG.
+- **Latest version:** `0.7.24` (in-code `VERSION`; released tag + GitHub
+  Release with assets, `Latest`).
+- **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
+  (256-color Catppuccin-inspired, ANSI fallback; pair 5 = muted subtext).
+- **Sub-project — station presets (exploration):** see
+  `.opencode/stationsproject.md` for the living candidate/approved station
+  list and the plan to add station toggles to the TUI. User auditions and
+  approves each station personally; only `WQXR` approved so far.
 - **Latest release:** `0.7.20` (tag + GitHub Release, assets mradio/install.sh).
   The U self-update flow was validated live earlier (v0.7.18 → v0.7.19 → apply
   on restart) and is documented as tested in the 0.7.20 changelog.
