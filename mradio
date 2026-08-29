@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.26"
+VERSION = "0.7.27"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1296,9 +1296,12 @@ def render_picker(std, s, cur):
     rlim = min(w, (s.get("update_zone") or (0, w))[1]) if s.get("update_zone") else w
     lw = max(8, min(w - 2, rlim - 2)) if rlim < w else w - 2
     if h >= 2:
-        add(std, h - 2, 1, f" pick a number — {len(sts)} preset(s)", 3)
+        line = f" pick a number — {len(sts)} preset(s)"
+        if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
+            line = s["update_msg"]
+        add(std, h - 2, 1, line[:lw], 3)
     if h >= 1:
-        add(std, h - 1, 1, (" ⏎/1-9:pick   ↑/↓:move   q/Esc:back   p:scheme")[:lw], 6)
+        add(std, h - 1, 1, (" ⏎/1-9:pick   ↑/↓:move   q/Esc:back   v:check")[:lw], 6)
     std.refresh()
 
 
@@ -1424,6 +1427,18 @@ def main():
                     init_colors(state["theme"])
                     persist_cfg(theme=state["theme"])
                     log(f"theme switched to {state['theme']}")
+                elif ch == ord("u"):
+                    if state.get("update_url"):
+                        subprocess.Popen(["open", state["update_url"]])
+                elif ch == ord("U"):
+                    if state.get("update_url"):
+                        ok, msg = apply_update()
+                        state["update_msg"] = msg
+                        state["update_msg_t"] = time.time()
+                        if not ok:
+                            subprocess.Popen(["open", state["update_url"]])
+                elif ch == ord("v"):
+                    force_check(state)
                 elif ch in (curses.KEY_DOWN, ord("j")) and cur_st < len(stations) - 1:
                     cur_st += 1
                 elif ch in (curses.KEY_UP, ord("k")) and cur_st > 0:
