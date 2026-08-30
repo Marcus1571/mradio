@@ -256,7 +256,7 @@ Top to bottom, on the player screen:
  work: [...]
  This quartet is part of a series ...            ← grey AI trivia note
 
-  — · 44.1 kHz · mp3 · cache 0.8s · stream 00:45  ← format/stream line
+  — kbps · 44.1 kHz · mp3 · cache 0.8s · stream 00:45  ← format/stream line
   vol ████████████...  100%                       ← volume meter + value
 
   AI: 1=opencode  2=ollama  3=api  now:opencode  press to re-request  z:expand
@@ -272,6 +272,8 @@ Top to bottom, on the player screen:
 - **Trivia note** (AI, when enabled) — dark grey, word-wrapped to the window; if it
   doesn't fit it shows `…` and you can expand it full-screen with `z`.
 - **Format line** — kbps / kHz / codec / cache depth / elapsed stream time.
+  The bitrate and kHz slots keep their unit labels even when mpv doesn't
+  report a value (they show `— kbps · — kHz`).
 - **Volume meter** — bar + percentage; `MUTED` when muted.
 - **Footer (three rows)**:
   - **row 1 (top)** — AI provider hotkeys, current provider (`now:`), the

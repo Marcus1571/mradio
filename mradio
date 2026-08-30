@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.54"
+VERSION = "0.7.55"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1399,7 +1399,7 @@ def render(std, elapsed, s):
         y += 1
 
     if h - y > 5:
-        kbps = f"{s['kbps']//1000} kbps" if isinstance(s["kbps"], (int, float)) else "—"
+        kbps = f"{s['kbps']//1000} kbps" if isinstance(s["kbps"], (int, float)) else "— kbps"
         khz = f"{s['khz']/1000:.1f} kHz" if isinstance(s["khz"], (int, float)) else "—"
         codec = s["codec"] or "—"
         cache = f"{s['cache']:.1f}s" if isinstance(s["cache"], (int, float)) else "—"

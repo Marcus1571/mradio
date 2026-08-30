@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.55] - 2026-08-30
+
+### Fixed
+
+- **Stream data line flags an unknown bitrate with a label.** When mpv does
+  not report the stream bitrate, the line now reads `— kbps` instead of a
+  bare `—`, so the format is always `bitrate · sample · codec · cache · time`.
+
 ## [0.7.54] - 2026-08-30
 
 ### Added

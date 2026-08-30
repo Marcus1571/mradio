@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.54` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.55` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -226,6 +226,12 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   broadcast names (matches favorites).
 - **0.7.40** — **favorites capped at 10** everywhere: seed `[:10]`, migration
   trimmed, `a` refuses when full, menu renders only the 10 hot rows.
+- **0.7.54** — **choice-3 anti-hallucination prompt rules** (`SINCERITY_RULES`,
+  applied only for the `openai` provider; never invent premiere/dedicatee/film/
+  award facts, no cross-composer drift). Kept `_llm` methods intact.
+- **0.7.55** — **stream data line**: unknown bitrate now prints `— kbps` (unit
+  label always present), same as the fixed-format `cache Ns` / `stream mm:ss`
+  slots.
 
 ## Env vars (optional overrides; settings.json is the source of truth)
 
