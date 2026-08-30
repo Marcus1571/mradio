@@ -465,6 +465,13 @@ Order: **opencode → ollama → API key**.
 | 2 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | your own box = most private; fastest; model default `gemma3:4b` |
 | 3 | **openai** | `MRADIO_API_KEY=…`, `MRADIO_API_BASE=…`, `MRADIO_MODEL=…` | any OpenAI-compatible API (Groq, OpenRouter, Gemini, NIM, together.ai, …); hand this to friends who just want a free key |
 
+Choice 3 ships with **extra "HARD TRUTHFULNESS RULES"** appended to its prompt
+(choice 1/2 keep the stock prompt): never invent premiere dates, dedicatees,
+film/TV/commercial appearances or awards; never claim a film appearance unless
+certain; prefer verifiable structural facts; return `wiki` only if confident the
+article exists; and never drift onto a different composer, performer or work.
+It also relaxes the trivia length target — short-but-true beats padded.
+
 **NIM (NVIDIA) recipe** — free hosted inference, one `nvapi-…` key:
 
 ```sh

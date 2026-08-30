@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.53"
+VERSION = "0.7.54"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -771,6 +771,35 @@ def apply_volume(mpc, vol, muted=None):
         pass
 
 
+SINCERITY_RULES = (
+    "\n\nHARD TRUTHFULNESS RULES (never violated):\n"
+    "- Never invent facts. If a specific fact is not known to you with "
+    "confidence - premiere date, dedicatee, film/TV/commercial appearances, "
+    "notable recordings, performers, orchestras, awards - OMIT it; never hedge "
+    "with a plausible guess.\n"
+    "- Never claim a piece appears in a film, TV show, or commercial unless "
+    "you are certain it does.\n"
+    "- Prefer verifiable structural facts: composer dates and nationality, the "
+    "catalogue/opus exactly as given in the tag, genre, movement titles.\n"
+    '- "wiki": return the exact article title ONLY if confident the article '
+    'exists; otherwise "".\n'
+    "- Never mention or discuss any composer, performer, or work other than "
+    "the one in the tag; if a drafted sentence drifts to someone else it is a "
+    "defect - delete or rewrite it.\n"
+    "- Length is secondary to truth: a shorter trivia built only from confident "
+    "facts is better than a padded one. About 450 characters of true content "
+    "fully satisfies the task; never pad with unverified color."
+)
+
+
+def apply_provider_rules(prompt, provider):
+    """Provider-targeted prompt additions. Choice 3 (API key) gets extra
+    anti-hallucination rules; opencode and ollama keep the stock prompt."""
+    if provider == "openai":
+        return prompt + SINCERITY_RULES
+    return prompt
+
+
 class Enricher:
     def __init__(self):
         self.q = queue.Queue()
@@ -958,7 +987,7 @@ class Enricher:
             'on a complete, natural final sentence; never trail off mid-thought.\n'
             "Output the JSON object and nothing else."
         )
-        raw = self._llm(prompt)
+        raw = self._llm(apply_provider_rules(prompt, self.provider))
         if raw is None:
             return None
         item = extract_json_item(raw)

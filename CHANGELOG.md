@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.54] - 2026-08-30
+
+### Added
+
+- **Anti-hallucination rules for Choice 3 (API key / `openai` provider).** The
+  API prompt now carries extra "HARD TRUTHFULNESS RULES" aimed at the cloud
+  models: never invent a fact (premiere dates, dedicatees, film/TV/commercial
+  appearances, notable recordings, performers, awards); never claim a piece
+  appears in a film unless certain; prefer verifiable structural facts;
+  return `wiki` only if confident the article exists; and never drift onto a
+  composer, performer, or work other than the one in the tag. Length is
+  secondary to truth — a ~450-character trivia of verified facts beats a padded
+  one. opencode and ollama keep the stock prompt unchanged.
+
 ## [0.7.53] - 2026-08-30
 
 ### Fixed

@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.53` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.54` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -121,11 +121,17 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   - Cache eviction (in `_worker`, under the lock) is FIFO:
     `pop(next(iter(cache)))` removes the OLDEST entry — never the just-written
     key; verified.
-  - Provider order (live-switched with `1`/`2`/`3`): **opencode → ollama → API**.
-  - `_llm_opencode` (`opencode serve`, zero-auth gateway), `_llm_ollama`,
-    `_llm_openai` (any OpenAI-compatible: Groq, OpenRouter, Gemini, NIM…).
-    Endpoints are built with `api_endpoint()` (`urljoin`-based), not
-    concatenation.
+   - Provider order (live-switched with `1`/`2`/`3`): **opencode → ollama → API**.
+   - `_llm_opencode` (`opencode serve`, zero-auth gateway), `_llm_ollama`,
+     `_llm_openai` (any OpenAI-compatible: Groq, OpenRouter, Gemini, NIM…).
+     Endpoints are built with `api_endpoint()` (`urljoin`-based), not
+     concatenation.
+   - **Choice 3 anti-hallucination:** `_ask` runs the prompt through
+     `apply_provider_rules(prompt, provider)`; provider `openai` (choice 3)
+     gets `SINCERITY_RULES` appended (never invent premiere/dedicatee/film/
+     award facts, no cross-composer drift, wiki only if confident, short-but-
+     true trivia). Choices 1/2 keep the stock prompt. Tests:
+     `TestProviderRules`.
   - **opencode process hygiene:** `opencode.pid` pidfile stores `pid port`;
     `_oc_start` reaps a wedged instance we own before spawning, refuses to
     spawn if an untracked listener holds the port unhealthily, and kills a

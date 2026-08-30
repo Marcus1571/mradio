@@ -203,6 +203,32 @@ class TestPalettes(unittest.TestCase):
                              f"{scheme} must define all 10 pairs")
 
 
+class TestProviderRules(unittest.TestCase):
+    def test_api_provider_gets_sincerity_rules(self):
+        prompt = "base prompt"
+        out = _mradio.apply_provider_rules(prompt, "openai")
+        self.assertTrue(out.startswith(prompt))
+        for token in ("Never invent facts", "premiere date", "wiki",
+                       "is better than a padded one"):
+            self.assertIn(token, out)
+
+    def test_other_providers_keep_stock_prompt(self):
+        for provider in ("opencode", "ollama", "bogus"):
+            self.assertEqual(_mradio.apply_provider_rules("X", provider), "X")
+
+    def test_sincerity_rules_cover_the_big_hallucinations(self):
+        rules = _mradio.SINCERITY_RULES
+        for phrase in (
+            "Never invent facts",
+            "premiere date",
+            "film, TV show, or commercial",
+            "composer, performer, or work other than",
+            "is better than a padded one",
+        ):
+            self.assertTrue(phrase.lower() in rules.lower(),
+                            f"missing anti-hallucination phrase: {phrase!r}")
+
+
 class TestReleaseFeed(unittest.TestCase):
     def test_latest_release_version(self):
         body = (
