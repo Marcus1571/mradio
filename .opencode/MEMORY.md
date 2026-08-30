@@ -1,22 +1,22 @@
 # mradio — project memory
 
-## IMPORTANT RULES BETWEEN US
-
-- **`c.p` means: commit & push.** Whenever the user says `c.p`, do a full
-  `git add` of the relevant files, commit with a clear message, and `git push`
-  to origin — then confirm with the resulting commit hash. Never leave work
-  uncommitted/unpushed after a task; committing AND pushing correctly is
-  critical and has been the source of past mistakes.
-- **DOCS MUST STAY IN SYNC (my responsibility):** whenever a bug is corrected
-  or a feature is added, altered or removed, it is MY job to reflect that in
-  **README.md** and — above all — in **KB.md**, inside the same change/commit,
-  never as an afterthought or a later "oops". README = short appetizer
-  (details point to the KB); KB.md = the complete, single source of truth.
-  If a release ships a behavior change, the docs for it ship in the same
-  release.
-
 > Read this first in every session so we can pick up where we left off.
 > Update it whenever the project state changes significantly.
+
+## PERMANENT RULES — see `.opencode/BEHAVIOR.md`
+
+That file holds the eternal modus operandi (**commit & push by default**, the
+four documentation duties, UI conventions, release discipline, stations
+rules). Read it together with this file every session; this file only tracks
+the project's CURRENT state.
+
+## Key rules at a glance
+
+- **`c.p` is now the DEFAULT** — commit & push to GitHub after every
+  completed task, with a **full release when version-worthy**, unless the user
+  says "don't push". Never leave work uncommitted/unpushed after a task;
+  committing AND pushing correctly is critical and has been the source of past
+  mistakes.
 
 ## ⚠️ COMMANDMENTS (non-negotiable — read before acting)
 
@@ -58,7 +58,7 @@
 
 ## Current state
 
-- **Latest version / release:** `0.7.40` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.48` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -277,6 +277,6 @@ make smoke   # mradio --version / --help
 
 ## Open questions / possible next steps
 
-- Nothing outstanding. `.opencode/MEMORY.md` + `.opencode/stationsproject.md`
-  are tracked in the repo. House rule: keep both, plus README and KB.md, in
-  sync with every change (see the DOCS rule at the top).
+- Nothing outstanding. `.opencode/` (`MEMORY.md`, `BEHAVIOR.md`,
+  `stationsproject.md`) is tracked in the repo. House rule: keep all of it,
+  plus README and KB.md, in sync with every change.

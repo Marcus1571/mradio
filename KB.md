@@ -573,6 +573,12 @@ Terminals send pad digits as `Esc`-prefixed sequences. mradio resolves `Esc O
 exotic, treat it as *not a digit* rather than a quit. A bare `Esc` is handled as
 back/quit — that's by design.
 
+**Random digit/characters on the shell prompt after quitting.**
+Keypresses typed while mradio was shutting down (mpv cleanup takes ~2 s) used
+to sit in the terminal buffer and get replayed after exit. mradio drains
+pending input before handing the tty back (0.7.48+) — if you still see a
+stray char it was typed *after* the prompt returned.
+
 **`U` won't apply an update.**
 Likely one of: running from a git checkout (`git pull` instead), the directory
 isn't writable, the release lacks the `mradio` asset, or validation failed

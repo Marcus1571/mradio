@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.48] - 2026-08-29
+
+### Fixed
+
+- **No more random ghost digits at the shell prompt.** Keystrokes tapped while
+  mradio exits (up to ~2 s of mpv cleanup) used to linger in the terminal
+  buffer and get replayed by the shell after `endwin()` — you'd see a stray
+  `9` (or similar) on your command line. mradio now drains pending terminal
+  input just before handing the tty back.
+
+### Housekeeping
+
+- `.opencode/BEHAVIOR.md` added: c.p is now the **default** (commit & push
+  after every task, full release when version-worthy, unless "don't push"),
+  the four documentation duties (project memory / CHANGELOG / README / KB) are
+  etched as permanent rules, and the "steady warnings only in the yellow pill"
+  UI convention is recorded.
+
 ## [0.7.47] - 2026-08-29
 
 ### Changed
