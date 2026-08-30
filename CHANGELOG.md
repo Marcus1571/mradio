@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.52] - 2026-08-30
+
+### Changed
+
+- **Dark grey subtext on the light themes.** Pair 5 — the station-picker hint
+  row, the player footer's mid row (`f:favorites s:all …`), the station host
+  subtitles, and the AI trivia note — was a washed-out light grey and/or
+  terminal-`dim` on a white background. All three light palettes (`light`,
+  `light-navy`, `light-mauve`) now use a solid dark grey, and the `A_DIM`
+  attribute was dropped from those draws so the grey stays grey on white.
+
 ## [0.7.51] - 2026-08-30
 
 ### Changed

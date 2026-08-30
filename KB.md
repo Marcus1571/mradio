@@ -254,7 +254,7 @@ Top to bottom, on the player screen:
  Quartetto per archi in Sol minore n.6 op.24   ← now-playing block (artist,
  (Europa Galante - Fabio Biondi, ...)            work, performers, Work: line)
  work: [...]
- This quartet is part of a series ...            ← dim AI trivia note
+ This quartet is part of a series ...            ← grey AI trivia note
 
   — · 44.1 kHz · mp3 · cache 0.8s · stream 00:45  ← format/stream line
   vol ████████████...  100%                       ← volume meter + value
@@ -269,7 +269,7 @@ Top to bottom, on the player screen:
 - **Header** — station badge, `LIVE`/`PAUSED`, and the active theme.
 - **Now-playing block** — composer/performer/work lines; a `Work:` line appears
   when the station tag was only a movement/fragment.
-- **Trivia note** (AI, when enabled) — dim, word-wrapped to the window; if it
+- **Trivia note** (AI, when enabled) — dark grey, word-wrapped to the window; if it
   doesn't fit it shows `…` and you can expand it full-screen with `z`.
 - **Format line** — kbps / kHz / codec / cache depth / elapsed stream time.
 - **Volume meter** — bar + percentage; `MUTED` when muted.
@@ -448,7 +448,7 @@ plain metadata display work perfectly and mradio makes no network calls for AI.
 
 ### What it adds (when a provider is enabled)
 
-- a dim **trivia note** about the work (era, form, premieres, film usage, …);
+- a dark-grey **trivia note** about the work (era, form, premieres, film usage, …);
 - a **`Work:`** line when the station tag was only a movement/fragment;
 - an **`o:`** link — but *only* to a Wikipedia article **verified to exist and
   match** (composer-surname + token overlap), so you never get a
