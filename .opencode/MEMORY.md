@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.55` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.56` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -232,6 +232,11 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 - **0.7.55** — **stream data line**: unknown bitrate now prints `— kbps` (unit
   label always present), same as the fixed-format `cache Ns` / `stream mm:ss`
   slots.
+- **0.7.56** — **update check honesty**: a `304` (GitHub CDN can answer
+  "unchanged" for a changed feed) now triggers an unconditional re-fetch;
+  `latest_release_version/tag` take the **max** version (not first entry);
+  every `v` press force-refreshes after the instant flash. Fixes "up to date
+  (v0.7.54)" persisting right after v0.7.55 shipped.
 
 ## Env vars (optional overrides; settings.json is the source of truth)
 
@@ -244,8 +249,10 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   `MRADIO_UPDATE_URL` (full releases URL), `MRADIO_UPDATE_INTERVAL` (seconds,
   min 60, default 3600). Update check is report-only: `update_watcher()`
   daemon thread → `check_update()` sends `If-None-Match: <etag>` to
-  `releases.atom` (a `304` is logged and skipped) → `latest_release_version()`
-  parses the body → compare with `ver_key()`; sets `state["update_url"]` →
+  `releases.atom` (a `304` triggers an **unconditional re-fetch** — GitHub's
+  CDN can answer "unchanged" for a feed that already changed) →
+  `latest_release_version()` parses the body (the **max** version found wins,
+  never the first entry) → compare with `ver_key()`; sets `state["update_url"]` →
   `draw_right` renders version (bottom-right in row h-1) + ` UPDATE ` pill
   (row h-2, pair 10 = black-on-yellow chip) → mouse zone `update_zone` and
   `u` key open it. Startup thread is `update_watcher` (loops forever), NOT

@@ -393,10 +393,13 @@ mradio checks GitHub's releases **atom feed** in a background thread: once at
 startup, then every `MRADIO_UPDATE_INTERVAL` (default **1 hour**, minimum 60 s
 → max 24 checks/day vs GitHub's 60 req/hr anonymous limit). After the first
 check it sends the feed's **ETag** back (`If-None-Match`), so an unchanged feed
-returns a cheap `304` that doesn't count against the limit at all. A `304`
-just means "feed unchanged since your last check" — the result is re-derived
-from what the last successful check found (so pressing `v` after a `304`
-still reports the newer version, never a false "up to date").
+returns a cheap `304` at no cost. GitHub's CDN can answer `304` for a feed that
+already changed, so mradio treats a `304` as "trust nothing" and **re-fetches
+the feed unconditionally** — the result can never be a stale last-known
+version. The highest version found wins (not the first feed entry), so shuffled
+feed order can't report an older release. Pressing `v` always refreshes in the
+background after flashing the last known answer, so a newer release is picked
+up the moment it exists.
 
 When a newer release exists:
 

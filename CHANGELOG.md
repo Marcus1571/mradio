@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.56] - 2026-08-30
+
+### Fixed
+
+- **`v` no longer reports a stale "up to date".** Two update-check bugs could
+  make a fresh release invisible: a `304` (GitHub's CDN can answer "unchanged"
+  for a feed that already changed) re-used the last-known version instead of
+  re-checking, and `v` only refreshed in the background if the last check was
+  over an hour old. A `304` now triggers an unconditional re-fetch, the highest
+  version found wins (never the first feed entry), and every `v` press forces a
+  background refresh after flashing the cached answer.
+
 ## [0.7.55] - 2026-08-30
 
 ### Fixed

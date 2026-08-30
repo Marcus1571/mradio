@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.55"
+VERSION = "0.7.56"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -495,12 +495,13 @@ def ver_key(v):
 
 def latest_release_version(body):
     tags = re.findall(r"releases/tag/v?([0-9]+(?:\.[0-9]+){1,3})", body or "")
-    return tags[0] if tags else None
+    return max(tags, key=ver_key) if tags else None
 
 
 def latest_release_tag(body):
-    tags = re.findall(r"releases/tag/([^\"'<>]+)", body or "")
-    return tags[0].rstrip("/") if tags else None
+    tags = [t.rstrip("/") for t in
+            re.findall(r"releases/tag/([^\"'<>]+)", body or "")]
+    return max(tags, key=ver_key) if tags else None
 
 
 def check_update():
@@ -510,44 +511,54 @@ def check_update():
     downloads or runs code. Uses a conditional request: after the first check
     the feed's ETag is sent back (If-None-Match), so an unchanged feed returns
     a cheap 304 that does not count against GitHub's rate limits. GitHub's
-    unauthenticated REST limit is 60 req/hr; hourly polling (24/day) plus
-    ETags is ~0 effective requests for a typical week. On completion
-    _latest["note"] holds a one-line result (shown when `v` is pressed)."""
+    CDN can answer 304 for a feed that already changed, so a 304 triggers an
+    unconditional re-fetch rather than trusting the last-known version. The
+    highest version found wins (never the first entry), so stale or shuffled
+    feed order cannot report an older release. On completion _latest["note"]
+    holds a one-line result (shown when `v` is pressed)."""
     with _check_lock:
+        body = None
+        note = None
         try:
             headers = {"User-Agent": "mradio/" + VERSION}
             if _latest["etag"]:
                 headers["If-None-Match"] = _latest["etag"]
-            req = urllib.request.Request(
-                f"https://github.com/{UPDATE_REPO}/releases.atom",
-                headers=headers)
-            with urllib.request.urlopen(req, timeout=6) as r:
+            with urllib.request.urlopen(urllib.request.Request(
+                    f"https://github.com/{UPDATE_REPO}/releases.atom",
+                    headers=headers), timeout=6) as r:
                 _latest["etag"] = r.headers.get("ETag") or _latest["etag"]
                 body = r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            if e.code != 304:
+                log(f"update check FAIL: {e}", "WARN")
+                note = "check failed"
+            else:
+                log("update check: 304, re-fetching unconditionally")
+                try:
+                    with urllib.request.urlopen(urllib.request.Request(
+                            f"https://github.com/{UPDATE_REPO}/releases.atom",
+                            headers={"User-Agent": "mradio/" + VERSION}),
+                            timeout=6) as r:
+                        _latest["etag"] = r.headers.get("ETag") or _latest["etag"]
+                        body = r.read().decode("utf-8", "replace")
+                except Exception as e2:
+                    log(f"update check FAIL: {e2}", "WARN")
+                    note = "check failed"
+        except Exception as e:
+            log(f"update check FAIL: {e}", "WARN")
+            note = "check failed"
+        if body is not None:
             _latest["tag"] = latest_release_tag(body)
             _latest["version"] = latest_release_version(body)
             log(f"update check: latest={_latest['version']} current={VERSION}")
             v = _latest["version"]
             if v and ver_key(v) > ver_key(VERSION):
-                _latest["note"] = f"new version v{v} — press U"
+                note = f"new version v{v} — press U"
             else:
-                _latest["note"] = f"up to date (v{VERSION})"
-        except urllib.error.HTTPError as e:
-            if e.code == 304:
-                log("update check: unchanged (304)")
-                v = _latest["version"]
-                if v and ver_key(v) > ver_key(VERSION):
-                    _latest["note"] = f"new version v{v} — press U"
-                else:
-                    _latest["note"] = f"up to date (v{VERSION})"
-            else:
-                log(f"update check FAIL: {e}", "WARN")
-                _latest["note"] = "check failed"
-        except Exception as e:
-            log(f"update check FAIL: {e}", "WARN")
-            _latest["note"] = "check failed"
-        finally:
-            _latest["t"] = time.time()
+                note = f"up to date (v{VERSION})"
+        if note:
+            _latest["note"] = note
+        _latest["t"] = time.time()
 
 
 def force_check(state, silent=False):
@@ -583,20 +594,17 @@ def force_check(state, silent=False):
 
 
 def check_on_v(state):
-    """`v` answers instantly from the last known check, and quietly refreshes
-    in the background only when that answer is stale — so a slow network never
-    makes the key look like it's hanging."""
+    """`v` answers instantly from the last known check, then ALWAYS refreshes
+    in the background — an explicit `v` press must never leave a stale note
+    (e.g. from before a release) stuck as the answer."""
     note = _latest.get("note")
-    if not note:
-        force_check(state)
-        return
     if state.get("update_pending"):
         note = "updated to v" + (_latest.get("version") or "?") + \
             " — restart to apply"
-    state["update_msg"] = note
-    state["update_msg_t"] = time.time()
-    if time.time() - (_latest.get("t") or 0) > UPDATE_INTERVAL:
-        force_check(state, silent=True)
+    if note:
+        state["update_msg"] = note
+        state["update_msg_t"] = time.time()
+    force_check(state)
 
 
 def update_watcher():

@@ -239,6 +239,16 @@ class TestReleaseFeed(unittest.TestCase):
         )
         self.assertEqual(latest_release_version(body), "0.7.15")
 
+    def test_latest_release_version_out_of_order(self):
+        body = (
+            '<entry><link href="https://github.com/Marcus1571/mradio/'
+            'releases/tag/v0.7.15"/></entry>'
+            '<entry><link href="https://github.com/Marcus1571/mradio/'
+            'releases/tag/v0.7.55"/></entry>'
+        )
+        self.assertEqual(latest_release_version(body), "0.7.55")
+        self.assertEqual(latest_release_tag(body), "v0.7.55")
+
     def test_release_version_no_tag(self):
         self.assertIsNone(latest_release_version("<entry>no releases</entry>"))
 
@@ -281,26 +291,47 @@ class TestReleaseFeed(unittest.TestCase):
         _old = _mradio._latest
         _mradio._latest = dict(_old)
         _mradio._latest["note"] = "up to date (v0.7.99)"
-        _mradio._latest["t"] = _mradio.time.time()
+        saved = _mradio.force_check
+        calls = []
+        _mradio.force_check = lambda s: calls.append(s)
         try:
             s = {"update_msg": "", "update_msg_t": 0}
             _mradio.check_on_v(s)
             self.assertIn("up to date", s["update_msg"])
+            # every `v` press refreshes, even with a fresh cached answer
+            self.assertEqual(len(calls), 1)
         finally:
+            _mradio.force_check = saved
             _mradio._latest = _old
 
     def test_check_on_v_falls_back_to_force_check_without_cache(self):
         _old = _mradio._latest
         _mradio._latest = dict(_old)
         _mradio._latest["note"] = ""
-        lock = _mradio._forced_lock
-        self.assertTrue(lock.acquire(blocking=False))
+        saved = _mradio.force_check
+        calls = []
+        _mradio.force_check = lambda s: calls.append(s)
         try:
             s = {"update_msg": "", "update_msg_t": 0}
             _mradio.check_on_v(s)
-            self.assertIn("already running", s["update_msg"])
+            self.assertEqual(len(calls), 1)
         finally:
-            lock.release()
+            _mradio.force_check = saved
+            _mradio._latest = _old
+
+    def test_check_on_v_pending_restart_note(self):
+        _old = _mradio._latest
+        _mradio._latest = dict(_old)
+        _mradio._latest["note"] = "up to date"
+        _mradio._latest["version"] = "0.7.99"
+        saved = _mradio.force_check
+        _mradio.force_check = lambda s: None
+        try:
+            s = {"update_msg": "", "update_msg_t": 0, "update_pending": True}
+            _mradio.check_on_v(s)
+            self.assertIn("restart to apply", s["update_msg"])
+        finally:
+            _mradio.force_check = saved
             _mradio._latest = _old
 
     def test_check_update_note_when_current(self):
@@ -351,7 +382,7 @@ class TestReleaseFeed(unittest.TestCase):
             _mradio.urllib.request.urlopen = saved
             _mradio._latest = _old
 
-    def test_304_keeps_newer_note(self):
+    def test_304_refetches_for_newer_release(self):
         _old = _mradio._latest
         _mradio._latest = dict(_old)
         _mradio._latest["etag"] = '"old"'
@@ -359,16 +390,29 @@ class TestReleaseFeed(unittest.TestCase):
         _mradio._latest["tag"] = "v0.9.0"
         _mradio._latest["note"] = ""
         saved = _mradio.urllib.request.urlopen
+        calls = []
 
-        def boom(req, timeout=6):
-            raise _mradio.urllib.error.HTTPError(
-                "", 304, "Not Modified", {}, None)
+        class _Resp:
+            headers = {"ETag": '"t"'}
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self):
+                return (b'<entry><link href="https://github.com/Marcus1571/'
+                        b'mradio/releases/tag/v0.9.0"/></entry>')
 
-        _mradio.urllib.request.urlopen = boom
+        def sim(req, timeout=6):
+            calls.append(req)
+            if len(calls) == 1:
+                raise _mradio.urllib.error.HTTPError(
+                    "", 304, "Not Modified", {}, None)
+            return _Resp()
+
+        _mradio.urllib.request.urlopen = sim
         try:
             _mradio.check_update()
+            self.assertEqual(len(calls), 2)
+            self.assertEqual(_mradio._latest["version"], "0.9.0")
             self.assertIn("press U", _mradio._latest["note"])
-            self.assertNotIn("up to date", _mradio._latest["note"])
         finally:
             _mradio.urllib.request.urlopen = saved
             _mradio._latest = _old
