@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.41"
+VERSION = "0.7.42"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -237,7 +237,7 @@ def load_cfg():
         return {}
 
 
-def persist_cfg(provider=None, theme=None, volume=None):
+def persist_cfg(provider=None, theme=None, volume=None, mute=None):
     d = load_cfg()
     if provider is not None:
         d["provider"] = provider
@@ -245,6 +245,8 @@ def persist_cfg(provider=None, theme=None, volume=None):
         d["theme"] = theme
     if volume is not None:
         d["volume"] = volume
+    if mute is not None:
+        d["mute"] = mute
     try:
         os.makedirs(os.path.dirname(CFG_FILE), exist_ok=True)
         tmp = CFG_FILE + ".tmp"
@@ -699,13 +701,24 @@ def make_state():
             "station": "", "station_resolved": False}
 
 
-def apply_volume(mpc, vol):
+def apply_volume(mpc, vol, muted=None):
+    """Push the saved volume (and the saved muted state) into a fresh mpv.
+
+    mpv starts every new process unmuted and with its default volume, so this
+    must be called after every launch / reconnect / station switch — otherwise
+    a mute is silently lost the moment mpv restarts."""
     if vol is None:
         return
+    if muted is None:
+        muted = bool(load_cfg().get("mute"))
     for _ in range(20):
         if mpc.cmd("set_property", "volume", float(vol)) is not None:
             break
         time.sleep(0.1)
+    try:
+        mpc.cmd("set_property", "mute", "yes" if muted else "no")
+    except Exception:
+        pass
 
 
 class Enricher:
@@ -1665,6 +1678,8 @@ def main():
                     persist_cfg(volume=int(v))
             elif ch == ord("m"):
                 mpc.cmd("cycle", "mute")
+                m = bool(mpc.get("mute"))
+                persist_cfg(mute=m)
             elif ch in (ord("o"), ord("O")):
                 if state["wiki_url"]:
                     subprocess.Popen(["open", state["wiki_url"]])

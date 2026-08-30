@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.42] - 2026-08-29
+
+### Fixed
+
+- **Mute no longer silently disappears.** mpv resets `mute` on every new
+  process, and mradio only re-applied the *volume* after a launch / reconnect
+  (`r`) / station switch — so a mute was quietly dropped whenever mpv
+  restarted in the background. Mute state is now persisted to `config.json`
+  (like volume) and re-pushed together with the volume on every fresh mpv
+  (`apply_volume`); `m` stores the new state.
+
 ## [0.7.41] - 2026-08-29
 
 ### Changed

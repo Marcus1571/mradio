@@ -246,7 +246,7 @@ Top to bottom, on the player screen:
 | `space`     | pause / resume |
 | `+` `=` `→` | volume up (+5, remembered) |
 | `-` `←`     | volume down (−5, remembered) |
-| `m`         | mute toggle |
+| `m`         | mute toggle (**remembered**, re-applied on reconnect) |
 | `r` / `R`   | reconnect the stream (revive a dead station/mount) |
 | `o` / `O`   | open the **verified** Wikipedia article in your browser (only when one exists) |
 | `z` / `Z`   | expand/collapse the full trivia note (fills the screen); no note = toggles detail view |
@@ -450,7 +450,7 @@ Everything lives self-contained in `~/.local/share/mradio/`:
 
 | File | Purpose | Written by | You may edit |
 | ---- | ------- | ---------- | ------------ |
-| `config.json` | remembered provider, theme, volume, mouse mode | `1/2/3`, `p`, `+/−`, manual | ✅ |
+| `config.json` | remembered provider, theme, volume, mute, mouse mode | `1/2/3`, `p`, `+/−`, `m`, manual | ✅ |
 | `stations.json` | **your** favorites list | first-run seed, `a` key | ✅ freely |
 | `settings.json` | AI settings (ollama/api/opencode) | first-run seed | ✅ freely |
 | `cache.json` | past enrichment notes, tagged by provider | mradio | rarely |
@@ -466,6 +466,9 @@ Everything lives self-contained in `~/.local/share/mradio/`:
 - `provider` — last AI provider picked with `1/2/3`.
 - `theme` — last palette (`p`).
 - `volume` — last volume (`+/−`, remembered so restart matches your ear).
+- `mute` — last muted state (`m`, remembered **and re-applied**: mpv resets
+  mute each time it restarts, so mradio re-pushes it on every launch,
+  reconnect and station switch — a mute can no longer silently disappear).
 - `mouse` — `0` (default) `=` clicks off (text selectable normal); `1` enables
   click zones (trivia text, `UPDATE` pill).
 
@@ -506,7 +509,7 @@ provider that produced it. Both `config.json` and `cache.json` are written
 | `MRADIO_REPO` | `Marcus1571/mradio` | feed/release repo for the update check (fork) |
 | `MRADIO_UPDATE_URL` | *(derived)* | override the full update-check/release URL |
 | `MRADIO_UPDATE_INTERVAL` | `3600` | seconds between checks (minimum `60`) |
-| `MRADIO_CFG` | `~/.local/share/mradio/config.json` | remembered provider/theme/volume |
+| `MRADIO_CFG` | `~/.local/share/mradio/config.json` | remembered provider/theme/volume/mute |
 | `MRADIO_CACHE` | `~/.local/share/mradio/cache.json` | enrichment cache |
 | `MRADIO_STATIONS` | `~/.local/share/mradio/stations.json` | your favorites list |
 | `MRADIO_SETTINGS` | `~/.local/share/mradio/settings.json` | AI settings store |
