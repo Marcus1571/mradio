@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.50` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.51` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`

@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.50"
+VERSION = "0.7.51"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1451,28 +1451,22 @@ def render_menu(std, s, mode, cur):
     if h >= 1:
         top = not (s.get("station") or "")
         esc = "quit" if top else "back"
+        chip = "q/ESC:" + esc
         if mode == "fav":
-            pre = "1-9,0:pick  ↑/↓:move  "
-            post = "  s:all  v:check"
+            rest = "1-9,0:pick  ↑/↓:move  s:all  v:check"
         else:
-            pre = "Enter:pick  f:fav  ↑/↓:move  "
-            post = "  v:check"
+            rest = "Enter:pick  f:fav  ↑/↓:move  v:check"
         if s.get("update_url") and not s.get("update_pending"):
-            post += "  u:page  U:apply"
-        chip = "q/Esc:" + esc
+            rest += "  u:page  U:apply"
         if top and s.get("update_pending"):
             x = 1
-            xpre = min(len(pre), lw)
-            add(std, h - 1, x, pre[:xpre], 6)
-            x += xpre
+            clen = min(len(chip), lw)
+            add(std, h - 1, x, chip[:clen], 8, curses.A_BOLD)
+            x += clen
             if x < 1 + lw:
-                clen = min(len(chip), 1 + lw - x)
-                add(std, h - 1, x, chip[:clen], 8, curses.A_BOLD)
-                x += clen
-            if x < 1 + lw:
-                add(std, h - 1, x, post[:1 + lw - x], 6)
+                add(std, h - 1, x, rest[:1 + lw - x], 6)
         else:
-            add(std, h - 1, 1, (pre + chip + post)[:lw], 6)
+            add(std, h - 1, 1, (chip + "  " + rest)[:lw], 6)
     std.refresh()
 
 

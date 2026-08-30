@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.51] - 2026-08-30
+
+### Changed
+
+- **Cleaner picker footer.** The escape hint is now written `q/ESC:back`
+  (uppercase `ESC`), is **always the leftmost** item in the bottom row — and
+  that stays true on the bare-launch screen, where it reads `q/ESC:quit`
+  (and turns light-green after `U` applies an update). The two-update roll +
+  move hints now follow it.
+
 ## [0.7.50] - 2026-08-29
 
 ### Changed

@@ -261,7 +261,7 @@ Top to bottom, on the player screen:
 
   AI: 1=opencode  2=ollama  3=api  now:opencode  press to re-request  z:expand
   f:favorites   s:all   v:check                                     UPDATE
-  q:quit  space:pause  + / -:volume  m:mute  r:reconnect         v0.7.31
+  q:quit  space:pause  + / -:volume  m:mute  r:reconnect         v0.7.51
 └ three-row footer: AI line / stations+update row / transport keys;
   right edge holds the UPDATE pill and the running version
 ```
@@ -323,7 +323,7 @@ Both menus share their housekeeping keys; only picking differs.
 | `a` | — | **add** the highlighted station to your favorites (flash confirms; ignored once your 10 slots are full) |
 | `f` | switch to favorites | switch to favorites |
 | `s` | switch to all stations | stay on all stations |
-| `q` / `Esc` | back to player while something is playing; **quit** in the bare-launch screen. On that startup screen the hint reads `q/Esc:quit` — and once `U` has applied an update, mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
+| `q` / `Esc` | back to player while something is playing; **quit** in the bare-launch screen. In the menu footer the hint is **always the leftmost item**, reading `q/ESC:back` — or `q/ESC:quit` on the startup screen, where once `U` has applied an update mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
 
 - **Numeric pad** behaves exactly like the main number row: `1-0` hot-pick
