@@ -255,7 +255,7 @@ Top to bottom, on the player screen:
 | `v`         | force a version check now; result flashes in the footer's mid row (works with or without AI configured) |
 | `k` / `K`   | open the project knowledge base (KB.md) in your browser — this is the manual you're reading |
 | `u`         | when an update is available: open the release page |
-| `U`         | when an update is available: auto-update in place (applies on next restart) |
+| `U`         | when an update is available: auto-update in place, then **restart to apply** (pill flips to `RESTART TO UPDATE`) |
 | `f`         | open the **favorites** menu |
 | `s`         | open the **all-stations** menu |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
@@ -357,11 +357,16 @@ still on the station picker** (favorites or all stations): the pill, the
 `u:page  U:apply` hint and a persistent `new version vX — press U` line appear
 as soon as the check lands — you can update before ever picking a station.
 
+After `U` has swapped the new file in, the running copy is still the *old*
+version until you restart, so the pill flips to **`RESTART TO UPDATE`** and
+the hints read `restart to update` (pressing `v` echoes `updated to vX —
+restart to apply`). The pill clears only once you restart onto the new file.
+
 | Key | What it does |
 | --- | ------------ |
 | `v` | force a check *now*; flashes `checking for updates…`, then `new version vX.Y.Z — press U`, `up to date (vX.Y.Z)`, or `check failed` in the AI row |
 | `u` | open the release page (falls back appropriately) |
-| `U` | **auto-update in place** |
+| `U` | **auto-update in place** (then `RESTART TO UPDATE` until you restart) |
 
 `U` downloads the newest release's `mradio` asset, then:
 

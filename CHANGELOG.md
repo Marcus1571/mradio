@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.45] - 2026-08-29
+
+### Changed
+
+- **`UPDATE` pill becomes `RESTART TO UPDATE` after `U`.** Once a new file has
+  been swapped in, the running copy is still the old version until you
+  restart — so the pill now says `RESTART TO UPDATE` (instead of inviting yet
+  another `U`), the mid row/hints read `restart to update`, and `v` echoes
+  `updated to vX — restart to apply`. The pill clears once you restart onto
+  the new file. Applies on the player and the station picker alike.
+
 ## [0.7.44] - 2026-08-29
 
 ### Changed

@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.44"
+VERSION = "0.7.45"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -545,6 +545,9 @@ def force_check(state):
             check_update()
             note = _latest.get("note")
             if note:
+                if state.get("update_pending"):
+                    note = "updated to v" + (_latest.get("version") or "?") + \
+                        " — restart to apply"
                 state["update_msg"] = note
                 state["update_msg_t"] = time.time()
         finally:
@@ -700,7 +703,7 @@ def make_state():
             "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
             "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None,
             "fav_stations": [], "all_stations": [],
-            "update_url": "", "update_zone": None,
+            "update_url": "", "update_zone": None, "update_pending": False,
             "update_msg": "", "update_msg_t": 0,
             "station": "", "station_resolved": False}
 
@@ -1223,14 +1226,17 @@ def draw_help(std, s, y, tw, keys):
 
 
 def draw_right(std, s, h, w):
-    """Right-aligned footer: clickable UPDATE pill (h-2) + version (h-1).
-    Returns the leftmost column taken so row text can avoid overlap."""
+    """Right-aligned footer: update pill (h-2) + version (h-1).
+    The pill reads `UPDATE` while a newer release is available and
+    `RESTART TO UPDATE` once `U` has swapped the new file in (the running
+    copy only takes effect after a restart). Returns the leftmost column
+    taken so row text can avoid overlap."""
     left = w
     s["update_zone"] = None
     if h >= 2:
-        url = s.get("update_url") or ""
-        if url:
-            label = " UPDATE "
+        if s.get("update_url"):
+            label = " RESTART TO UPDATE " if s.get("update_pending") else \
+                " UPDATE "
             x0 = max(0, w - len(label) - 1)
             add(std, h - 2, x0, label, 10, curses.A_BOLD)
             s["update_zone"] = (h - 2, x0, x0 + len(label) - 1)
@@ -1345,7 +1351,8 @@ def render(std, elapsed, s):
             mid = f" {s['update_msg']}"
         else:
             mid = (f" f:favorites   s:all   k:kb   v:check" +
-                   ("   u:page   U:apply" if s.get("update_url") else ""))
+                   (("   restart to update") if s.get("update_pending")
+                    else ("   u:page   U:apply" if s.get("update_url") else "")))
         add(std, h - 2, 1, mid[:lw], 5, curses.A_DIM)
 
     if h >= 3 and ai_configured():
@@ -1415,6 +1422,9 @@ def render_menu(std, s, mode, cur):
     if h >= 2:
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             line = s["update_msg"]
+        elif s.get("update_pending"):
+            line = " updated to v" + (_latest.get("version") or "?") + \
+                " — restart to apply"
         elif s.get("update_url"):
             line = f" new version v{_latest.get('version')} — press U"
         elif mode == "fav":
@@ -1427,7 +1437,9 @@ def render_menu(std, s, mode, cur):
             help_txt = "1-9,0:pick  ↑/↓:move  q/Esc:back  s:all  v:check"
         else:
             help_txt = "Enter:pick  f:fav  ↑/↓:move  q/Esc:back  v:check"
-        if s.get("update_url"):
+        if s.get("update_pending"):
+            help_txt += "  restart to update"
+        elif s.get("update_url"):
             help_txt += "  u:page  U:apply"
         add(std, h - 1, 1, help_txt[:lw], 6)
     std.refresh()
@@ -1595,7 +1607,9 @@ def main():
                         ok, msg = apply_update()
                         state["update_msg"] = msg
                         state["update_msg_t"] = time.time()
-                        if not ok:
+                        if ok:
+                            state["update_pending"] = True
+                        else:
                             subprocess.Popen(["open", state["update_url"]])
                 elif ch == ord("v"):
                     force_check(state)
@@ -1699,7 +1713,9 @@ def main():
                     ok, msg = apply_update()
                     state["update_msg"] = msg
                     state["update_msg_t"] = time.time()
-                    if not ok:
+                    if ok:
+                        state["update_pending"] = True
+                    else:
                         subprocess.Popen(["open", state["update_url"]])
             elif ch == ord("v"):
                 force_check(state)
