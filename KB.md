@@ -102,7 +102,17 @@ without it.)
    brew install mpv
    ```
 
-3. **Install mradio**:
+3. **Install the opencode CLI** *(recommended — it powers the AI liner notes
+   and mradio auto-detects it, so no further AI setup is needed)*:
+
+   ```sh
+   brew install anomalyco/tap/opencode
+   ```
+
+   (Any method from the official page **https://opencode.ai/download** works —
+   like `curl -fsSL https://opencode.ai/install | bash` or `npm i -g opencode-ai`.)
+
+4. **Install mradio**:
 
    ```sh
    git clone https://github.com/Marcus1571/mradio.git
@@ -110,7 +120,7 @@ without it.)
    ./install.sh
    ```
 
-4. **Verify** with the three commands above, then `mradio` to browse stations.
+5. **Verify** with the three commands above, then `mradio` to browse stations.
 
 > Upgrading later: press **`U`** inside mradio to self-update, or
 > `git pull && ./install.sh`.
@@ -129,7 +139,18 @@ and then mradio. Pick your branch:
    sudo apt install -y mpv python3
    ```
 
-2. **Install mradio**:
+2. **Install the opencode CLI** *(recommended — the AI liner-notes provider;
+   mradio auto-detects it)*:
+
+   ```sh
+   curl -fsSL https://opencode.ai/install | bash
+   ```
+
+   (Any method from the official page **https://opencode.ai/download** works.)
+   The curl installer lands in `~/.local/bin`, which the `PATH` export above
+   already covers.
+
+3. **Install mradio**:
 
    ```sh
    git clone https://github.com/Marcus1571/mradio.git
@@ -145,7 +166,14 @@ and then mradio. Pick your branch:
    sudo dnf install -y mpv python3
    ```
 
-2. **Install mradio** (clone, then `./install.sh`, as above).
+2. **Install the opencode CLI** *(recommended — the AI liner-notes provider;
+   mradio auto-detects it)*:
+
+   ```sh
+   curl -fsSL https://opencode.ai/install | bash
+   ```
+
+3. **Install mradio** (clone, then `./install.sh`, as above).
 
 #### Arch / Manjaro / EndeavourOS / Omarchy (pacman line)
 
@@ -155,13 +183,25 @@ and then mradio. Pick your branch:
    sudo pacman -S --noconfirm mpv python
    ```
 
-2. **Install mradio** (clone, then `./install.sh`, as above).
+2. **Install the opencode CLI** *(recommended — the AI liner-notes provider;
+   mradio auto-detects it)*:
+
+   ```sh
+   curl -fsSL https://opencode.ai/install | bash
+   ```
+
+   …or via an AUR helper (`paru -S opencode`); any method from
+   **https://opencode.ai/download** works.
+
+3. **Install mradio** (clone, then `./install.sh`, as above).
 
 ### Windows → WSL
 
 The official Windows Python build has no `curses`, so mradio runs under
 **WSL** instead. `wsl --install` (or your distro of choice), then follow the
-**Debian/Ubuntu** branch above inside the WSL terminal.
+**Debian/Ubuntu** branch above inside the WSL terminal — including the
+`curl -fsSL https://opencode.ai/install | bash` opencode CLI step, which works
+fine under WSL.
 
 ### Alternative installs (any OS)
 
@@ -182,6 +222,9 @@ cd mradio
 ```
 
 Alternatives: `make install`, or `sudo install -m755 mradio /usr/local/bin/mradio`.
+
+**Optional:** to also get the AI liner notes, install the opencode CLI per your
+OS branch above (or any method from **https://opencode.ai/download**).
 
 ## 3. Running it
 
