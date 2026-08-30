@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.49] - 2026-08-29
+
+### Changed
+
+- **Picker hints become the suggested action.** On the station picker the
+  escape key now honestly reads `q/Esc:quit` at the bare-launch screen (no
+  player to go back to; `q/Esc:back` still appears mid-session while music
+  plays). After `U` applies an update, `q/Esc:quit` is drawn as a
+  **light-green chip** — the same treatment as `SELECT` in the top bar —
+  pointing at the one action you should take next: quit & restart onto the
+  new version.
+
 ## [0.7.48] - 2026-08-29
 
 ### Fixed

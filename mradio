@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.48"
+VERSION = "0.7.49"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1428,13 +1428,30 @@ def render_menu(std, s, mode, cur):
             line = " ↑/↓ move · Enter pick · a add to favorites"
         add(std, h - 2, 1, line[:lw], 3)
     if h >= 1:
+        top = not (s.get("station") or "")
+        esc = "quit" if top else "back"
         if mode == "fav":
-            help_txt = "1-9,0:pick  ↑/↓:move  q/Esc:back  s:all  v:check"
+            pre = "1-9,0:pick  ↑/↓:move  "
+            post = "  s:all  v:check"
         else:
-            help_txt = "Enter:pick  f:fav  ↑/↓:move  q/Esc:back  v:check"
+            pre = "Enter:pick  f:fav  ↑/↓:move  "
+            post = "  v:check"
         if s.get("update_url") and not s.get("update_pending"):
-            help_txt += "  u:page  U:apply"
-        add(std, h - 1, 1, help_txt[:lw], 6)
+            post += "  u:page  U:apply"
+        chip = "q/Esc:" + esc
+        if top and s.get("update_pending"):
+            x = 1
+            xpre = min(len(pre), lw)
+            add(std, h - 1, x, pre[:xpre], 6)
+            x += xpre
+            if x < 1 + lw:
+                clen = min(len(chip), 1 + lw - x)
+                add(std, h - 1, x, chip[:clen], 8, curses.A_BOLD)
+                x += clen
+            if x < 1 + lw:
+                add(std, h - 1, x, post[:1 + lw - x], 6)
+        else:
+            add(std, h - 1, 1, (pre + chip + post)[:lw], 6)
     std.refresh()
 
 

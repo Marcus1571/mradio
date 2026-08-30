@@ -274,7 +274,7 @@ Both menus share their housekeeping keys; only picking differs.
 | `a` | — | **add** the highlighted station to your favorites (flash confirms; ignored once your 10 slots are full) |
 | `f` | switch to favorites | switch to favorites |
 | `s` | switch to all stations | stay on all stations |
-| `q` / `Esc` | back to player while something is playing; **quit** if you're in the bare-launch screen | same |
+| `q` / `Esc` | back to player while something is playing; **quit** in the bare-launch screen. On that startup screen the hint reads `q/Esc:quit` — and once `U` has applied an update, mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
 
 - **Numeric pad** behaves exactly like the main number row: `1-0` hot-pick
