@@ -27,14 +27,14 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.52"
+VERSION = "0.7.53"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
     f"https://github.com/{UPDATE_REPO}/releases/latest"
 KB_URL = f"https://github.com/{UPDATE_REPO}/blob/main/KB.md"
 UPDATE_INTERVAL = max(60, int(os.environ.get("MRADIO_UPDATE_INTERVAL", "3600")))
-_latest = {"version": None, "etag": "", "tag": None, "note": ""}
+_latest = {"version": None, "etag": "", "tag": None, "note": "", "t": 0}
 _check_lock = threading.Lock()
 _forced_lock = threading.Lock()
 
@@ -546,35 +546,57 @@ def check_update():
         except Exception as e:
             log(f"update check FAIL: {e}", "WARN")
             _latest["note"] = "check failed"
+        finally:
+            _latest["t"] = time.time()
 
 
-def force_check(state):
+def force_check(state, silent=False):
     """One-off background update check for the `v` key.
 
-    Flashes the result in the AI row via state["update_msg"]. Requests are
-    kept serial (GitHub best practice): if a check is already in flight this
-    only reports that instead of stacking a concurrent one."""
+    Flashes the result in the AI row via state["update_msg"] (unless silent).
+    Requests are kept serial (GitHub best practice): if a check is already in
+    flight this only reports that instead of stacking a concurrent one."""
     if not _forced_lock.acquire(blocking=False):
-        state["update_msg"] = "update check already running…"
-        state["update_msg_t"] = time.time()
+        if not silent:
+            state["update_msg"] = "update check already running…"
+            state["update_msg_t"] = time.time()
         return
 
     def run():
         try:
-            state["update_msg"] = "checking for updates…"
-            state["update_msg_t"] = time.time()
+            if not silent:
+                state["update_msg"] = "checking for updates…"
+                state["update_msg_t"] = time.time()
             check_update()
             note = _latest.get("note")
             if note:
                 if state.get("update_pending"):
                     note = "updated to v" + (_latest.get("version") or "?") + \
                         " — restart to apply"
-                state["update_msg"] = note
-                state["update_msg_t"] = time.time()
+                if not silent:
+                    state["update_msg"] = note
+                    state["update_msg_t"] = time.time()
         finally:
             _forced_lock.release()
 
     threading.Thread(target=run, daemon=True).start()
+
+
+def check_on_v(state):
+    """`v` answers instantly from the last known check, and quietly refreshes
+    in the background only when that answer is stale — so a slow network never
+    makes the key look like it's hanging."""
+    note = _latest.get("note")
+    if not note:
+        force_check(state)
+        return
+    if state.get("update_pending"):
+        note = "updated to v" + (_latest.get("version") or "?") + \
+            " — restart to apply"
+    state["update_msg"] = note
+    state["update_msg_t"] = time.time()
+    if time.time() - (_latest.get("t") or 0) > UPDATE_INTERVAL:
+        force_check(state, silent=True)
 
 
 def update_watcher():
@@ -1462,7 +1484,7 @@ def render_menu(std, s, mode, cur):
             x = 1
             clen = min(len(chip), lw)
             add(std, h - 1, x, chip[:clen], 8, curses.A_BOLD)
-            x += clen
+            x += clen + 2
             if x < 1 + lw:
                 add(std, h - 1, x, rest[:1 + lw - x], 6)
         else:
@@ -1637,7 +1659,7 @@ def main():
                         else:
                             subprocess.Popen(["open", state["update_url"]])
                 elif ch == ord("v"):
-                    force_check(state)
+                    check_on_v(state)
                 elif ch in (curses.KEY_DOWN, ord("j")) and cur_st < len(lst) - 1:
                     cur_st += 1
                 elif ch in (curses.KEY_UP, ord("k")) and cur_st > 0:
@@ -1743,7 +1765,7 @@ def main():
                     else:
                         subprocess.Popen(["open", state["update_url"]])
             elif ch == ord("v"):
-                force_check(state)
+                check_on_v(state)
             elif ch in (ord("k"), ord("K")):
                 subprocess.Popen(["open", KB_URL])
             elif ch == ord("s"):

@@ -251,6 +251,32 @@ class TestReleaseFeed(unittest.TestCase):
             lock.release()
             _mradio._latest = _old
 
+    def test_check_on_v_answers_from_cache_instantly(self):
+        _old = _mradio._latest
+        _mradio._latest = dict(_old)
+        _mradio._latest["note"] = "up to date (v0.7.99)"
+        _mradio._latest["t"] = _mradio.time.time()
+        try:
+            s = {"update_msg": "", "update_msg_t": 0}
+            _mradio.check_on_v(s)
+            self.assertIn("up to date", s["update_msg"])
+        finally:
+            _mradio._latest = _old
+
+    def test_check_on_v_falls_back_to_force_check_without_cache(self):
+        _old = _mradio._latest
+        _mradio._latest = dict(_old)
+        _mradio._latest["note"] = ""
+        lock = _mradio._forced_lock
+        self.assertTrue(lock.acquire(blocking=False))
+        try:
+            s = {"update_msg": "", "update_msg_t": 0}
+            _mradio.check_on_v(s)
+            self.assertIn("already running", s["update_msg"])
+        finally:
+            lock.release()
+            _mradio._latest = _old
+
     def test_check_update_note_when_current(self):
         _old = _mradio._latest
         _mradio._latest = dict(_old)

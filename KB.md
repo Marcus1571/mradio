@@ -279,7 +279,8 @@ Top to bottom, on the player screen:
     it belongs to the AI row because it expands AI output).
   - **row 2 (mid, dark grey)** — `f:favorites`, `s:all` (open the two station
     menus), `k:kb` (open this knowledge base in your browser), `v:check`
-    (force an update check); when an update exists this row
+    (instant answer from the last check; quiet background refresh only when
+    stale); when an update exists this row
     also gains `u:page` and `U:apply`. The black-on-yellow **`UPDATE`** pill
     sits at its right edge.
   - **row 3 (bottom)** — transport keys `q`, `space`, `+/−`, `m`, `r`; the

@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.53] - 2026-08-30
+
+### Fixed
+
+- **`v` answers instantly again.** The manual update check used to flash
+  "checking…" for six seconds and, if the fetch took longer, the result landed
+  after the flash already closed — so it *looked* like it never finished (and
+  the silent startup check still worked). `v` now shows the last known result
+  (e.g. "up to date (v0.7.53)") the moment you press it, and only quietly
+  re-checks in the background when that answer is stale.
+
+### Changed
+
+- **Picker chip spacing.** After `U` applies an update the `q/ESC:quit` chip is
+  followed by two spaces before the pick hints (previously glued on).
+
 ## [0.7.52] - 2026-08-30
 
 ### Changed
