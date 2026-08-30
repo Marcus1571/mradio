@@ -60,6 +60,7 @@ mradio
 
 That's it. **python3 (stdlib only) + mpv** is the whole machine room —
 context in **[KB §2 — Requirements & install](KB.md#2-requirements--install)**.
+*Want the AI liner notes?* Install the **opencode CLI** ([opencode.ai/download](https://opencode.ai/download)) — mradio detects it and the AI lights up on its own.
 
 ### The keys that matter
 

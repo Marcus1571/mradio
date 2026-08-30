@@ -54,6 +54,7 @@ are no pip dependencies: `python3` + `mpv` are all it needs.
 | **python3** | 3.8+; stdlib only, no pip packages |
 | **mpv**     | the audio engine — the only real dependency |
 | **git**     | needed for the clone-and-install path (the prebuilt `install.sh`) |
+| **opencode CLI** *(optional, recommended)* | zero-config AI liner notes — mradio auto-detects it on `PATH` (0.7.50+). Grab the official installer for your OS at **https://opencode.ai/download** (covers Homebrew, npm, curl installer, and the manual binary). Skip it if you'd rather use ollama or an OpenAI-compatible API key instead |
 
 | OS     | Status |
 | ------ | ------ |
@@ -77,6 +78,11 @@ add this to `~/.zshrc` (zsh) or `~/.bashrc` (bash):
 ```sh
 export PATH="$HOME/.local/bin:$PATH"
 ```
+
+**Want AI liner notes?** That's the *optional* opencode CLI row above: install it
+from **https://opencode.ai/download**, and mradio's AI row lights up on its own
+— no API key, no config. (Or skip it entirely: the radio plays perfectly
+without it.)
 
 ### macOS (Homebrew)
 
