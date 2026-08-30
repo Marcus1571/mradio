@@ -465,6 +465,21 @@ Order: **opencode → ollama → API key**.
 | 2 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | your own box = most private; fastest; model default `gemma3:4b` |
 | 3 | **openai** | `MRADIO_API_KEY=…`, `MRADIO_API_BASE=…`, `MRADIO_MODEL=…` | any OpenAI-compatible API (Groq, OpenRouter, Gemini, NIM, together.ai, …); hand this to friends who just want a free key |
 
+**NIM (NVIDIA) recipe** — free hosted inference, one `nvapi-…` key:
+
+```sh
+MRADIO_API_BASE=https://integrate.api.nvidia.com/v1
+MRADIO_API_KEY=nvapi-…            # from build.nvidia.com/settings/api-keys
+MRADIO_MODEL=minimaxai/minimax-m3 # clean strict-JSON liner notes (verified)
+```
+
+The catalogue changes often and few models are actually free — test before
+trusting one: `curl https://integrate.api.nvidia.com/v1/models -H "Authorization:
+Bearer $MRADIO_API_KEY"` lists the live IDs; a model that returns clean JSON for
+mradio's exact schema wins. `minimaxai/minimax-m3` is currently the only one
+found to reply with a pristine JSON object every time (reasoning-tuned models
+like `openai/gpt-oss-20b` return `content: null` and don't work).
+
 While a provider is working you'll see a spinner with time, e.g. `▚ opencode 34s`.
 
 ### In-session control
