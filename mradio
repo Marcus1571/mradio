@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.56"
+VERSION = "0.7.57"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1380,7 +1380,7 @@ def render(std, elapsed, s):
             add(std, h - 2, 1, mid[:lw], 5)
         if h >= 1:
             draw_help(std, s, h - 1, lw,
-                      " q:quit   space:pause   + / -:volume   m:mute   r:reconnect")
+" q:quit   space:pause   ← -/+ →:volume   m:mute   r:reconnect")
         std.refresh()
         return
 
@@ -1445,7 +1445,7 @@ def render(std, elapsed, s):
 
     if h >= 1:
         draw_help(std, s, h - 1, lw,
-                  " q:quit   space:pause   + / -:volume   m:mute   r:reconnect")
+                  " q:quit   space:pause   ← -/+ →:volume   m:mute   r:reconnect")
 
     std.refresh()
 

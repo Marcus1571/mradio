@@ -261,7 +261,7 @@ Top to bottom, on the player screen:
 
   AI: 1=opencode  2=ollama  3=api  now:opencode  press to re-request  z:expand
   f:favorites   s:all   v:check                                     UPDATE
-  q:quit  space:pause  + / -:volume  m:mute  r:reconnect         v0.7.51
+  q:quit  space:pause  ← -/+ →:volume  m:mute  r:reconnect         v0.7.51
 └ three-row footer: AI line / stations+update row / transport keys;
   right edge holds the UPDATE pill and the running version
 ```

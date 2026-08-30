@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.56` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.57` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -237,6 +237,8 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   `latest_release_version/tag` take the **max** version (not first entry);
   every `v` press force-refreshes after the instant flash. Fixes "up to date
   (v0.7.54)" persisting right after v0.7.55 shipped.
+- **0.7.57** — footer volume hint now leads with the arrows:
+  `← -/+ →:volume` (arrows double as volume keys).
 
 ## Env vars (optional overrides; settings.json is the source of truth)
 
