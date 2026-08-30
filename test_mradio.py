@@ -299,6 +299,28 @@ class TestReleaseFeed(unittest.TestCase):
             _mradio.urllib.request.urlopen = saved
             _mradio._latest = _old
 
+    def test_304_keeps_newer_note(self):
+        _old = _mradio._latest
+        _mradio._latest = dict(_old)
+        _mradio._latest["etag"] = '"old"'
+        _mradio._latest["version"] = "0.9.0"
+        _mradio._latest["tag"] = "v0.9.0"
+        _mradio._latest["note"] = ""
+        saved = _mradio.urllib.request.urlopen
+
+        def boom(req, timeout=6):
+            raise _mradio.urllib.error.HTTPError(
+                "", 304, "Not Modified", {}, None)
+
+        _mradio.urllib.request.urlopen = boom
+        try:
+            _mradio.check_update()
+            self.assertIn("press U", _mradio._latest["note"])
+            self.assertNotIn("up to date", _mradio._latest["note"])
+        finally:
+            _mradio.urllib.request.urlopen = saved
+            _mradio._latest = _old
+
     def test_update_interval_default_hourly(self):
         self.assertEqual(_mradio.UPDATE_INTERVAL, 3600)
 

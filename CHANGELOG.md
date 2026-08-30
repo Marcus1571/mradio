@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.43] - 2026-08-29
+
+### Fixed
+
+- **`v` no longer lies after a `304`.** GitHub's `Not Modified` means "feed
+  unchanged since your last check" — not "you're up to date". Pressing `v`
+  after an unchanged feed previously flashed `up to date (vX.Y.Z)` even when a
+  newer release was known (contradicting the `UPDATE` pill). The `304` path now
+  re-derives its message from the last successful check, so it reports
+  `new version vX.Y.Z — press U` whenever that's what's actually stored.
+
 ## [0.7.42] - 2026-08-29
 
 ### Fixed

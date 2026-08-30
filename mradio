@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.42"
+VERSION = "0.7.43"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -514,7 +514,11 @@ def check_update():
         except urllib.error.HTTPError as e:
             if e.code == 304:
                 log("update check: unchanged (304)")
-                _latest["note"] = f"up to date (v{VERSION})"
+                v = _latest["version"]
+                if v and ver_key(v) > ver_key(VERSION):
+                    _latest["note"] = f"new version v{v} — press U"
+                else:
+                    _latest["note"] = f"up to date (v{VERSION})"
             else:
                 log(f"update check FAIL: {e}", "WARN")
                 _latest["note"] = "check failed"
