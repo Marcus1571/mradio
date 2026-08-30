@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.50] - 2026-08-29
+
+### Changed
+
+- **`opencode` CLI is auto-detected.** On a fresh machine (e.g. a new WSL
+  Debian box) the AI providers were all off until you configured
+  `MRADIO_OPENCODE` — so installing the CLI did nothing. If `opencode` is on
+  `PATH` the provider now enables itself automatically (port 4096, spawning
+  `opencode serve` as before), so AI works with zero configuration.
+  `MRADIO_OPENCODE=0` still disables it explicitly; any non-empty value still
+  behaves as before.
+
 ## [0.7.49] - 2026-08-29
 
 ### Changed

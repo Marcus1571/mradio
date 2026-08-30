@@ -15,6 +15,7 @@ import json
 import os
 import queue
 import re
+import shutil
 import signal
 import socket
 import subprocess
@@ -26,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.49"
+VERSION = "0.7.50"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -154,15 +155,35 @@ OC_PID = os.environ.get("MRADIO_OC_PID",
 PROVIDERS = ("opencode", "ollama", "openai")
 
 
+_OC_ONPATH = None
+
+
+def oc_binary():
+    """Whether an `opencode` CLI is on PATH (cached after first probe).
+
+    Lets a fresh install (e.g. new WSL box) work with zero configuration:
+    just having `opencode` in PATH enables the provider. An explicit
+    `MRADIO_OPENCODE=0` still disables it."""
+    global _OC_ONPATH
+    if _OC_ONPATH is None:
+        try:
+            _OC_ONPATH = shutil.which("opencode") is not None
+        except Exception:
+            _OC_ONPATH = False
+    return _OC_ONPATH
+
+
 def oc_port():
-    if not OC:
-        return 0
-    if OC.strip() in ("1", "on", "yes", "true"):
+    if OC:
+        if OC.strip() in ("1", "on", "yes", "true"):
+            return 4096
+        try:
+            return int(OC)
+        except ValueError:
+            return 4096
+    if oc_binary():
         return 4096
-    try:
-        return int(OC)
-    except ValueError:
-        return 4096
+    return 0
 
 
 def api_endpoint(base, suffix):

@@ -28,7 +28,8 @@ explaining what you're hearing. No accounts. No ads. No Electron.
   edit, and back up. `a` adds the row under your cursor. Your list, your rule.
 - **AI in your corner.** Press `1` — or just watch — and mradio writes an
   intelligent liner note about the playing work via opencode, ollama, or any
-  OpenAI-compatible API. No API key? Nothing to install, it still works.
+  OpenAI-compatible API. The `opencode` CLI is auto-detected — install it and
+  the AI lights up with zero config. No API key needed.
 - **Radios that keep themselves fresh.** One file for config, cache, streams,
   and settings; a self-update that pulls the latest release in-place with `U`.
 

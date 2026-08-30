@@ -411,7 +411,7 @@ Order: **opencode → ollama → API key**.
 
 | # | Provider | How to enable | Notes |
 | - | -------- | ------------- | ----- |
-| 1 | **opencode** | `MRADIO_OPENCODE=1` (or a port) | drives `opencode serve` headlessly; zero-auth when it works; richest trivia; slowest (often 20–90 s) |
+| 1 | **opencode** | **auto-detected** if the `opencode` CLI is on `PATH`; override/port via `MRADIO_OPENCODE` (or `settings.json`), disable with `MRADIO_OPENCODE=0` | drives `opencode serve` headlessly; zero-auth when it works; richest trivia; slowest (often 20–90 s). First run: make sure you're signed in (`opencode auth …`) |
 | 2 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | your own box = most private; fastest; model default `gemma3:4b` |
 | 3 | **openai** | `MRADIO_API_KEY=…`, `MRADIO_API_BASE=…`, `MRADIO_MODEL=…` | any OpenAI-compatible API (Groq, OpenRouter, Gemini, NIM, together.ai, …); hand this to friends who just want a free key |
 
@@ -584,6 +584,12 @@ Likely one of: running from a git checkout (`git pull` instead), the directory
 isn't writable, the release lacks the `mradio` asset, or validation failed
 (version mismatch / syntax). mradio flashes the reason and opens the release
 page — it never half-applies.
+
+**AI features never show up (no AI row, no trivia).**
+mradio needs *at least one* provider. Easiest: just install the **opencode
+CLI** — mradio 0.7.50+ auto-detects it on `PATH` (no config needed; sign in
+with `opencode auth` first). Alternatives: `MRADIO_API_KEY=…` for any
+OpenAI-compatible API, or `MRADIO_OLLAMA=http://host:11434` with ollama.
 
 **`v` says "check failed".**
 Network/GitHub hiccup — hourly watcher will retry. Very small repro rate is

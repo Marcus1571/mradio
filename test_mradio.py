@@ -327,6 +327,48 @@ class TestReleaseFeed(unittest.TestCase):
     def test_update_interval_floor(self):
         self.assertGreaterEqual(_mradio.UPDATE_INTERVAL, 60)
 
+    def test_oc_port_auto_detects_binary(self):
+        saved_oc = _mradio.OC
+        saved_onpath = _mradio._OC_ONPATH
+        saved_which = _mradio.shutil.which
+        _mradio.OC = ""
+        _mradio._OC_ONPATH = None
+        _mradio.shutil.which = lambda n: "/usr/bin/opencode"
+        try:
+            self.assertEqual(_mradio.oc_port(), 4096)
+        finally:
+            _mradio.OC = saved_oc
+            _mradio._OC_ONPATH = saved_onpath
+            _mradio.shutil.which = saved_which
+
+    def test_oc_port_zero_disables_even_with_binary(self):
+        saved_oc = _mradio.OC
+        saved_onpath = _mradio._OC_ONPATH
+        saved_which = _mradio.shutil.which
+        _mradio.OC = "0"
+        _mradio._OC_ONPATH = None
+        _mradio.shutil.which = lambda n: "/usr/bin/opencode"
+        try:
+            self.assertEqual(_mradio.oc_port(), 0)
+        finally:
+            _mradio.OC = saved_oc
+            _mradio._OC_ONPATH = saved_onpath
+            _mradio.shutil.which = saved_which
+
+    def test_oc_port_off_without_binary(self):
+        saved_oc = _mradio.OC
+        saved_onpath = _mradio._OC_ONPATH
+        saved_which = _mradio.shutil.which
+        _mradio.OC = ""
+        _mradio._OC_ONPATH = None
+        _mradio.shutil.which = lambda n: None
+        try:
+            self.assertEqual(_mradio.oc_port(), 0)
+        finally:
+            _mradio.OC = saved_oc
+            _mradio._OC_ONPATH = saved_onpath
+            _mradio.shutil.which = saved_which
+
 
 class TestStations(unittest.TestCase):
     def test_default_stations_shape(self):
