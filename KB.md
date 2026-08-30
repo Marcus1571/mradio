@@ -353,14 +353,17 @@ When a newer release exists:
 - the running version is always shown at the bottom-right.
 
 The startup check runs in the background, so this also applies **while you are
-still on the station picker** (favorites or all stations): the pill, the
-`u:page  U:apply` hint and a persistent `new version vX — press U` line appear
-as soon as the check lands — you can update before ever picking a station.
+still on the station picker** (favorites or all stations): the pill and the
+`u:page  U:apply` hint appear as soon as the check lands — you can update
+before ever picking a station. Steady warnings always live in the yellow pill
+on the right; the rest of the screen keeps its normal, quiet text.
 
 After `U` has swapped the new file in, the running copy is still the *old*
-version until you restart, so the pill flips to **`RESTART TO UPDATE`** and
-the hints read `restart to update` (pressing `v` echoes `updated to vX —
-restart to apply`). The pill clears only once you restart onto the new file.
+version until you restart — the pill stays on the right and flips to
+**`RESTART TO UPDATE`** (that steady warning lives exclusively in the yellow
+pill; the hints just clear `u:page  U:apply`). Pressing `v` echoes
+`updated to vX — restart to apply`. The pill clears once you restart onto
+the new file.
 
 | Key | What it does |
 | --- | ------------ |

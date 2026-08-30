@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.47] - 2026-08-29
+
+### Changed
+
+- **Steady warnings live in the right-side yellow pill only.** The redundant
+  left-side steady texts are gone: the mid row keeps its normal hints
+  (no `restart to update`, no `new version vX — press U` at rest) and the
+  picker's bottom line stays `1-9,0:pick … v:check`. The `UPDATE` →
+  `RESTART TO UPDATE` pill is the one steady indicator (the transient `v`
+  flashes still give full detail).
+
 ## [0.7.46] - 2026-08-29
 
 ### Dummy

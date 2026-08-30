@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.46"
+VERSION = "0.7.47"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1351,7 +1351,7 @@ def render(std, elapsed, s):
             mid = f" {s['update_msg']}"
         else:
             mid = (f" f:favorites   s:all   k:kb   v:check" +
-                   (("   restart to update") if s.get("update_pending")
+                   ("" if s.get("update_pending")
                     else ("   u:page   U:apply" if s.get("update_url") else "")))
         add(std, h - 2, 1, mid[:lw], 5, curses.A_DIM)
 
@@ -1422,11 +1422,6 @@ def render_menu(std, s, mode, cur):
     if h >= 2:
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             line = s["update_msg"]
-        elif s.get("update_pending"):
-            line = " updated to v" + (_latest.get("version") or "?") + \
-                " — restart to apply"
-        elif s.get("update_url"):
-            line = f" new version v{_latest.get('version')} — press U"
         elif mode == "fav":
             line = f" pick a number — {len(sts)} favorite(s)"
         else:
@@ -1437,9 +1432,7 @@ def render_menu(std, s, mode, cur):
             help_txt = "1-9,0:pick  ↑/↓:move  q/Esc:back  s:all  v:check"
         else:
             help_txt = "Enter:pick  f:fav  ↑/↓:move  q/Esc:back  v:check"
-        if s.get("update_pending"):
-            help_txt += "  restart to update"
-        elif s.get("update_url"):
+        if s.get("update_url") and not s.get("update_pending"):
             help_txt += "  u:page  U:apply"
         add(std, h - 1, 1, help_txt[:lw], 6)
     std.refresh()
