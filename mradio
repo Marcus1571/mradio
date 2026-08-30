@@ -26,7 +26,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.43"
+VERSION = "0.7.44"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1415,6 +1415,8 @@ def render_menu(std, s, mode, cur):
     if h >= 2:
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             line = s["update_msg"]
+        elif s.get("update_url"):
+            line = f" new version v{_latest.get('version')} — press U"
         elif mode == "fav":
             line = f" pick a number — {len(sts)} favorite(s)"
         else:
@@ -1425,6 +1427,8 @@ def render_menu(std, s, mode, cur):
             help_txt = "1-9,0:pick  ↑/↓:move  q/Esc:back  s:all  v:check"
         else:
             help_txt = "Enter:pick  f:fav  ↑/↓:move  q/Esc:back  v:check"
+        if s.get("update_url"):
+            help_txt += "  u:page  U:apply"
         add(std, h - 1, 1, help_txt[:lw], 6)
     std.refresh()
 
@@ -1537,6 +1541,11 @@ def main():
 
         while True:
             t = time.time()
+            if _latest["version"] and \
+                    ver_key(_latest["version"]) > ver_key(VERSION):
+                state["update_url"] = UPDATE_URL
+            else:
+                state["update_url"] = ""
             if menu is not None:
                 lst = (state["fav_stations"] if menu == "fav"
                        else state["all_stations"])
@@ -1605,11 +1614,6 @@ def main():
                         switch_stream(lst[idx])
                         menu = None
                 continue
-            if _latest["version"] and \
-                    ver_key(_latest["version"]) > ver_key(VERSION):
-                state["update_url"] = UPDATE_URL
-            else:
-                state["update_url"] = ""
             if proc.poll() is not None:
                 proc = launch_mpv(url)
                 mpc = Mpc(SOCK)

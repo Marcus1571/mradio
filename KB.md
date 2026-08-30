@@ -352,6 +352,11 @@ When a newer release exists:
 - the mid row adds `u:page` (open the release page) and `U:apply`;
 - the running version is always shown at the bottom-right.
 
+The startup check runs in the background, so this also applies **while you are
+still on the station picker** (favorites or all stations): the pill, the
+`u:page  U:apply` hint and a persistent `new version vX — press U` line appear
+as soon as the check lands — you can update before ever picking a station.
+
 | Key | What it does |
 | --- | ------------ |
 | `v` | force a check *now*; flashes `checking for updates…`, then `new version vX.Y.Z — press U`, `up to date (vX.Y.Z)`, or `check failed` in the AI row |

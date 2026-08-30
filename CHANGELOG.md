@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.44] - 2026-08-29
+
+### Changed
+
+- **Update check surfaces on the station picker too.** The silent startup
+  check runs while you're still choosing a station — the `UPDATE` pill,
+  `u:page  U:apply` and a persistent `new version vX — press U` line now
+  appear on the favorites / all-stations screens as soon as the check lands.
+  You can update before ever picking a station (`update_url` is now derived
+  for the menu loop, not just the player loop).
+
 ## [0.7.43] - 2026-08-29
 
 ### Fixed
