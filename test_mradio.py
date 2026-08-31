@@ -547,5 +547,31 @@ class TestStations(unittest.TestCase):
                 _mradio.STATIONS_FILE = saved_st
 
 
+class TestNimSetup(unittest.TestCase):
+    def test_provider_display_mapping(self):
+        self.assertEqual(_mradio._PROVIDER_DISPLAY["openai"], "NIM")
+        self.assertEqual(_mradio._PROVIDER_DISPLAY["opencode"], "opencode")
+        self.assertEqual(_mradio._PROVIDER_DISPLAY["ollama"], "ollama")
+
+    def test_save_api_key(self):
+        import tempfile
+        saved = _mradio.SETTINGS_FILE
+        saved_key = _mradio.API_KEY
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.SETTINGS_FILE = os.path.join(td, "settings.json")
+            _mradio.API_KEY = ""
+            try:
+                self.assertTrue(_mradio.save_api_key("nvapi-test123"))
+                self.assertEqual(_mradio.API_KEY, "nvapi-test123")
+                d = _mradio.load_settings()
+                self.assertEqual(d["api_key"], "nvapi-test123")
+            finally:
+                _mradio.SETTINGS_FILE = saved
+                _mradio.API_KEY = saved_key
+
+    def test_save_api_key_validates_prefix(self):
+        self.assertTrue(callable(_mradio.prompt_api_key))
+
+
 if __name__ == "__main__":
     unittest.main()

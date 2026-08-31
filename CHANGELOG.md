@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.58] - 2026-08-30
+
+### Added
+
+- **NIM (NVIDIA) in-app setup.** Pressing `3` when no API key is configured
+  opens a TUI popup where you paste your `nvapi-…` key (from
+  build.nvidia.com). The key is saved to `settings.json` immediately. Press
+  `c` to change it later. While NIM is active the footer shows `c:change API
+  Key` for 10 seconds after each switch.
+- **Full AI installation guide in KB.md** — per-provider setup for OpenCode,
+  Ollama (local / Docker / remote, model recommendation), and NIM (signup,
+  phone number, API key, in-app wizard).
+- Provider `openai` renamed to **NIM** in the UI (`3=NIM`, `now:NIM`). Internal
+  name stays `openai` for config.json backwards compatibility.
+
+### Changed
+
+- Footer volume hint leads with arrows: `← -/+ →:volume` (v0.7.57).
+
 ## [0.7.57] - 2026-08-30
 
 ### Changed

@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.57"
+VERSION = "0.7.58"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -117,6 +117,25 @@ def seed_settings(force=False):
         log(f"settings seed FAIL: {e}", "WARN")
 
 
+def save_api_key(key):
+    """Persist a NIM API key to settings.json atomically."""
+    global API_KEY
+    d = load_settings()
+    d["api_key"] = key
+    try:
+        os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
+        tmp = SETTINGS_FILE + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(d, fh, indent=2)
+        os.replace(tmp, SETTINGS_FILE)
+        API_KEY = key
+        log(f"NIM API key saved to {SETTINGS_FILE}")
+        return True
+    except Exception as e:
+        log(f"settings save FAIL: {e}", "WARN")
+        return False
+
+
 def eff_str(env, key, fallback):
     v = os.environ.get(env)
     if v is not None and v != "":
@@ -153,6 +172,7 @@ STATIONS_FILE = os.environ.get("MRADIO_STATIONS",
 OC_PID = os.environ.get("MRADIO_OC_PID",
                         os.path.expanduser("~/.local/share/mradio/opencode.pid"))
 PROVIDERS = ("opencode", "ollama", "openai")
+_PROVIDER_DISPLAY = {"opencode": "opencode", "ollama": "ollama", "openai": "NIM"}
 
 
 _OC_ONPATH = None
@@ -308,6 +328,47 @@ def _follow_esc(std):
         return -1
     finally:
         std.nodelay(False)
+
+
+def prompt_api_key(std, title="Enter NVIDIA NIM API key:", mask="nvapi-"):
+    """Show a TUI popup asking for a NIM API key. Returns the key or None."""
+    h, w = std.getmaxyx()
+    pw = min(60, w - 4)
+    ph = 7
+    y0 = max(0, (h - ph) // 2)
+    x0 = max(0, (w - pw) // 2)
+    win = curses.newwin(ph, pw, y0, x0)
+    win.keypad(True)
+    win.attron(curses.color_pair(4) | curses.A_BOLD)
+    win.erase()
+    win.border()
+    try:
+        win.addnstr(1, 2, title, pw - 4)
+        win.addnstr(2, 2, "Key:", pw - 4)
+        win.attroff(curses.color_pair(4) | curses.A_BOLD)
+        buf = list(mask)
+        pos = len(buf)
+        while True:
+            win.move(3, 2)
+            win.clrtoeol()
+            win.addnstr(3, 2, "".join(buf), pw - 4, curses.A_UNDERLINE)
+            win.move(3, 2 + min(pos, pw - 5))
+            win.refresh()
+            ch = win.getch()
+            if ch in (10, 13):
+                key = "".join(buf).strip()
+                return key if key and key.startswith("nvapi-") else None
+            elif ch == 27:
+                return None
+            elif ch in (curses.KEY_BACKSPACE, 127, 8):
+                if buf:
+                    buf.pop()
+                    pos = len(buf)
+            elif 32 <= ch < 256 and len(buf) < 64:
+                buf.append(chr(ch))
+                pos = len(buf)
+    except Exception:
+        return None
 
 
 def load_favorites():
@@ -756,6 +817,7 @@ def make_state():
             "fav_stations": [], "all_stations": [],
             "update_url": "", "update_zone": None, "update_pending": False,
             "update_msg": "", "update_msg_t": 0,
+            "nim_hint_t": 0,
             "station": "", "station_resolved": False}
 
 
@@ -801,7 +863,7 @@ SINCERITY_RULES = (
 
 
 def apply_provider_rules(prompt, provider):
-    """Provider-targeted prompt additions. Choice 3 (API key) gets extra
+    """Provider-targeted prompt additions. Choice 3 (NIM) gets extra
     anti-hallucination rules; opencode and ollama keep the stock prompt."""
     if provider == "openai":
         return prompt + SINCERITY_RULES
@@ -1074,7 +1136,7 @@ class Enricher:
             content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "")
             return content.strip() or None
         except Exception as e:
-            log(f"openai FAIL: {e}", "WARN")
+            log(f"NIM FAIL: {e}", "WARN")
             return None
 
     def _oc_health(self, port, timeout=2):
@@ -1366,8 +1428,11 @@ def render(std, elapsed, s):
         rlim = draw_right(std, s, h, w)
         lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
         if h >= 3 and ai_configured():
-            line = (f" AI: 1=opencode  2=ollama  3=api   "
-                    f"now:{s.get('ai_provider') or ''}   press to re-request   z:collapse")
+            prov = s.get('ai_provider') or ''
+            hint = "c:change API Key" if (prov == "openai" and
+                    time.time() - (s.get("nim_hint_t") or 0) < 10) else "press to re-request"
+            line = (f" AI: 1=opencode  2=ollama  3=NIM   "
+                    f"now:{_PROVIDER_DISPLAY.get(prov, '')}   {hint}   z:collapse")
             if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
                 line = s["update_msg"]
             add(std, h - 3, 1, line[:lw], 3)
@@ -1437,8 +1502,10 @@ def render(std, elapsed, s):
 
     if h >= 3 and ai_configured():
         prov = s.get("ai_provider") or ""
-        line = (f" AI: 1=opencode  2=ollama  3=api   now:{prov}   "
-                f"press to re-request   z:expand")
+        hint = "c:change API Key" if (prov == "openai" and
+                time.time() - (s.get("nim_hint_t") or 0) < 10) else "press to re-request"
+        line = (f" AI: 1=opencode  2=ollama  3=NIM   now:{_PROVIDER_DISPLAY.get(prov, '')}   "
+                f"{hint}   z:expand")
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             line = s["update_msg"]
         add(std, h - 3, 1, line[:lw], 3)
@@ -1819,12 +1886,24 @@ def main():
             elif ch in (ord("1"), ord("2"), ord("3")):
                 names = {ord("1"): "opencode", ord("2"): "ollama", ord("3"): "openai"}
                 name = names[ch]
+                if name == "openai" and not API_KEY:
+                    key = prompt_api_key(stdscr)
+                    if key:
+                        save_api_key(key)
+                    continue
+                if name == "openai":
+                    state["nim_hint_t"] = time.time()
                 if enrich.switch_provider(name):
                     state["ai_provider"] = name
                     rk = state["raw_title"]
                     if rk:
                         enrich.invalidate(rk, state["artist"],
                                           state["title"], state["performer"])
+            elif ch == ord("c") or ch == ord("C"):
+                if state.get("ai_provider") == "openai":
+                    key = prompt_api_key(stdscr)
+                    if key:
+                        save_api_key(key)
             elif ch == curses.KEY_MOUSE:
                 try:
                     _, mx, my, _, bstate = curses.getmouse()

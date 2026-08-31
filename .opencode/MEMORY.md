@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.57` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.58` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -78,7 +78,8 @@ the project's CURRENT state.
     Auditorium | Venice Classic Radio Italia`, `VCR Classica+ | Venice Classic
     Radio Italia`, `NPO Klassiek`. At runtime an icy-name also overrides the
     JSON label (label is only a fallback; the v0.7.34 fix).
-- **Footer (0.7.30+):** 3 rows — h-3 AI (`z:expand`), h-2 dark-grey mid
+- **Footer (0.7.30+):** 3 rows — h-3 AI (`z:expand`, `c:change API Key` when
+  NIM is active), h-2 dark-grey mid
   (`f:favorites s:all k:kb v:check`; update pill + `u:page U:apply` there; the
   `v` check result flashes here, works without AI), h-1 transport + version.
 - **Docs:** `README.md` = short marketing appetite (tagline, screenshots,
@@ -239,6 +240,9 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   (v0.7.54)" persisting right after v0.7.55 shipped.
 - **0.7.57** — footer volume hint now leads with the arrows:
   `← -/+ →:volume` (arrows double as volume keys).
+- **0.7.58** — **NIM (NVIDIA) in-app setup**: press `3` to paste API key
+  (TUI popup), `c` to change; `3=NIM` in UI; full AI installation guide in
+  KB.md (OpenCode, Ollama local/Docker/remote, NIM signup+key).
 
 ## Env vars (optional overrides; settings.json is the source of truth)
 

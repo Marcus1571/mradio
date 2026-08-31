@@ -259,7 +259,7 @@ Top to bottom, on the player screen:
   — kbps · 44.1 kHz · mp3 · cache 0.8s · stream 00:45  ← format/stream line
   vol ████████████...  100%                       ← volume meter + value
 
-  AI: 1=opencode  2=ollama  3=api  now:opencode  press to re-request  z:expand
+  AI: 1=opencode  2=ollama  3=NIM  now:opencode  press to re-request  z:expand
   f:favorites   s:all   v:check                                     UPDATE
   q:quit  space:pause  ← -/+ →:volume  m:mute  r:reconnect         v0.7.51
 └ three-row footer: AI line / stations+update row / transport keys;
@@ -303,7 +303,7 @@ Top to bottom, on the player screen:
 | `o` / `O`   | open the **verified** Wikipedia article in your browser (only when one exists) |
 | `z` / `Z`   | expand/collapse the full trivia note (fills the screen); no note = toggles detail view |
 | `p` / `P`   | rotate color theme (`p`); choice is remembered in `config.json` |
-| `1` `2` `3` | pick AI provider: 1=opencode, 2=ollama, 3=api key. Saves the choice **and** re-requests the current track immediately — even if a cached note exists |
+| `1` `2` `3` | pick AI provider: 1=opencode, 2=ollama, 3=NIM. Saves the choice **and** re-requests the current track immediately — even if a cached note exists |
 | `v`         | force a version check now; result flashes in the footer's mid row (works with or without AI configured) |
 | `k` / `K`   | open the project knowledge base (KB.md) in your browser — this is the manual you're reading |
 | `u`         | when an update is available: open the release page |
@@ -460,47 +460,158 @@ plain metadata display work perfectly and mradio makes no network calls for AI.
   match** (composer-surname + token overlap), so you never get a
   random-but-existing page.
 
-### Providers (first configured *and* responding wins)
+### Setting up AI enrichment
 
-Order: **opencode → ollama → API key**.
+Three providers, in priority order. Only one needs to be configured — the
+first that is both enabled *and* responding wins.
 
 | # | Provider | How to enable | Notes |
 | - | -------- | ------------- | ----- |
-| 1 | **opencode** | **auto-detected** if the `opencode` CLI is on `PATH`; override/port via `MRADIO_OPENCODE` (or `settings.json`), disable with `MRADIO_OPENCODE=0` | drives `opencode serve` headlessly; zero-auth when it works; richest trivia; slowest (often 20–90 s). First run: make sure you're signed in (`opencode auth …`) |
-| 2 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | your own box = most private; fastest; model default `gemma3:4b` |
-| 3 | **openai** | `MRADIO_API_KEY=…`, `MRADIO_API_BASE=…`, `MRADIO_MODEL=…` | any OpenAI-compatible API (Groq, OpenRouter, Gemini, NIM, together.ai, …); hand this to friends who just want a free key |
+| 1 | **opencode** | **auto-detected** if the `opencode` CLI is on `PATH` | richest trivia, zero-auth, slowest (20–90 s) |
+| 2 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | fastest, most private, requires local resources |
+| 3 | **NIM** | `3` in the UI → paste your NVIDIA API key | free hosted inference, no local resources |
+
+#### Provider 1: OpenCode (recommended)
+
+OpenCode is the zero-config option — no API key, no account, just install and
+go. mradio auto-detects it on `PATH` and drives it headlessly.
+
+**Install (macOS):**
+
+```sh
+brew install anomalyco/tap/opencode
+```
+
+**Install (Linux):**
+
+```sh
+curl -fsSL https://opencode.ai/install | bash
+```
+
+**Authenticate (first time only):**
+
+```sh
+opencode auth
+```
+
+**Pros:** richest trivia, zero cost, no API key
+**Cons:** slowest (20–90 s per track), requires the CLI installed
+
+#### Provider 2: Ollama
+
+Ollama runs a local LLM server. It's the fastest and most private option —
+everything stays on your machine. You can run it locally or on a remote machine
+(including Docker).
+
+**Install (macOS):**
+
+```sh
+brew install ollama
+```
+
+**Install (Linux):**
+
+```sh
+curl -fsSL https://ollama.ai/install.sh | sh
+```
+
+**Docker (local or remote):**
+
+```sh
+docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+```
+
+**Pull the recommended model:**
+
+```sh
+ollama pull gemma3:4b
+```
+
+This is the default model mradio uses. It's small, fast, and produces good
+trivia. Other models work too — `llama3`, `phi3`, `mistral` — but `gemma3:4b`
+is the sweet spot for quality vs speed.
+
+**Remote Ollama:**
+
+If Ollama runs on another machine (or inside Docker), point mradio to it:
+
+```sh
+MRADIO_OLLAMA=http://192.168.1.100:11434 mradio
+```
+
+Or set it in `~/.local/share/mradio/settings.json`:
+
+```json
+{ "ollama_url": "http://192.168.1.100:11434" }
+```
+
+**GPU offload:** If Ollama uses CPU instead of GPU, set
+`MRADIO_OLLAMA_NUM_GPU=999` (or `"ollama_gpu": 999` in settings.json).
+
+**Pros:** fastest, most private, no API key, runs offline
+**Cons:** requires local resources (RAM/GPU), quality depends on model size
+
+#### Provider 3: NIM (NVIDIA)
+
+NIM is NVIDIA's hosted inference service. It's free for the `minimaxai/minimax-m3`
+model and requires no local resources — just an NVIDIA account and API key.
+
+**Sign up:**
+
+1. Go to **https://build.nvidia.com**
+2. Create an NVIDIA account (email + password)
+3. **Add a phone number** when prompted (required for API key access)
+4. Verify your phone number
+
+**Get your API key:**
+
+1. Go to **https://build.nvidia.com/settings/api-keys**
+2. Click **"Generate Key"**
+3. Copy the `nvapi-...` key
+
+**Set up in mradio:**
+
+Press **`3`** in the player to select NIM. If no API key is configured, a
+TUI popup will appear asking you to paste your key. Paste it and press Enter.
+
+To change your API key later, press **`c`**.
+
+The key is saved to `~/.local/share/mradio/settings.json`. You can also
+set it via environment variable:
+
+```sh
+MRADIO_API_KEY=nvapi-... mradio
+```
+
+**Model:** mradio uses `minimaxai/minimax-m3` by default — it's the only NIM
+model that produces clean, strict JSON for mradio's schema every time. The
+NIM catalogue changes often; other free models may appear or disappear.
+
+**Pros:** free, no local resources, no install required
+**Cons:** requires internet, requires NVIDIA account, slower than local
+
+### Prompt rules (NIM / choice 3)
 
 Choice 3 ships with **extra "HARD TRUTHFULNESS RULES"** appended to its prompt
-(choice 1/2 keep the stock prompt): never invent premiere dates, dedicatees,
+(choices 1/2 keep the stock prompt): never invent premiere dates, dedicatees,
 film/TV/commercial appearances or awards; never claim a film appearance unless
 certain; prefer verifiable structural facts; return `wiki` only if confident the
 article exists; and never drift onto a different composer, performer or work.
 It also relaxes the trivia length target — short-but-true beats padded.
-
-**NIM (NVIDIA) recipe** — free hosted inference, one `nvapi-…` key:
-
-```sh
-MRADIO_API_BASE=https://integrate.api.nvidia.com/v1
-MRADIO_API_KEY=nvapi-…            # from build.nvidia.com/settings/api-keys
-MRADIO_MODEL=minimaxai/minimax-m3 # clean strict-JSON liner notes (verified)
-```
-
-The catalogue changes often and few models are actually free — test before
-trusting one: `curl https://integrate.api.nvidia.com/v1/models -H "Authorization:
-Bearer $MRADIO_API_KEY"` lists the live IDs; a model that returns clean JSON for
-mradio's exact schema wins. `minimaxai/minimax-m3` is currently the only one
-found to reply with a pristine JSON object every time (reasoning-tuned models
-like `openai/gpt-oss-20b` return `content: null` and don't work).
-
-While a provider is working you'll see a spinner with time, e.g. `▚ opencode 34s`.
 
 ### In-session control
 
 - **`1` / `2` / `3`** — switch provider live. The choice is saved to
   `config.json` and the current track is **re-requested immediately, even if
   cached** (so switching AIs always shows fresh info).
+  When **`3`** is selected with no API key configured, a TUI popup appears
+  to paste your NVIDIA API key. When the key is already set, the footer
+  shows **`c:change API Key`** for 10 seconds.
+- **`c`** — change the NIM API key (TUI popup).
 - **`z` / `Z`** — expand the trivia note to full-screen (`z:collapse`), or click
   the text with mouse enabled.
+
+While a provider is working you'll see a spinner with time, e.g. `▚ opencode 34s`.
 
 ### How it works
 
