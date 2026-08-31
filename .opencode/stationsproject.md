@@ -51,10 +51,15 @@ does not add stations on its own initiative.
 ## Research notes
 
 - **Wired into mradio:** the classical presets below are baked in as part of
-  `DEFAULT_STATIONS` in `./mradio`. **0.7.65** added a curated Jazz bunch (WBGO,
-  WWOZ, KCSM 91.1, KJAZZ 88.1, Adroit Jazz Underground, SomaFM Secret Agent)
-  and Blues bunch (1.FM Blues, 181.FM True Blues, WDCB 90.9) to
-  `DEFAULT_STATIONS`, surfaced in the **`s` genre submenus** for Jazz/Blues
+  `DEFAULT_STATIONS` in `./mradio`. **0.7.66** expanded the curated genres to
+  **9 Jazz** (WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1, Jazz24, 1.FM Adore Jazz, TSF
+  Jazz, JazzRadio 106.8 Berlin — plus the user's Swiss Jazz favorite) and
+  **9 Blues** (Jazz Radio Blues, Blues Radio Greece, Blues Music Fan, Blues
+  Rock Cafe, 1.FM Blues, 181.FM True Blues, Buddy Guy Radio Legends, WDCB
+  90.9, exclusive BB King), replacing the 6 Jazz (incl. Adroit Jazz Underground
+  & SomaFM Secret Agent) / 3 Blues from **0.7.65**. All live-verified via mpv
+  (audio, bitrate, icy-title); higher bitrate + popular/reviewed picks win.
+  Surfaced in the **`s` genre submenus** for Jazz/Blues
   (de-duplicated against favorites; Classical/Other and the favorites file are
   untouched). Your favorites live in `~/.local/share/mradio/stations.json`
   (key `"favorites"`, opened by `f`), seeded once from the first 10 of

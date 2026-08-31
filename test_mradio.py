@@ -632,13 +632,17 @@ class TestGenres(unittest.TestCase):
         names = [e["name"] for e in sts]
         self.assertIn("Swiss Jazz", names)
         for curated in ("WBGO", "WWOZ", "KCSM 91.1", "KJAZZ 88.1",
-                        "Adroit Jazz Underground", "SomaFM Secret Agent"):
+                        "Jazz24", "1.FM Adore Jazz", "TSF Jazz",
+                        "JazzRadio 106.8 Berlin"):
             self.assertIn(curated, names)
 
     def test_genre_stations_for_blues_aggregates_curated(self):
         sts = _mradio.genre_stations_for([], "blues")
         names = [e["name"] for e in sts]
-        for curated in ("1.FM Blues", "181.FM True Blues", "WDCB 90.9"):
+        for curated in ("1.FM Blues", "181.FM True Blues", "WDCB 90.9",
+                        "Jazz Radio Blues", "Blues Radio Greece",
+                        "Blues Music Fan", "Blues Rock Cafe",
+                        "Buddy Guy Radio Legends", "exclusive BB King"):
             self.assertIn(curated, names)
 
     def test_genre_stations_for_classical_stays_favorites_only(self):
@@ -659,8 +663,8 @@ class TestGenres(unittest.TestCase):
         favs = [{"name": "Swiss Jazz", "url": "u://j", "genre": "jazz"},
                 {"name": "WQXR", "url": "u://w", "genre": "classical"}]
         counts = _mradio.genre_station_counts(favs)
-        self.assertGreaterEqual(counts["jazz"], 7)
-        self.assertGreaterEqual(counts["blues"], 3)
+        self.assertGreaterEqual(counts["jazz"], 9)
+        self.assertGreaterEqual(counts["blues"], 9)
         self.assertEqual(counts["classical"], 1)
 
     def test_load_favorites_backfills_genre_on_legacy_entries(self):

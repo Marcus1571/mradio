@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.65"
+VERSION = "0.7.66"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -94,16 +94,35 @@ DEFAULT_STATIONS = [
      "url": "http://ice7.securenetsystems.net/KCSM2", "genre": "jazz"},
     {"name": "KJAZZ 88.1",
      "url": "https://streaming.live365.com/a49833", "genre": "jazz"},
-    {"name": "Adroit Jazz Underground",
-     "url": "https://icecast.walmradio.com:8443/jazz", "genre": "jazz"},
-    {"name": "SomaFM Secret Agent",
-     "url": "https://ice2.somafm.com/secretagent-128-mp3", "genre": "jazz"},
+    {"name": "Jazz24",
+     "url": "https://knkx-live-a.edge.audiocdn.com/6285_256k", "genre": "jazz"},
+    {"name": "1.FM Adore Jazz",
+     "url": "http://strm112.1.fm/ajazz_mobile_mp3", "genre": "jazz"},
+    {"name": "TSF Jazz",
+     "url": "http://tsfjazz.ice.infomaniak.ch/tsfjazz-high.mp3", "genre": "jazz"},
+    {"name": "JazzRadio 106.8 Berlin",
+     "url": "https://streaming.radio.co/s774887f7b/listen", "genre": "jazz"},
+    {"name": "Jazz Radio Blues",
+     "url": "http://jazzblues.ice.infomaniak.ch/jazzblues-high.mp3",
+     "genre": "blues"},
+    {"name": "Blues Radio Greece",
+     "url": "http://cast3.radiohost.ovh:8352/", "genre": "blues"},
+    {"name": "Blues Music Fan",
+     "url": "https://orbit.citrus3.com:8052/stream", "genre": "blues"},
+    {"name": "Blues Rock Cafe",
+     "url": "https://bluesrockcafe.stream.laut.fm/bluesrockcafe",
+     "genre": "blues"},
     {"name": "1.FM Blues",
      "url": "http://strm112.1.fm/blues_mobile_mp3", "genre": "blues"},
     {"name": "181.FM True Blues",
      "url": "http://listen.181fm.com/181-blues_128k.mp3", "genre": "blues"},
+    {"name": "Buddy Guy Radio Legends",
+     "url": "https://streaming.live365.com/a83090", "genre": "blues"},
     {"name": "WDCB 90.9",
      "url": "https://wdcb-ice.streamguys1.com/wdcb128", "genre": "blues"},
+    {"name": "exclusive BB King",
+     "url": "https://streaming.exclusive.radio/er/bbking/icecast.audio",
+     "genre": "blues"},
 ]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))

@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.66] - 2026-09-01
+
+### Changed
+
+- **Expanded Jazz & Blues genre submenus to 9 stations each, re-ranked.**
+  Every station was researched, then **live-tested** (HTTP status + real
+  audio decoded via mpv with bitrate + `icy-title` confirmed), preferring
+  higher bitrate and stations with track (`icy-title`) metadata.
+  - **Jazz (9):** Swiss Jazz (existing favorite) + WBGO, WWOZ, KCSM 91.1,
+    KJAZZ 88.1, Jazz24 (256k), 1.FM Adore Jazz (256k), TSF Jazz (Paris),
+    JazzRadio 106.8 Berlin (192k). Replaced **Adroit Jazz Underground** and
+    **SomaFM Secret Agent** — which could not be live-verified from this
+    environment and lost out to higher-bitrate, better-reviewed alternatives.
+  - **Blues (9):** Jazz Radio Blues (64.5k votes — most popular blues stream
+    anywhere), Blues Radio Greece (320k), Blues Music Fan (320k, "#1
+    contemporary blues"), Blues Rock Cafe, 1.FM Blues (256k), 181.FM True
+    Blues, Buddy Guy Radio Legends, WDCB 90.9, exclusive BB King.
+- `findings.md` updated with the full final rosters, live-verification method,
+  bitrate, icy-title support, and radio-browser vote counts for every station.
+
 ## [0.7.65] - 2026-08-31
 
 ### Added

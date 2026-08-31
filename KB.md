@@ -404,9 +404,11 @@ Two distinct lists — this split is deliberate:
   with an unknown name fall into **Other**. Genres with no favorites are hidden
   from the picker. Numbers choose a genre, then pick a station inside it. The
   **Jazz** and **Blues** submenus additionally include the curated jazz/blues
-  stations baked into `DEFAULT_STATIONS` (WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1,
-  Adroit Jazz Underground, SomaFM Secret Agent; 1.FM Blues, 181.FM True Blues,
-  WDCB 90.9), de-duplicated against your favorites — so you get Jazz/Blues even
+  stations baked into `DEFAULT_STATIONS` (Jazz: WBGO, WWOZ, KCSM 91.1, KJAZZ
+  88.1, Jazz24, 1.FM Adore Jazz, TSF Jazz, JazzRadio 106.8 Berlin; Blues: Jazz
+  Radio Blues, Blues Radio Greece, Blues Music Fan, Blues Rock Cafe, 1.FM
+  Blues, 181.FM True Blues, Buddy Guy Radio Legends, WDCB 90.9, exclusive BB
+  King), de-duplicated against your favorites — so you get Jazz/Blues even
   if your favorites list is full. Classical and Other stay favorites-only. The
   full researched station list (URLs + verification status) lives in
   `findings.md` at the repo root.

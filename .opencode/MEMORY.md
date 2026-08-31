@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.65` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.66` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -82,6 +82,15 @@ the project's CURRENT state.
     content even when the 10-slot favorites list is full. **Classical/Other
     stay favorites-only.** The favorites file is never touched. `genre_stations_for()`
     = the per-genre list; `genre_station_counts()` backs the chooser counts.
+  - **9 curated Jazz + 9 curated Blues (0.7.66).** Each submenu now has **9**
+    stations. Jazz: WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1, Jazz24, 1.FM Adore
+    Jazz, TSF Jazz, JazzRadio 106.8 Berlin (plus the user's Swiss Jazz
+    favorite). Blues: Jazz Radio Blues, Blues Radio Greece, Blues Music Fan,
+    Blues Rock Cafe, 1.FM Blues, 181.FM True Blues, Buddy Guy Radio Legends,
+    WDCB 90.9, exclusive BB King. Every one was **live-verified** (mpv-decoded
+    audio, bitrate + icy-title confirmed); Adroit Jazz Underground & SomaFM
+    Secret Agent were replaced (couldn't be live-verified). Full URL/bitrate/
+    votes log in `findings.md`.
   - **Genre classification:** every favorite gets a `genre` field; auto-tagged
     on load by name via `genre_of()` (`_GENRE_KEYWORDS`); unknown names fall
     into **Other**. `DEFAULT_STATIONS` entries carry explicit `genre`.
@@ -261,6 +270,12 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   typing/paste.
 - **0.7.62** — **Spinner label fix**: in-play AI spinner now shows the
   display name (`NIM`) instead of internal `openai`.
+- **0.7.66** — **curated Jazz & Blues expanded to 9 each, re-ranked**: added
+  Jazz24, 1.FM Adore Jazz, TSF Jazz, JazzRadio 106.8 Berlin to Jazz and Jazz
+  Radio Blues, Blues Radio Greece, Blues Music Fan, Blues Rock Cafe, Buddy Guy
+  Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
+  & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
+  mpv; higher bitrate + icy-title preferred; `findings.md` updated.
 - **0.7.65** — **curated Jazz & Blues in the genre submenus**: Jazz lists 6
   curated stations + your jazz favorites; Blues lists 3 curated + your blues
   favorites (de-duplicated). Favorites file untouched (it was already full at
