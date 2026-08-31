@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.59` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.60` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -245,6 +245,9 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   KB.md (OpenCode, Ollama local/Docker/remote, NIM signup+key).
 - **0.7.59** — NIM API key popup fixed: placeholder is now light-grey hint
   text below an empty input (no more `nvapi-` prefix doubling on paste).
+- **0.7.60** — NIM API key popup layout: hints pushed down a line; input is a
+  full-width light-grey block with a rectangular terminal cursor that tracks
+  typing/paste.
 
 ## Env vars (optional overrides; settings.json is the source of truth)
 

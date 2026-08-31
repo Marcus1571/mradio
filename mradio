@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.59"
+VERSION = "0.7.60"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -334,7 +334,7 @@ def prompt_api_key(std, title="Enter NVIDIA NIM API key:", mask="nvapi-"):
     """Show a TUI popup asking for a NIM API key. Returns the key or None."""
     h, w = std.getmaxyx()
     pw = min(60, w - 4)
-    ph = 8
+    ph = 9
     y0 = max(0, (h - ph) // 2)
     x0 = max(0, (w - pw) // 2)
     win = curses.newwin(ph, pw, y0, x0)
@@ -346,26 +346,29 @@ def prompt_api_key(std, title="Enter NVIDIA NIM API key:", mask="nvapi-"):
         win.addnstr(1, 2, title, pw - 4)
         win.attroff(curses.color_pair(4) | curses.A_BOLD)
         win.addnstr(3, 2, "Key:", pw - 4, curses.color_pair(5) | curses.A_DIM)
-        win.addnstr(5, 2, f"paste full key from build.nvidia.com/settings/api-keys",
+        win.addnstr(6, 2, "paste full key from build.nvidia.com/settings/api-keys",
                     pw - 4, curses.color_pair(5) | curses.A_DIM)
-        win.addnstr(6, 2, f"starts with: {mask}", pw - 4,
+        win.addnstr(7, 2, f"starts with: {mask}", pw - 4,
                     curses.color_pair(5) | curses.A_DIM)
         buf = []
         pos = 0
+        field_x = 2
+        field_w = pw - 4
         while True:
-            win.move(4, 2)
+            win.move(4, field_x)
             win.clrtoeol()
-            display = "".join(buf) if buf else "(paste here)"
-            attr = curses.A_UNDERLINE if buf else (curses.color_pair(5) | curses.A_DIM)
-            win.addnstr(4, 2, display, pw - 4, attr)
-            win.move(4, 2 + min(pos, pw - 5))
+            visible = "".join(buf)[:field_w]
+            padded = visible + " " * (field_w - len(visible))
+            win.addnstr(4, field_x, padded, field_w, curses.color_pair(11))
+            cursor_col = field_x + min(pos, field_w)
+            win.move(4, cursor_col)
             win.refresh()
             ch = win.getch()
             if ch in (10, 13):
                 key = "".join(buf).strip()
                 if key and key.startswith("nvapi-"):
                     return key
-                win.addnstr(7, 2, "key must start with nvapi-", pw - 4,
+                win.addnstr(8, 2, "key must start with nvapi-", pw - 4,
                             curses.color_pair(7) | curses.A_BOLD)
                 continue
             elif ch == 27:
@@ -493,10 +496,12 @@ def init_colors(theme="dark"):
     if getattr(curses, "COLORS", 0) >= 256:
         for n in range(1, 11):
             curses.init_pair(n, *_SCHEME_PAL_256[theme][n])
+        curses.init_pair(11, 235, 252)  # input field: dark fg on light grey bg
     else:
         pal = _SCHEME_PAL_ANSI[theme]
         for n in range(1, 11):
             curses.init_pair(n, pal[n], CHIP_BG.get(n, -1))
+        curses.init_pair(11, -1, curses.COLOR_WHITE)
 
 
 def ai_configured():

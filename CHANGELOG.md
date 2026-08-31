@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.60] - 2026-08-31
+
+### Changed
+
+- **NIM API key popup layout**: explanation hints pushed down a line for
+  separation; the input field is now a full-width light-grey block that
+  stands out; a rectangular terminal cursor sits at the left of the field and
+  moves right as you type or jumps to the end on paste.
+
 ## [0.7.59] - 2026-08-31
 
 ### Fixed

@@ -199,8 +199,9 @@ class TestPalettes(unittest.TestCase):
                 else:
                     _mradio.curses.COLORS = _old_c
                 _mradio.curses.init_pair = _old
-            self.assertEqual(sorted(pairs), list(range(1, 11)),
-                             f"{scheme} must define all 10 pairs")
+            self.assertEqual(sorted(pairs), list(range(1, 12)),
+                             f"{scheme} must define all 10 pairs + popup input pair")
+            self.assertEqual(len(pairs), 11)
 
 
 class TestProviderRules(unittest.TestCase):
