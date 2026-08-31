@@ -54,7 +54,7 @@ are no pip dependencies: `python3` + `mpv` are all it needs.
 | **python3** | 3.8+; stdlib only, no pip packages |
 | **mpv**     | the audio engine — the only real dependency |
 | **git**     | needed for the clone-and-install path (the prebuilt `install.sh`) |
-| **opencode CLI** *(optional, recommended)* | zero-config AI liner notes — mradio auto-detects it on `PATH` (0.7.50+). Grab the official installer for your OS at **https://opencode.ai/download** (covers Homebrew, npm, curl installer, and the manual binary). Skip it if you'd rather use ollama or an OpenAI-compatible API key instead |
+| **opencode CLI** *(optional, recommended)* | zero-config AI liner notes — mradio auto-detects it on `PATH` (0.7.50+). Grab the official installer for your OS at **https://opencode.ai/download** (covers Homebrew, npm, curl installer, and the manual binary). Skip it for now — see [§8 AI enrichment](#8-ai-enrichment) for all three providers and their install steps |
 
 | OS     | Status |
 | ------ | ------ |
@@ -82,7 +82,10 @@ export PATH="$HOME/.local/bin:$PATH"
 **Want AI liner notes?** That's the *optional* opencode CLI row above: install it
 from **https://opencode.ai/download**, and mradio's AI row lights up on its own
 — no API key, no config. (Or skip it entirely: the radio plays perfectly
-without it.)
+without it.) For the full picture — including **Ollama** (local/Docker/remote)
+and **NIM** (free hosted NVIDIA inference) — jump to
+**[§8 AI enrichment](#8-ai-enrichment)** for the complete setup guide for all
+three providers.
 
 ### macOS (Homebrew)
 
@@ -111,6 +114,8 @@ without it.)
 
    (Any method from the official page **https://opencode.ai/download** works —
    like `curl -fsSL https://opencode.ai/install | bash` or `npm i -g opencode-ai`.)
+   Prefer a different engine? See [§8 AI enrichment](#8-ai-enrichment) for the
+   Ollama and NIM paths.
 
 4. **Install mradio**:
 
@@ -148,7 +153,8 @@ and then mradio. Pick your branch:
 
    (Any method from the official page **https://opencode.ai/download** works.)
    The curl installer lands in `~/.local/bin`, which the `PATH` export above
-   already covers.
+   already covers. Not using opencode? The Ollama / NIM paths are in
+   **[§8 AI enrichment](#8-ai-enrichment)**.
 
 3. **Install mradio**:
 
