@@ -13,13 +13,32 @@ manual. Version history lives in [CHANGELOG.md](CHANGELOG.md).
 
 1. [What mradio is](#1-what-mradio-is)
 2. [Requirements & install](#2-requirements--install)
+   - [2.1 Requirements](#21-requirements)
+   - [2.2 macOS (Homebrew)](#22-macos-homebrew)
+   - [2.3 Linux](#23-linux)
+   - [2.4 Windows → WSL](#24-windows-wsl)
+   - [2.5 Alternative installs](#25-alternative-installs-any-os)
 3. [Running it](#3-running-it)
 4. [Screen anatomy](#4-screen-anatomy)
 5. [Controls](#5-controls)
+   - [5.1 Player screen](#51-player-screen)
+   - [5.2 Station menus](#52-station-menus-f-favorites--s-all-stations)
+   - [5.3 Mouse](#53-mouse)
 6. [Stations & favorites](#6-stations--favorites)
 7. [Updates & self-update](#7-updates--self-update)
 8. [AI enrichment](#8-ai-enrichment)
+   - [8.1 What it adds](#81-what-it-adds-when-a-provider-is-enabled)
+   - [8.2 Setting up AI enrichment](#82-setting-up-ai-enrichment)
+   - [8.3 Prompt rules](#83-prompt-rules-nim--choice-3)
+   - [8.4 In-session control](#84-in-session-control)
+   - [8.5 How it works](#85-how-it-works)
+   - [8.6 Diagnostics](#86-diagnostics)
+   - [8.7 Settings & env](#87-settings-env)
 9. [Configuration & persistence](#9-configuration--persistence)
+   - [9.1 config.json](#91-configjson)
+   - [9.2 settings.json](#92-settingsjson)
+   - [9.3 stations.json](#93-stationsjson)
+   - [9.4 cache.json](#94-cachejson)
 10. [Environment variables](#10-environment-variables)
 11. [Themes](#11-themes)
 12. [Advanced use](#12-advanced-use)
@@ -47,7 +66,7 @@ are no pip dependencies: `python3` + `mpv` are all it needs.
 
 ## 2. Requirements & install
 
-### Requirements
+### 2.1 Requirements
 
 | Requirement | Notes |
 | ----------- | ----- |
@@ -87,7 +106,7 @@ and **NIM** (free hosted NVIDIA inference) — jump to
 **[§8 AI enrichment](#8-ai-enrichment)** for the complete setup guide for all
 three providers.
 
-### macOS (Homebrew)
+### 2.2 macOS (Homebrew)
 
 1. **Install Homebrew** (if you don't have it — check with `brew --version`):
 
@@ -130,12 +149,12 @@ three providers.
 > Upgrading later: press **`U`** inside mradio to self-update, or
 > `git pull && ./install.sh`.
 
-### Linux
+### 2.3 Linux
 
 Python 3 ships with essentially every distro; you only need to install **mpv**
 and then mradio. Pick your branch:
 
-#### Debian / Ubuntu / Linux Mint (apt line)
+#### 2.3.1 Debian / Ubuntu / Linux Mint (apt line)
 
 1. **Install mpv** (and python3, if somehow missing):
 
@@ -164,7 +183,7 @@ and then mradio. Pick your branch:
    ./install.sh
    ```
 
-#### Fedora (dnf line)
+#### 2.3.2 Fedora (dnf line)
 
 1. **Install mpv**:
 
@@ -181,7 +200,7 @@ and then mradio. Pick your branch:
 
 3. **Install mradio** (clone, then `./install.sh`, as above).
 
-#### Arch / Manjaro / EndeavourOS / Omarchy (pacman line)
+#### 2.3.3 Arch / Manjaro / EndeavourOS / Omarchy (pacman line)
 
 1. **Install mpv**:
 
@@ -201,7 +220,7 @@ and then mradio. Pick your branch:
 
 3. **Install mradio** (clone, then `./install.sh`, as above).
 
-### Windows → WSL
+### 2.4 Windows → WSL
 
 The official Windows Python build has no `curses`, so mradio runs under
 **WSL** instead. `wsl --install` (or your distro of choice), then follow the
@@ -209,7 +228,7 @@ The official Windows Python build has no `curses`, so mradio runs under
 `curl -fsSL https://opencode.ai/install | bash` opencode CLI step, which works
 fine under WSL.
 
-### Alternative installs (any OS)
+### 2.5 Alternative installs (any OS)
 
 ```sh
 make install                                   # copies to ~/.local/bin
@@ -458,7 +477,7 @@ release-page URL), `MRADIO_UPDATE_INTERVAL` (seconds, min 60).
 Opt-in and **fully optional**. With no provider configured, playback and the
 plain metadata display work perfectly and mradio makes no network calls for AI.
 
-### What it adds (when a provider is enabled)
+### 8.1 What it adds (when a provider is enabled)
 
 - a dark-grey **trivia note** about the work (era, form, premieres, film usage, …);
 - a **`Work:`** line when the station tag was only a movement/fragment;
@@ -466,7 +485,7 @@ plain metadata display work perfectly and mradio makes no network calls for AI.
   match** (composer-surname + token overlap), so you never get a
   random-but-existing page.
 
-### Setting up AI enrichment
+### 8.2 Setting up AI enrichment
 
 Three providers, in priority order. Only one needs to be configured — the
 first that is both enabled *and* responding wins.
@@ -477,7 +496,7 @@ first that is both enabled *and* responding wins.
 | 2 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | fastest, most private, requires local resources |
 | 3 | **NIM** | `3` in the UI → paste your NVIDIA API key | free hosted inference, no local resources |
 
-#### Provider 1: OpenCode (recommended)
+#### 8.2.1 Provider 1: OpenCode (recommended)
 
 OpenCode is the zero-config option — no API key, no account, just install and
 go. mradio auto-detects it on `PATH` and drives it headlessly.
@@ -503,7 +522,7 @@ opencode auth
 **Pros:** richest trivia, zero cost, no API key
 **Cons:** slowest (20–90 s per track), requires the CLI installed
 
-#### Provider 2: Ollama
+#### 8.2.2 Provider 2: Ollama
 
 Ollama runs a local LLM server. It's the fastest and most private option —
 everything stays on your machine. You can run it locally or on a remote machine
@@ -568,7 +587,7 @@ Or in `~/.local/share/mradio/settings.json`:
 **Pros:** fastest, most private, no API key, runs offline
 **Cons:** requires local resources (RAM/GPU), quality depends on model size
 
-#### Provider 3: NIM (NVIDIA)
+#### 8.2.3 Provider 3: NIM (NVIDIA)
 
 NIM is NVIDIA's hosted inference service. It's free for the `minimaxai/minimax-m3`
 model and requires no local resources — just an NVIDIA account and API key.
@@ -607,7 +626,7 @@ NIM catalogue changes often; other free models may appear or disappear.
 **Pros:** free, no local resources, no install required
 **Cons:** requires internet, requires NVIDIA account, slower than local
 
-### Prompt rules (NIM / choice 3)
+### 8.3 Prompt rules (NIM / choice 3)
 
 Choice 3 ships with **extra "HARD TRUTHFULNESS RULES"** appended to its prompt
 (choices 1/2 keep the stock prompt): never invent premiere dates, dedicatees,
@@ -616,7 +635,7 @@ certain; prefer verifiable structural facts; return `wiki` only if confident the
 article exists; and never drift onto a different composer, performer or work.
 It also relaxes the trivia length target — short-but-true beats padded.
 
-### In-session control
+### 8.4 In-session control
 
 - **`1` / `2` / `3`** — switch provider live. The choice is saved to
   `config.json` and the current track is **re-requested immediately, even if
@@ -632,7 +651,7 @@ It also relaxes the trivia length target — short-but-true beats padded.
 
 While a provider is working you'll see a spinner with time, e.g. `▚ opencode 34s`.
 
-### How it works
+### 8.5 How it works
 
 1. mradio reads the `icy-title` (and artist/station context) for the current track.
 2. A background thread asks the selected LLM for a structured enrichment
@@ -646,7 +665,7 @@ Repeating a track enriched by the current provider comes back **instantly**
 (with no LLM call), even across restarts. A cached note is only reused when the
 *same* provider is selected.
 
-### Diagnostics
+### 8.6 Diagnostics
 
 Phased per-track timing goes to the log (`~/.local/share/mradio/mradio.log`):
 spawn/health, session, LLM call, wiki resolve, plus a per-provider elapsed
@@ -660,7 +679,7 @@ INFO ollama: eval=392tok rate=21.4 tok/s total=18.3s load=2.1s
 A low `rate` with an idle GPU usually means the model isn't GPU-offloaded —
 set `MRADIO_OLLAMA_NUM_GPU=999` (or fix the ollama server config) and re-test.
 
-### Settings & env
+### 8.7 Settings & env
 
 Zero shell-config is possible: mradio self-writes `settings.json` on first run
 with your current choices, so you can just edit that file. Environment
@@ -680,7 +699,7 @@ Everything lives self-contained in `~/.local/share/mradio/`:
 | `mradio.log` | main diagnostics | mradio | no |
 | `serve.log` | `opencode serve` internals (if used) | mradio | no |
 
-### `config.json`
+### 9.1 `config.json`
 
 ```json
 { "provider": "opencode", "theme": "dark", "volume": 73, "mouse": 0 }
@@ -695,13 +714,13 @@ Everything lives self-contained in `~/.local/share/mradio/`:
 - `mouse` — `0` (default) `=` clicks off (text selectable normal); `1` enables
   click zones (trivia text, `UPDATE` pill).
 
-### `settings.json`
+### 9.2 `settings.json`
 
 Mirrors the AI env vars (`ollama_url`, `ollama_model`, `ollama_timeout`,
 `ollama_gpu`, `api_base`, `api_key`, `api_model`, `api_timeout`, `opencode`,
 `opencode_timeout`). Kept in sync with env at first run; env overrides win.
 
-### `stations.json`
+### 9.3 `stations.json`
 
 ```json
 { "favorites": [ { "name": "…", "url": "…" }, … ] }
@@ -709,7 +728,7 @@ Mirrors the AI env vars (`ollama_url`, `ollama_model`, `ollama_timeout`,
 
 See [Stations & favorites](#6-stations--favorites).
 
-### `cache.json`
+### 9.4 `cache.json`
 
 Every enrichment ever computed, keyed by track tag and labeled with the
 provider that produced it. Both `config.json` and `cache.json` are written
