@@ -625,6 +625,44 @@ class TestGenres(unittest.TestCase):
         self.assertEqual([e["name"] for e in b["other"]], ["D"])
         self.assertEqual(b["blues"], [])
 
+    def test_genre_stations_for_jazz_aggregates_curated(self):
+        favs = [{"name": "Swiss Jazz", "url": "http://s.example/j.mp3",
+                 "genre": "jazz"}]
+        sts = _mradio.genre_stations_for(favs, "jazz")
+        names = [e["name"] for e in sts]
+        self.assertIn("Swiss Jazz", names)
+        for curated in ("WBGO", "WWOZ", "KCSM 91.1", "KJAZZ 88.1",
+                        "Adroit Jazz Underground", "SomaFM Secret Agent"):
+            self.assertIn(curated, names)
+
+    def test_genre_stations_for_blues_aggregates_curated(self):
+        sts = _mradio.genre_stations_for([], "blues")
+        names = [e["name"] for e in sts]
+        for curated in ("1.FM Blues", "181.FM True Blues", "WDCB 90.9"):
+            self.assertIn(curated, names)
+
+    def test_genre_stations_for_classical_stays_favorites_only(self):
+        favs = [{"name": "WQXR", "url": "u://wqxr", "genre": "classical"}]
+        sts = _mradio.genre_stations_for(favs, "classical")
+        self.assertEqual([e["name"] for e in sts], ["WQXR"])
+
+    def test_genre_stations_for_dedups_favorite_matching_curated(self):
+        favs = [{"name": "Swiss Jazz",
+                 "url": "http://stream.srg-ssr.ch/m/rsj/mp3_128",
+                 "genre": "jazz"}]
+        sts = _mradio.genre_stations_for(favs, "jazz")
+        seen = [e["name"] for e in sts]
+        self.assertEqual(len(seen), len(set(seen)))
+        self.assertEqual(seen.count("Swiss Jazz"), 1)
+
+    def test_genre_station_counts_includes_curated_jazz_blues(self):
+        favs = [{"name": "Swiss Jazz", "url": "u://j", "genre": "jazz"},
+                {"name": "WQXR", "url": "u://w", "genre": "classical"}]
+        counts = _mradio.genre_station_counts(favs)
+        self.assertGreaterEqual(counts["jazz"], 7)
+        self.assertGreaterEqual(counts["blues"], 3)
+        self.assertEqual(counts["classical"], 1)
+
     def test_load_favorites_backfills_genre_on_legacy_entries(self):
         import tempfile
         saved = _mradio.STATIONS_FILE

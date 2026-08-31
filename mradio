@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.64"
+VERSION = "0.7.65"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -86,6 +86,24 @@ DEFAULT_STATIONS = [
      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-"
             "C1984642FA4B/audio/simulcast/hls/nonuk/audio_syndication_low_sbr_"
             "v1/ak/bbc_radio_three.m3u8", "genre": "other"},
+    {"name": "WBGO", "url": "https://ais-sa8.cdnstream1.com/3629_128.mp3",
+     "genre": "jazz"},
+    {"name": "WWOZ", "url": "http://wwoz-sc.streamguys.com/wwoz-hi.mp3",
+     "genre": "jazz"},
+    {"name": "KCSM 91.1",
+     "url": "http://ice7.securenetsystems.net/KCSM2", "genre": "jazz"},
+    {"name": "KJAZZ 88.1",
+     "url": "https://streaming.live365.com/a49833", "genre": "jazz"},
+    {"name": "Adroit Jazz Underground",
+     "url": "https://icecast.walmradio.com:8443/jazz", "genre": "jazz"},
+    {"name": "SomaFM Secret Agent",
+     "url": "https://ice2.somafm.com/secretagent-128-mp3", "genre": "jazz"},
+    {"name": "1.FM Blues",
+     "url": "http://strm112.1.fm/blues_mobile_mp3", "genre": "blues"},
+    {"name": "181.FM True Blues",
+     "url": "http://listen.181fm.com/181-blues_128k.mp3", "genre": "blues"},
+    {"name": "WDCB 90.9",
+     "url": "https://wdcb-ice.streamguys1.com/wdcb128", "genre": "blues"},
 ]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))
@@ -229,6 +247,31 @@ def genre_buckets(stations):
             g = "other"
         out[g].append(ent)
     return out
+
+
+def genre_stations_for(fav_stations, genre):
+    """Stations shown in a genre submenu: the user's favorites in that genre,
+    plus the curated Jazz/Blues stations from DEFAULT_STATIONS (de-duplicated).
+    The favorites file is NEVER touched. Classical/Other stay favorites-only."""
+    favs = [e for e in (fav_stations or [])
+            if (e.get("genre") or "other") == genre]
+    if genre not in ("jazz", "blues"):
+        return favs
+    seen = set()
+    out = []
+    for ent in favs + [s for s in DEFAULT_STATIONS
+                       if (s.get("genre") or "") == genre]:
+        key = ((ent.get("name") or "").strip(), (ent.get("url") or "").strip())
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(ent)
+    return out
+
+
+def genre_station_counts(fav_stations):
+    """Per-genre counts for the chooser: favorites, plus curated Jazz/Blues."""
+    return {g: len(genre_stations_for(fav_stations, g)) for g in GENRES}
 
 
 _OC_ONPATH = None
@@ -1660,24 +1703,23 @@ def render_menu(std, s, mode, cur):
     entries = sts = None
     hint = ""
     if mode == "genres":
-        buckets = genre_buckets(s.get("fav_stations") or [])
-        entries = [(g, GENRE_LABELS[g], len(buckets[g]))
-                   for g in GENRES if buckets[g]]
+        counts = genre_station_counts(s.get("fav_stations") or [])
+        entries = [(g, GENRE_LABELS[g], counts[g])
+                   for g in GENRES if counts[g]]
         add(std, 0, x, " stations ", 2, curses.A_BOLD)
         x += 10
         add(std, 0, x, " ▸ GENRE ", 8)
         x += 9
-        hint = " pick a number — favorites by genre"
+        hint = " pick a number — favorites by genre (+ curated jazz/blues)"
     elif mode == "genre":
         g = s.get("genre") or "other"
         label = GENRE_LABELS.get(g, "Stations")
-        sts = [e for e in (s.get("fav_stations") or [])
-               if (e.get("genre") or "other") == g]
+        sts = genre_stations_for(s.get("fav_stations") or [], g)
         add(std, 0, x, f" {label} ", 2, curses.A_BOLD)
         x += len(label) + 2
         add(std, 0, x, " ▸ SELECT ", 8)
         x += 10
-        hint = f" pick a number — {len(sts)} favorite(s) in {label}"
+        hint = f" pick a number — {len(sts)} station(s) in {label}"
     else:  # fav
         sts = s.get("fav_stations") or []
         add(std, 0, x, " my stations ", 2, curses.A_BOLD)
@@ -1758,10 +1800,11 @@ def render_menu(std, s, mode, cur):
 
 
 def genre_entries(s):
-    """Ordered list of (genre, label, count) for non-empty favorites buckets."""
-    buckets = genre_buckets(s.get("fav_stations") or [])
-    return [(g, GENRE_LABELS[g], len(buckets[g]))
-            for g in GENRES if buckets[g]]
+    """Ordered list of (genre, label, count) for non-empty genre buckets
+    (favorites, plus curated Jazz/Blues)."""
+    counts = genre_station_counts(s.get("fav_stations") or [])
+    return [(g, GENRE_LABELS[g], counts[g])
+            for g in GENRES if counts[g]]
 
 
 def main():
@@ -1884,8 +1927,7 @@ def main():
                     cur_st = min(cur_st, max(0, len(lst) - 1))
                 elif menu == "genre":
                     g = state.get("genre") or "other"
-                    lst = [e for e in (state["fav_stations"] or [])
-                           if (e.get("genre") or "other") == g]
+                    lst = genre_stations_for(state["fav_stations"] or [], g)
                     cur_st = min(cur_st, max(0, len(lst) - 1))
                 else:  # fav
                     lst = state["fav_stations"] or []

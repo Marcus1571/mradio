@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.65] - 2026-08-31
+
+### Added
+
+- **Curated Jazz & Blues stations in the genre submenus.** The **Jazz** genre
+  submenu now lists 6 curated jazz stations (WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1,
+  Adroit Jazz Underground, SomaFM Secret Agent) and the **Blues** submenu lists
+  3 curated blues stations (1.FM Blues, 181.FM True Blues, WDCB 90.9) — shown
+  **in addition to** any Jazz/Blues favorites you already have (de-duplicated).
+  The favorites file (`stations.json`) is **never touched**: it was already
+  full at its 10-slot cap, so the curated stations come from the built-in
+  catalog instead. Classical and Other submenus stay favorites-only.
+- **`findings.md`** at the repo root — a persistent log of every researched
+  station URL, its verification status, and the decisions made (so research is
+  never lost again).
+
+### Changed
+
+- `s` genre chooser counts now include the curated Jazz/Blues stations, so the
+  Jazz bucket shows `Jazz (7)` and Blues `Blues (3)` once favorites exist there.
+
 ## [0.7.64] - 2026-08-31
 
 ### Fixed

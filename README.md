@@ -48,8 +48,9 @@ Every valve lives in the machine room: **[KB.md](KB.md) (the long read)**.
 </p>
 
 `f` drops your favorites — one press tunes in. `s` opens a genre chooser
-(Classical / Jazz / Blues / Other) built from your favorites. `k` leaps
-straight to this book.
+(Classical / Jazz / Blues / Other): your favorites grouped by genre, with a
+curated Jazz & Blues catalog filling those submenus even when your favorites
+list is full. `k` leaps straight to this book.
 
 ---
 

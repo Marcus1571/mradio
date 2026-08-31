@@ -50,16 +50,21 @@ does not add stations on its own initiative.
 
 ## Research notes
 
-- **Wired into mradio:** these 12 presets are baked in as `DEFAULT_STATIONS`
-  in `./mradio` and shown by the **`s` all-stations menu** (labels `S01…Snn`,
-  arrows/Enter to pick). Your **number-`1-9` favorites** live in
-  `~/.local/share/mradio/stations.json` (key `"favorites"`, opened by `f`),
-  seeded once from `DEFAULT_STATIONS` on first run; afterwards the file is
-  entirely the user's (releases never touch it). `a` inside the `s` menu
-  copies a row into favorites. Favorite hot-keys are `1-9` then **`0`** (10th);
+- **Wired into mradio:** the classical presets below are baked in as part of
+  `DEFAULT_STATIONS` in `./mradio`. **0.7.65** added a curated Jazz bunch (WBGO,
+  WWOZ, KCSM 91.1, KJAZZ 88.1, Adroit Jazz Underground, SomaFM Secret Agent)
+  and Blues bunch (1.FM Blues, 181.FM True Blues, WDCB 90.9) to
+  `DEFAULT_STATIONS`, surfaced in the **`s` genre submenus** for Jazz/Blues
+  (de-duplicated against favorites; Classical/Other and the favorites file are
+  untouched). Your favorites live in `~/.local/share/mradio/stations.json`
+  (key `"favorites"`, opened by `f`), seeded once from the first 10 of
+  `DEFAULT_STATIONS` on first run; afterwards the file is entirely the user's
+  (releases never touch it). The old `S01…Snn` all-stations catalog and the `a`
+  key were removed in **0.7.63**. Favorite hot-keys are `1-9` then **`0`** (10th);
   the numeric keypad behaves like the main number row. `MRADIO_STATIONS`
   overrides the path; a legacy
   `config.json` → `"stations"` list is migrated on first run.
+  **`findings.md`** at the repo root logs every researched station URL + status.
 - Most picks are **public-service or non-profit** → no commercial ad breaks
   (Classic FM is the exception: commercial, with ad breaks; Naim is a brand
   radio). WQXR is member-supported with occasional underwriting.

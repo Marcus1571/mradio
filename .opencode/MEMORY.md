@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.64` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.65` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -76,6 +76,12 @@ the project's CURRENT state.
     Pick a number to open that genre's submenu, then pick a station. The flat
     all-stations catalog (`S01…Snn`) and the `a` add-to-favorites key were
     **removed** (0.7.63).
+  - **Curated Jazz/Blues in genre submenus (0.7.65+):** the **Jazz** and
+    **Blues** genre submenus also pull in the curated jazz/blues stations from
+    `DEFAULT_STATIONS` (de-duplicated against favorites), so those genres have
+    content even when the 10-slot favorites list is full. **Classical/Other
+    stay favorites-only.** The favorites file is never touched. `genre_stations_for()`
+    = the per-genre list; `genre_station_counts()` backs the chooser counts.
   - **Genre classification:** every favorite gets a `genre` field; auto-tagged
     on load by name via `genre_of()` (`_GENRE_KEYWORDS`); unknown names fall
     into **Other**. `DEFAULT_STATIONS` entries carry explicit `genre`.
@@ -255,6 +261,12 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   typing/paste.
 - **0.7.62** — **Spinner label fix**: in-play AI spinner now shows the
   display name (`NIM`) instead of internal `openai`.
+- **0.7.65** — **curated Jazz & Blues in the genre submenus**: Jazz lists 6
+  curated stations + your jazz favorites; Blues lists 3 curated + your blues
+  favorites (de-duplicated). Favorites file untouched (it was already full at
+  its 10-slot cap). Classical/Other stay favorites-only. New helper
+  `genre_stations_for()` / `genre_station_counts()`; **`findings.md`** at repo
+  root now persists all researched station URLs + status so they're never lost.
 - **0.7.61** — **Ollama URL popup**: press `2` with no server configured (or
   `c` while provider 2 active) to set the server URL; three example hints;
   generic `prompt_text` popup drives both NIM key and Ollama URL flows.
