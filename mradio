@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.60"
+VERSION = "0.7.61"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -130,6 +130,26 @@ def save_api_key(key):
         os.replace(tmp, SETTINGS_FILE)
         API_KEY = key
         log(f"NIM API key saved to {SETTINGS_FILE}")
+        return True
+    except Exception as e:
+        log(f"settings save FAIL: {e}", "WARN")
+        return False
+
+
+def save_ollama_url(url):
+    """Persist an Ollama server URL to settings.json atomically."""
+    global OLLAMA
+    d = load_settings()
+    d["ollama_url"] = url
+    d.setdefault("ollama_model", OLLAMA_MODEL)
+    try:
+        os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
+        tmp = SETTINGS_FILE + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(d, fh, indent=2)
+        os.replace(tmp, SETTINGS_FILE)
+        OLLAMA = url
+        log(f"Ollama URL saved to {SETTINGS_FILE}")
         return True
     except Exception as e:
         log(f"settings save FAIL: {e}", "WARN")
@@ -330,11 +350,18 @@ def _follow_esc(std):
         std.nodelay(False)
 
 
-def prompt_api_key(std, title="Enter NVIDIA NIM API key:", mask="nvapi-"):
-    """Show a TUI popup asking for a NIM API key. Returns the key or None."""
+def prompt_text(std, title, label, hints, validate=None, err="invalid input"):
+    """Generic TUI popup asking for a single line of text.
+
+    Renders a framed box with a light-grey input field and an active terminal
+    cursor. `hints` are light-grey example lines below the field. `validate`
+    takes the entered text and returns True/False (or a truthy normalized
+    value); on failure the error line shows and the popup stays open. Returns
+    the validated/normalized text (or the raw text if validate is None), or
+    None on Esc."""
     h, w = std.getmaxyx()
-    pw = min(60, w - 4)
-    ph = 9
+    pw = min(64, w - 4)
+    ph = 5 + len(hints) + 1
     y0 = max(0, (h - ph) // 2)
     x0 = max(0, (w - pw) // 2)
     win = curses.newwin(ph, pw, y0, x0)
@@ -345,11 +372,11 @@ def prompt_api_key(std, title="Enter NVIDIA NIM API key:", mask="nvapi-"):
         win.border()
         win.addnstr(1, 2, title, pw - 4)
         win.attroff(curses.color_pair(4) | curses.A_BOLD)
-        win.addnstr(3, 2, "Key:", pw - 4, curses.color_pair(5) | curses.A_DIM)
-        win.addnstr(6, 2, "paste full key from build.nvidia.com/settings/api-keys",
-                    pw - 4, curses.color_pair(5) | curses.A_DIM)
-        win.addnstr(7, 2, f"starts with: {mask}", pw - 4,
-                    curses.color_pair(5) | curses.A_DIM)
+        win.addnstr(3, 2, label, pw - 4, curses.color_pair(5) | curses.A_DIM)
+        for i, hint in enumerate(hints):
+            win.addnstr(6 + i, 2, hint, pw - 4,
+                        curses.color_pair(5) | curses.A_DIM)
+        err_y = 6 + len(hints)
         buf = []
         pos = 0
         field_x = 2
@@ -365,12 +392,18 @@ def prompt_api_key(std, title="Enter NVIDIA NIM API key:", mask="nvapi-"):
             win.refresh()
             ch = win.getch()
             if ch in (10, 13):
-                key = "".join(buf).strip()
-                if key and key.startswith("nvapi-"):
-                    return key
-                win.addnstr(8, 2, "key must start with nvapi-", pw - 4,
+                text = "".join(buf).strip()
+                if text:
+                    if validate is None:
+                        return text
+                    res = validate(text)
+                    if res:
+                        return res
+                    win.addnstr(err_y, 2, err, pw - 4,
+                                curses.color_pair(7) | curses.A_BOLD)
+                    continue
+                win.addnstr(err_y, 2, "value cannot be empty", pw - 4,
                             curses.color_pair(7) | curses.A_BOLD)
-                continue
             elif ch == 27:
                 return None
             elif ch in (curses.KEY_BACKSPACE, 127, 8):
@@ -382,6 +415,28 @@ def prompt_api_key(std, title="Enter NVIDIA NIM API key:", mask="nvapi-"):
                 pos = len(buf)
     except Exception:
         return None
+
+
+def prompt_api_key(std):
+    """Ask for a NVIDIA NIM API key (must start with `nvapi-`)."""
+    return prompt_text(
+        std, "Enter NVIDIA NIM API key:", "Key:",
+        ["paste full key from build.nvidia.com/settings/api-keys",
+         "starts with: nvapi-"],
+        validate=lambda k: k if k.startswith("nvapi-") else None,
+        err="key must start with nvapi-")
+
+
+def prompt_ollama(std):
+    """Ask for an Ollama server URL (http/https host, optional :port)."""
+    return prompt_text(
+        std, "Enter Ollama server URL:", "URL:",
+        ["http://localhost:11434",
+         "http://192.168.1.12:11434",
+         "https://internet.accessible.server"],
+        validate=lambda u: u if (
+            u.startswith("http://") or u.startswith("https://")) else None,
+        err="URL must start with http:// or https://")
 
 
 def load_favorites():
@@ -832,7 +887,7 @@ def make_state():
             "fav_stations": [], "all_stations": [],
             "update_url": "", "update_zone": None, "update_pending": False,
             "update_msg": "", "update_msg_t": 0,
-            "nim_hint_t": 0,
+            "nim_hint_t": 0, "ollama_hint_t": 0,
             "station": "", "station_resolved": False}
 
 
@@ -1444,8 +1499,12 @@ def render(std, elapsed, s):
         lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
         if h >= 3 and ai_configured():
             prov = s.get('ai_provider') or ''
-            hint = "c:change API Key" if (prov == "openai" and
-                    time.time() - (s.get("nim_hint_t") or 0) < 10) else "press to re-request"
+            if prov == "openai" and time.time() - (s.get("nim_hint_t") or 0) < 10:
+                hint = "c:change API Key"
+            elif prov == "ollama" and time.time() - (s.get("ollama_hint_t") or 0) < 10:
+                hint = "c:change Ollama URL"
+            else:
+                hint = "press to re-request"
             line = (f" AI: 1=opencode  2=ollama  3=NIM   "
                     f"now:{_PROVIDER_DISPLAY.get(prov, '')}   {hint}   z:collapse")
             if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
@@ -1517,8 +1576,12 @@ def render(std, elapsed, s):
 
     if h >= 3 and ai_configured():
         prov = s.get("ai_provider") or ""
-        hint = "c:change API Key" if (prov == "openai" and
-                time.time() - (s.get("nim_hint_t") or 0) < 10) else "press to re-request"
+        if prov == "openai" and time.time() - (s.get("nim_hint_t") or 0) < 10:
+            hint = "c:change API Key"
+        elif prov == "ollama" and time.time() - (s.get("ollama_hint_t") or 0) < 10:
+            hint = "c:change Ollama URL"
+        else:
+            hint = "press to re-request"
         line = (f" AI: 1=opencode  2=ollama  3=NIM   now:{_PROVIDER_DISPLAY.get(prov, '')}   "
                 f"{hint}   z:expand")
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
@@ -1906,8 +1969,15 @@ def main():
                     if key:
                         save_api_key(key)
                     continue
+                if name == "ollama" and not OLLAMA:
+                    url = prompt_ollama(stdscr)
+                    if url:
+                        save_ollama_url(url)
+                    continue
                 if name == "openai":
                     state["nim_hint_t"] = time.time()
+                if name == "ollama":
+                    state["ollama_hint_t"] = time.time()
                 if enrich.switch_provider(name):
                     state["ai_provider"] = name
                     rk = state["raw_title"]
@@ -1915,10 +1985,15 @@ def main():
                         enrich.invalidate(rk, state["artist"],
                                           state["title"], state["performer"])
             elif ch == ord("c") or ch == ord("C"):
-                if state.get("ai_provider") == "openai":
+                prov = state.get("ai_provider")
+                if prov == "openai":
                     key = prompt_api_key(stdscr)
                     if key:
                         save_api_key(key)
+                elif prov == "ollama":
+                    url = prompt_ollama(stdscr)
+                    if url:
+                        save_ollama_url(url)
             elif ch == curses.KEY_MOUSE:
                 try:
                     _, mx, my, _, bstate = curses.getmouse()

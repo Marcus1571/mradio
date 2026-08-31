@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.60` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.61` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -248,6 +248,9 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 - **0.7.60** — NIM API key popup layout: hints pushed down a line; input is a
   full-width light-grey block with a rectangular terminal cursor that tracks
   typing/paste.
+- **0.7.61** — **Ollama URL popup**: press `2` with no server configured (or
+  `c` while provider 2 active) to set the server URL; three example hints;
+  generic `prompt_text` popup drives both NIM key and Ollama URL flows.
 
 ## Env vars (optional overrides; settings.json is the source of truth)
 

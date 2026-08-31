@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.61] - 2026-08-31
+
+### Added
+
+- **Ollama URL setup popup.** Pressing `2` when no Ollama server is configured
+  opens a TUI popup asking for the server URL, with three example lines
+  (`http://localhost:11434`, `http://192.168.1.12:11434`,
+  `https://internet.accessible.server`). Press `c` while provider 2 is active
+  to change it. Saved to `settings.json` (`ollama_url`). The generic popup now
+  powers both the NIM key and Ollama URL flows.
+
 ## [0.7.60] - 2026-08-31
 
 ### Changed

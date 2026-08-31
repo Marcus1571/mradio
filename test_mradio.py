@@ -573,6 +573,25 @@ class TestNimSetup(unittest.TestCase):
     def test_save_api_key_validates_prefix(self):
         self.assertTrue(callable(_mradio.prompt_api_key))
 
+    def test_save_ollama_url(self):
+        import tempfile
+        saved = _mradio.SETTINGS_FILE
+        saved_url = _mradio.OLLAMA
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.SETTINGS_FILE = os.path.join(td, "settings.json")
+            _mradio.OLLAMA = ""
+            try:
+                self.assertTrue(_mradio.save_ollama_url("http://192.168.1.12:11434"))
+                self.assertEqual(_mradio.OLLAMA, "http://192.168.1.12:11434")
+                d = _mradio.load_settings()
+                self.assertEqual(d["ollama_url"], "http://192.168.1.12:11434")
+            finally:
+                _mradio.SETTINGS_FILE = saved
+                _mradio.OLLAMA = saved_url
+
+    def test_prompt_ollama_validates_url(self):
+        self.assertTrue(callable(_mradio.prompt_ollama))
+
 
 if __name__ == "__main__":
     unittest.main()

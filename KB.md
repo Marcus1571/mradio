@@ -533,13 +533,24 @@ is the sweet spot for quality vs speed.
 
 **Remote Ollama:**
 
-If Ollama runs on another machine (or inside Docker), point mradio to it:
+If Ollama runs on another machine (or inside Docker), point mradio to it by
+pressing **`2`** when no server is configured (or **`c`** while provider 2 is
+active) and typing the URL in the popup. The popup shows three example lines:
+
+```sh
+http://localhost:11434
+http://192.168.1.12:11434
+https://internet.accessible.server
+```
+
+The URL is saved to `settings.json` (`ollama_url`). You can also set it via
+env var:
 
 ```sh
 MRADIO_OLLAMA=http://192.168.1.100:11434 mradio
 ```
 
-Or set it in `~/.local/share/mradio/settings.json`:
+Or in `~/.local/share/mradio/settings.json`:
 
 ```json
 { "ollama_url": "http://192.168.1.100:11434" }
@@ -604,10 +615,12 @@ It also relaxes the trivia length target — short-but-true beats padded.
 - **`1` / `2` / `3`** — switch provider live. The choice is saved to
   `config.json` and the current track is **re-requested immediately, even if
   cached** (so switching AIs always shows fresh info).
-  When **`3`** is selected with no API key configured, a TUI popup appears
-  to paste your NVIDIA API key. When the key is already set, the footer
-  shows **`c:change API Key`** for 10 seconds.
-- **`c`** — change the NIM API key (TUI popup).
+  - When **`3`** is selected with no API key, a TUI popup pastes your NVIDIA
+    key; when the key is set the footer shows **`c:change API Key`** for 10s.
+  - When **`2`** is selected with no Ollama server, a TUI popup asks for the
+    server URL; when set the footer shows **`c:change Ollama URL`** for 10s.
+- **`c`** — change the current provider's credential: the NIM API key, or the
+  Ollama server URL (whichever is active).
 - **`z` / `Z`** — expand the trivia note to full-screen (`z:collapse`), or click
   the text with mouse enabled.
 
