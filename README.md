@@ -1,5 +1,8 @@
 # mradio
 
+**README · [KB (Knowledge Base)](KB.md) · [MIT license](LICENSE)** — jump straight
+to anything: every key, setting, and stream is one click away.
+
 > **A tiny terminal radio with big ears.** Live classical & jazz from curated
 > streams, AI liner notes on whatever is playing, and a UI that behaves — all
 > in one ~1700-line Python file with **zero dependencies**.
