@@ -58,30 +58,35 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.62` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.63` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
   (256-color Catppuccin-inspired, ANSI fallback; pair 5 = muted subtext).
-- **Station model (0.7.28+):** two deliberate lists.
+- **Station model (0.7.63+):** you own ONE list — your **favorites** — browsed
+  two ways.
   - **Favorites** (`f`): user's list in
     `~/.local/share/mradio/stations.json` (key `"favorites"`), max **10** hot
     slots (`1-9` + `0`; numpad digits resolve via `_follow_esc`). Seeded once,
     on first run, from the **first 10** of `DEFAULT_STATIONS`; legacy
     `config.json` `"stations"` migrated once (trimmed to 10). Releases never
-    touch it. `a` (in the `s` menu) adds a row but refuses when full ("favorites
-    full"). `MRADIO_STATIONS` overrides the path.
-  - **All stations** (`s`): the curated `S01…Snn` list shipped in the code
-    (`DEFAULT_STATIONS`, currently 12) — this is how the project pushes new
-    stations without overriding the user's list.
+    touch it. `MRADIO_STATIONS` overrides the path.
+  - **Genres** (`s`, 0.7.63+): a chooser grouping your favorites by genre —
+    Classical / Jazz / Blues / Other. Genres with no favorites are hidden.
+    Pick a number to open that genre's submenu, then pick a station. The flat
+    all-stations catalog (`S01…Snn`) and the `a` add-to-favorites key were
+    **removed** (0.7.63).
+  - **Genre classification:** every favorite gets a `genre` field; auto-tagged
+    on load by name via `genre_of()` (`_GENRE_KEYWORDS`); unknown names fall
+    into **Other**. `DEFAULT_STATIONS` entries carry explicit `genre`.
   - **Names:** both lists now use the real broadcast names (icy): `VCR
     Auditorium | Venice Classic Radio Italia`, `VCR Classica+ | Venice Classic
     Radio Italia`, `NPO Klassiek`. At runtime an icy-name also overrides the
     JSON label (label is only a fallback; the v0.7.34 fix).
 - **Footer (0.7.30+):** 3 rows — h-3 AI (`z:expand`, `c:change API Key` when
   NIM is active), h-2 dark-grey mid
-  (`f:favorites s:all k:kb v:check`; update pill + `u:page U:apply` there; the
-  `v` check result flashes here, works without AI), h-1 transport + version.
+  (`f:favorites s:genres k:kb v:check`; update pill + `u:page U:apply` there;
+  the `v` check result flashes here, works without AI), h-1 transport + version.
 - **Docs:** `README.md` = short marketing appetite (tagline, screenshots,
   every paragraph links to the KB); **`KB.md`** = the complete reference
   (keys, menus, install recipes per distro incl. Omarchy, stations, config,
@@ -178,7 +183,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
 | `f` | open your favorites (`1-9`,`0` quick-pick — max **10**, pads work too; `~/.local/share/mradio/stations.json`) |
-| `s` | open the all-stations list (`S01…Snn`; `a` adds the row to favorites) |
+| `s` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Other); number = open that genre's submenu |
 | `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
 
 ## Full feature history (CHANGELOG)

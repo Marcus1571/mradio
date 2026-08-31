@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.63] - 2026-08-31
+
+### Added
+
+- **Genre submenus.** `s` now opens a genre chooser (Classical / Jazz /
+  Blues / Other) built from your favorites; genres with no favorites are
+  hidden. Pick a number to open that genre's submenu, then pick a station.
+  Each favorite is auto-classified from its name (`genre_of()`); unknown names
+  fall into **Other**. `DEFAULT_STATIONS` entries carry an explicit `genre`.
+
+### Changed
+
+- The flat all-stations catalog (`S01…Snn`) and the `a` add-to-favorites key
+  were **removed**: browsing is now your favorites grouped by genre. Numbered
+  hot-picks (`1-9`, `0`) work inside the favorites list and each genre submenu.
+
+### Fixed
+
+- Genre menu no longer crashes on entry (undefined `heading`/`sts` in the
+  `genres` render path).
+
 ## [0.7.62] - 2026-08-31
 
 ### Fixed

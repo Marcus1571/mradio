@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.62"
+VERSION = "0.7.63"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -55,34 +55,37 @@ def log(msg, level="INFO"):
 SOCK = "/tmp/mpv-radio.sock"
 DEFAULT_URL = "https://uk2.streamingpulse.com/ssl/vcr1"
 
-# Curated station list for the `s` menu (S01... labels). Favorites — the
-# numbered 1-9 quick-pick — live in stations.json (key "favorites") and are
-# seeded from this list on first run; afterwards they are the user's own.
+# Curated station list (each with a genre). The numbered 1-9 favorites in
+# stations.json (key "favorites") are seeded from this list on first run;
+# afterwards they are the user's own, grouped by genre in the `s` menu.
 DEFAULT_STATIONS = [
     {"name": "VCR Auditorium | Venice Classic Radio Italia",
-     "url": "https://uk2.streamingpulse.com/ssl/vcr1"},
+     "url": "https://uk2.streamingpulse.com/ssl/vcr1", "genre": "classical"},
     {"name": "VCR Classica+ | Venice Classic Radio Italia",
-     "url": "https://uk2.streamingpulse.com/ssl/vcr2"},
+     "url": "https://uk2.streamingpulse.com/ssl/vcr2", "genre": "classical"},
     {"name": "Radio Swiss Classic",
-     "url": "https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128"},
+     "url": "https://stream.srg-ssr.ch/srgssr/rsc_it/mp3/128", "genre": "classical"},
     {"name": "Naim Classical",
-     "url": "http://mscp3.live-streams.nl:8250/class-high.aac"},
-    {"name": "WQXR", "url": "https://stream.wqxr.org/wqxr.mp3"},
-    {"name": "Classic FM", "url": "http://ice-the.musicradio.com/ClassicFMMP3"},
-    {"name": "Swiss Jazz", "url": "http://stream.srg-ssr.ch/m/rsj/mp3_128"},
+     "url": "http://mscp3.live-streams.nl:8250/class-high.aac", "genre": "classical"},
+    {"name": "WQXR", "url": "https://stream.wqxr.org/wqxr.mp3", "genre": "classical"},
+    {"name": "Classic FM", "url": "http://ice-the.musicradio.com/ClassicFMMP3",
+     "genre": "classical"},
+    {"name": "Swiss Jazz", "url": "http://stream.srg-ssr.ch/m/rsj/mp3_128",
+     "genre": "jazz"},
     {"name": "Radio Paradise",
-     "url": "https://stream-uk1.radioparadise.com/mp3-128"},
+     "url": "https://stream-uk1.radioparadise.com/mp3-128", "genre": "other"},
     {"name": "radio klassik Stephansdom",
      "url": "http://radioklassikstephansdom.ice.infomaniak.ch/"
-            "radioklassikstephansdom.mp3"},
+            "radioklassikstephansdom.mp3", "genre": "classical"},
     {"name": "NPO Klassiek",
-     "url": "https://icecast.omroep.nl/radio4-bb-mp3"},
+     "url": "https://icecast.omroep.nl/radio4-bb-mp3", "genre": "classical"},
     {"name": "France Musique",
-     "url": "https://icecast.radiofrance.fr/francemusique-midfi.mp3"},
+     "url": "https://icecast.radiofrance.fr/francemusique-midfi.mp3",
+     "genre": "classical"},
     {"name": "BBC Radio 3",
      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-"
             "C1984642FA4B/audio/simulcast/hls/nonuk/audio_syndication_low_sbr_"
-            "v1/ak/bbc_radio_three.m3u8"},
+            "v1/ak/bbc_radio_three.m3u8", "genre": "other"},
 ]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))
@@ -193,6 +196,39 @@ OC_PID = os.environ.get("MRADIO_OC_PID",
                         os.path.expanduser("~/.local/share/mradio/opencode.pid"))
 PROVIDERS = ("opencode", "ollama", "openai")
 _PROVIDER_DISPLAY = {"opencode": "opencode", "ollama": "ollama", "openai": "NIM"}
+
+GENRES = ("classical", "jazz", "blues", "other")
+GENRE_LABELS = {"classical": "Classical", "jazz": "Jazz",
+                "blues": "Blues", "other": "Other"}
+_GENRE_KEYWORDS = {
+    "blues": ("blues",),
+    "jazz": ("jazz", "swing", "bigband", "big band"),
+    "classical": ("classic", "classical", "orchestra", "orchestral", "chamber",
+                  "opera", "baroque", "symphony", "klassik", "klassiek",
+                  "musique", "recital", "sonata", "concerto"),
+}
+
+
+def genre_of(name):
+    """Best-effort genre for a station by its name; 'other' when unknown."""
+    n = (name or "").lower()
+    for genre in ("blues", "jazz", "classical"):
+        for kw in _GENRE_KEYWORDS[genre]:
+            if kw in n:
+                return genre
+    return "other"
+
+
+def genre_buckets(stations):
+    """Split a station list into {genre: [stations...]} preserving input order.
+    Only genres that have at least one station are included."""
+    out = {g: [] for g in GENRES}
+    for ent in stations or []:
+        g = str((ent or {}).get("genre") or "").strip()
+        if g not in out:
+            g = "other"
+        out[g].append(ent)
+    return out
 
 
 _OC_ONPATH = None
@@ -453,8 +489,11 @@ def load_favorites():
             u = str(x.get("url") or "").strip()
             if not u:
                 continue
+            g = str(x.get("genre") or "").strip().lower()
+            if g not in GENRES:
+                g = genre_of(str(x.get("name") or ""))
             out.append({"name": str(x.get("name") or u.split("/")[2]).strip(),
-                        "url": u})
+                        "url": u, "genre": g})
         return out
     lst = None
     try:
@@ -885,6 +924,7 @@ def make_state():
             "blurb": "", "work_label": "", "wiki_url": "", "wiki_title": "",
             "ai_provider": "", "theme": "dark", "details": False, "txt_zone": None,
             "fav_stations": [], "all_stations": [],
+            "cur_genre": 0, "genre": None,
             "update_url": "", "update_zone": None, "update_pending": False,
             "update_msg": "", "update_msg_t": 0,
             "nim_hint_t": 0, "ollama_hint_t": 0,
@@ -1514,7 +1554,7 @@ def render(std, elapsed, s):
             if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
                 mid = f" {s['update_msg']}"
             else:
-                mid = (f" f:favorites   s:all   k:kb   v:check" +
+                mid = (f" f:favorites   s:genres   k:kb   v:check" +
                        ("   u:page   U:apply" if s.get("update_url") else ""))
             add(std, h - 2, 1, mid[:lw], 5)
         if h >= 1:
@@ -1569,7 +1609,7 @@ def render(std, elapsed, s):
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             mid = f" {s['update_msg']}"
         else:
-            mid = (f" f:favorites   s:all   k:kb   v:check" +
+            mid = (f" f:favorites   s:genres   k:kb   v:check" +
                    ("" if s.get("update_pending")
                     else ("   u:page   U:apply" if s.get("update_url") else "")))
         add(std, h - 2, 1, mid[:lw], 5)
@@ -1596,50 +1636,84 @@ def render(std, elapsed, s):
 
 
 def render_menu(std, s, mode, cur):
-    """Draw a station menu: `f` = your favorites (1-9), `s` = all stations (S01...)."""
+    """Draw a station menu. Modes:
+    `genres`  — pick a genre (Classical/Jazz/Blues/Other);
+    `genre`   — a genre's favorite stations (numbered);
+    `fav`     — your full favorites list (1-9, 0)."""
     std.erase()
     h, w = std.getmaxyx()
-    if mode == "fav":
-        sts = s.get("fav_stations") or []
-        label = " my stations "
-        heading = "Your stations"
-    else:
-        sts = s.get("all_stations") or []
-        label = " all stations "
-        heading = "All stations"
     badge = " ● RADIO "
     add(std, 0, 0, badge, 3)
     x = len(badge)
     add(std, 0, x, " ▸ ", 1)
     x += 3
-    add(std, 0, x, label, 2, curses.A_BOLD)
-    x += len(label)
-    add(std, 0, x, " ▸ ", 1)
-    x += 3
-    add(std, 0, x, " SELECT ", 8)
-    x += 8
+
+    entries = sts = None
+    hint = ""
+    if mode == "genres":
+        buckets = genre_buckets(s.get("fav_stations") or [])
+        entries = [(g, GENRE_LABELS[g], len(buckets[g]))
+                   for g in GENRES if buckets[g]]
+        add(std, 0, x, " stations ", 2, curses.A_BOLD)
+        x += 10
+        add(std, 0, x, " ▸ GENRE ", 8)
+        x += 9
+        hint = " pick a number — favorites by genre"
+    elif mode == "genre":
+        g = s.get("genre") or "other"
+        label = GENRE_LABELS.get(g, "Stations")
+        sts = [e for e in (s.get("fav_stations") or [])
+               if (e.get("genre") or "other") == g]
+        add(std, 0, x, f" {label} ", 2, curses.A_BOLD)
+        x += len(label) + 2
+        add(std, 0, x, " ▸ SELECT ", 8)
+        x += 10
+        hint = f" pick a number — {len(sts)} favorite(s) in {label}"
+    else:  # fav
+        sts = s.get("fav_stations") or []
+        add(std, 0, x, " my stations ", 2, curses.A_BOLD)
+        x += len(" my stations ")
+        add(std, 0, x, " ▸ SELECT ", 8)
+        x += 10
+        hint = f" pick a number — {len(sts)} favorite(s)"
+
     add(std, 0, x, f" {s.get('theme') or 'dark'} (p)", 1)
 
     y = 2
-    add(std, y, 1, heading, 1, curses.A_BOLD)
-    y += 1
-    for i, ent in enumerate(sts):
-        if mode == "fav" and i >= 10:
-            break
-        if y >= h - 2:
-            break
-        if i == cur:
-            add(std, y, 1, "▶", 2, curses.A_BOLD)
-        tag = f"S{i + 1:02d}" if mode == "all" else (f"{i + 1}" if i < 9 else "0")
-        add(std, y, 4, tag, 1)
-        name = (ent.get("name") or "?").strip()
-        nlim = max(1, w - 26)
-        add(std, y, 8, name[:nlim], 6)
-        host = (ent.get("url") or "").split("/")[2]
-        sx = 8 + min(len(name), nlim) + 2
-        if sx < w - 4:
-            add(std, y, sx, host[:w - sx - 1], 5)
+    if mode == "genres":
+        add(std, y, 1, "Pick a genre", 1, curses.A_BOLD)
         y += 1
+        for i, (g, glabel, cnt) in enumerate(entries):
+            if y >= h - 2:
+                break
+            if i == cur:
+                add(std, y, 1, "▶", 2, curses.A_BOLD)
+            tag = f"{i + 1}" if i < 9 else "0"
+            add(std, y, 4, tag, 1)
+            add(std, y, 8, f"{glabel}  ({cnt})"[: max(1, w - 10)], 6)
+            y += 1
+    else:
+        heading = ("Your stations" if mode == "fav"
+                   else f"{GENRE_LABELS.get(s.get('genre') or 'other', 'Stations')} favorites")
+        add(std, y, 1, heading, 1, curses.A_BOLD)
+        y += 1
+        for i, ent in enumerate(sts or []):
+            if i >= 10:
+                break
+            if y >= h - 2:
+                break
+            if i == cur:
+                add(std, y, 1, "▶", 2, curses.A_BOLD)
+            tag = f"{i + 1}" if i < 9 else "0"
+            add(std, y, 4, tag, 1)
+            name = (ent.get("name") or "?").strip()
+            nlim = max(1, w - 26)
+            add(std, y, 8, name[:nlim], 6)
+            host = (ent.get("url") or "").split("/")[2]
+            sx = 8 + min(len(name), nlim) + 2
+            if sx < w - 4:
+                add(std, y, sx, host[:w - sx - 1], 5)
+            y += 1
 
     draw_right(std, s, h, w)
     rlim = min(w, (s.get("update_zone") or (0, w))[1]) if s.get("update_zone") else w
@@ -1647,19 +1721,19 @@ def render_menu(std, s, mode, cur):
     if h >= 2:
         if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
             line = s["update_msg"]
-        elif mode == "fav":
-            line = f" pick a number — {len(sts)} favorite(s)"
         else:
-            line = " ↑/↓ move · Enter pick · a add to favorites"
+            line = hint
         add(std, h - 2, 1, line[:lw], 3)
     if h >= 1:
         top = not (s.get("station") or "")
         esc = "quit" if top else "back"
         chip = "q/ESC:" + esc
-        if mode == "fav":
-            rest = "1-9,0:pick  ↑/↓:move  s:all  v:check"
+        if mode == "genre":
+            rest = "Enter:pick  ↑/↓:move  s:genres  f:fav  v:check"
+        elif mode == "genres":
+            rest = "Enter:pick  ↑/↓:move  f:fav  v:check"
         else:
-            rest = "Enter:pick  f:fav  ↑/↓:move  v:check"
+            rest = "1-9,0:pick  ↑/↓:move  s:genres  v:check"
         if s.get("update_url") and not s.get("update_pending"):
             rest += "  u:page  U:apply"
         if top and s.get("update_pending"):
@@ -1672,6 +1746,13 @@ def render_menu(std, s, mode, cur):
         else:
             add(std, h - 1, 1, (chip + "  " + rest)[:lw], 6)
     std.refresh()
+
+
+def genre_entries(s):
+    """Ordered list of (genre, label, count) for non-empty favorites buckets."""
+    buckets = genre_buckets(s.get("fav_stations") or [])
+    return [(g, GENRE_LABELS[g], len(buckets[g]))
+            for g in GENRES if buckets[g]]
 
 
 def main():
@@ -1788,9 +1869,19 @@ def main():
             else:
                 state["update_url"] = ""
             if menu is not None:
-                lst = (state["fav_stations"] if menu == "fav"
-                       else state["all_stations"])
-                render_menu(stdscr, state, menu, min(cur_st, max(0, len(lst) - 1)))
+                if menu == "genres":
+                    gentries = genre_entries(state)
+                    lst = [g for g, _l, _c in gentries]
+                    cur_st = min(cur_st, max(0, len(lst) - 1))
+                elif menu == "genre":
+                    g = state.get("genre") or "other"
+                    lst = [e for e in (state["fav_stations"] or [])
+                           if (e.get("genre") or "other") == g]
+                    cur_st = min(cur_st, max(0, len(lst) - 1))
+                else:  # fav
+                    lst = state["fav_stations"] or []
+                    cur_st = min(cur_st, max(0, len(lst) - 1))
+                render_menu(stdscr, state, menu, cur_st)
                 ch = stdscr.getch()
                 if ch == 27:
                     ch = _follow_esc(stdscr)
@@ -1803,26 +1894,11 @@ def main():
                 elif ch == ord("f"):
                     if menu != "fav":
                         show_favorites()
+                        cur_st = 0
                     menu = "fav"
-                elif ch == ord("s"):
-                    menu = "all"
-                elif ch == ord("a") and menu == "all":
-                    ent = state["all_stations"][
-                        min(cur_st, len(state["all_stations"]) - 1)]
-                    if len(state["fav_stations"]) >= 10:
-                        state["update_msg"] = "favorites full - 10 max (a ignored)"
-                    elif any(x.get("url") == ent["url"]
-                             for x in state["fav_stations"]):
-                        state["update_msg"] = \
-                            f"already in favorites: {ent['name']}"
-                    elif save_favorites(list(state["fav_stations"]) + [dict(ent)]):
-                        state["fav_stations"] = \
-                            list(state["fav_stations"]) + [dict(ent)]
-                        state["update_msg"] = \
-                            f"a added to favorites: {ent['name']}"
-                    else:
-                        state["update_msg"] = "could not save favorites"
-                    state["update_msg_t"] = time.time()
+                elif ch == ord("s") and menu != "genres":
+                    menu = "genres"
+                    cur_st = 0
                 elif ch == ord("p"):
                     state["theme"] = next_theme(state["theme"])
                     init_colors(state["theme"])
@@ -1847,15 +1923,26 @@ def main():
                 elif ch in (curses.KEY_UP, ord("k")) and cur_st > 0:
                     cur_st -= 1
                 elif ch in (10, 13, curses.KEY_ENTER):
-                    if cur_st < len(lst):
+                    if menu == "genres":
+                        if cur_st < len(gentries):
+                            state["genre"] = gentries[cur_st][0]
+                            menu = "genre"
+                            cur_st = 0
+                    elif cur_st < len(lst):
                         switch_stream(lst[cur_st])
                         menu = None
-                elif menu == "fav":
+                else:
                     idx = fav_index(ch)
-                    if idx is not None and idx < len(lst):
-                        cur_st = idx
-                        switch_stream(lst[idx])
-                        menu = None
+                    if idx is not None and idx < len(lst) and lst:
+                        if menu == "genres":
+                            if idx < len(gentries):
+                                state["genre"] = gentries[idx][0]
+                                menu = "genre"
+                                cur_st = 0
+                        else:
+                            cur_st = idx
+                            switch_stream(lst[idx])
+                            menu = None
                 continue
             if proc.poll() is not None:
                 proc = launch_mpv(url)
@@ -1951,7 +2038,8 @@ def main():
             elif ch in (ord("k"), ord("K")):
                 subprocess.Popen(["open", KB_URL])
             elif ch == ord("s"):
-                menu = "all"
+                menu = "genres"
+                cur_st = 0
             elif ch == ord("f"):
                 show_favorites()
                 menu = "fav"

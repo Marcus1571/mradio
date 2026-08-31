@@ -22,7 +22,7 @@ manual. Version history lives in [CHANGELOG.md](CHANGELOG.md).
 4. [Screen anatomy](#4-screen-anatomy)
 5. [Controls](#5-controls)
    - [5.1 Player screen](#51-player-screen)
-   - [5.2 Station menus](#52-station-menus-f-favorites--s-all-stations)
+   - [5.2 Station menus](#52-station-menus-f-favorites--s-genres)
    - [5.3 Mouse](#53-mouse)
 6. [Stations & favorites](#6-stations--favorites)
 7. [Updates & self-update](#7-updates--self-update)
@@ -336,23 +336,28 @@ Top to bottom, on the player screen:
 | `u`         | when an update is available: open the release page |
 | `U`         | when an update is available: auto-update in place, then **restart to apply** (pill flips to `RESTART TO UPDATE`) |
 | `f`         | open the **favorites** menu |
-| `s`         | open the **all-stations** menu |
+| `s`         | open the **genre** chooser (your favorites grouped by genre) |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
 
 Arrow keys `→`/`←` double as volume hotkeys.
 
-### 5.2 Station menus (`f` favorites / `s` all-stations)
+### 5.2 Station menus (`f` favorites / `s` genres)
 
-Both menus share their housekeeping keys; only picking differs.
+Three menus share the housekeeping keys; only picking differs:
 
-| Key | Favorites (`f`) | All stations (`s`) |
-| --- | --------------- | ------------------ |
-| `1`…`9` `0` | **instant pick** (`0` = 10th favorite) | — |
+- **Favorites (`f`)** — your full `stations.json` list, `1-0` instant pick.
+- **Genres (`s`)** — a picker of the genres present in your favorites:
+  **Classical**, **Jazz**, **Blues**, **Other** (a genre with no favorites is
+  hidden). Pick a number to open that genre's submenu.
+- **Genre submenu** — just that genre's favorite stations, numbered `1-0`.
+
+| Key | Favorites / genre submenu | Genres picker |
+| --- | ------------------------- | ------------- |
+| `1`…`9` `0` | **instant pick** (`0` = 10th) | **open that genre** |
 | `↑`/`↓` or `j`/`k` | move selection | move selection |
-| `Enter` | play selected | play selected |
-| `a` | — | **add** the highlighted station to your favorites (flash confirms; ignored once your 10 slots are full) |
+| `Enter` | play selected | open that genre |
 | `f` | switch to favorites | switch to favorites |
-| `s` | switch to all stations | stay on all stations |
+| `s` | open genres | stay on genres |
 | `q` / `Esc` | back to player while something is playing; **quit** in the bare-launch screen. In the menu footer the hint is **always the leftmost item**, reading `q/ESC:back` — or `q/ESC:quit` on the startup screen, where once `U` has applied an update mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
 
@@ -389,10 +394,10 @@ Two distinct lists — this split is deliberate:
   run of a fresh machine the file is **auto-seeded once** with the first 10 of
   the current curated selection so the menu is useful immediately; after that
   it's yours to edit.
-- **All stations** (`s`) — *our* curated list, shipped in the program (labels
-  `S01`, `S02`, …). It can grow with every release; use `a` to copy any row
-  into your favorites. This is how the project can keep "pushing" new stations
-  without ever overriding your personal list.
+- **Genres** (`s`) — *your* favorites grouped by genre (Classical / Jazz /
+  Blues / Other). Each favorite is auto-classified from its name; bare URLs
+  with an unknown name fall into **Other**. Genres with no favorites are hidden
+  from the picker. Numbers choose a genre, then pick a station inside it.
 
 Related behaviors:
 
@@ -406,8 +411,9 @@ Related behaviors:
   with **no icy-name** (some HLS feeds) keep the label; force your own label
   with the second CLI argument or an alias.
 
-The current curated list (the `S01…Snn` seed) is tracked in
-`.opencode/stationsproject.md`. Favorites presets can also be extra *aliases*:
+The current curated list (the seed for `stations.json` on a fresh machine) is
+tracked in `.opencode/stationsproject.md`. Favorites presets can also be extra
+*aliases*:
 
 ```sh
 alias vcra='mradio https://uk2.streamingpulse.com/ssl/vcr1 "Venice Classic Radio Auditorium"'
@@ -694,7 +700,7 @@ Everything lives self-contained in `~/.local/share/mradio/`:
 | File | Purpose | Written by | You may edit |
 | ---- | ------- | ---------- | ------------ |
 | `config.json` | remembered provider, theme, volume, mute, mouse mode | `1/2/3`, `p`, `+/−`, `m`, manual | ✅ |
-| `stations.json` | **your** favorites list | first-run seed, `a` key | ✅ freely |
+| `stations.json` | **your** favorites list | first-run seed | ✅ freely |
 | `settings.json` | AI settings (ollama/api/opencode) | first-run seed | ✅ freely |
 | `cache.json` | past enrichment notes, tagged by provider | mradio | rarely |
 | `mradio.log` | main diagnostics | mradio | no |

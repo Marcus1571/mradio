@@ -24,11 +24,11 @@ You open a terminal, press one key, and the world's great music is playing —
 Brahms from the Chicago Symphony, this minute, with a scholar's paragraph
 explaining what you're hearing. No accounts. No ads. No Electron.
 
-- **Curated, not curated-to-death.** A hand-picked list, `1-9` away at all
-  times. Every entry is cleaned, tagged, and meaningfully described — not a
+- **Curated, right-sized.** Your favorites are grouped by genre (Classical /
+  Jazz / Blues / Other) via `s`, and hot-picked `1-9` at all times — not a
   firehose of 40,000 streams.
 - **Favorites that are yours.** `stations.json` is a plain file you own,
-  edit, and back up. `a` adds the row under your cursor. Your list, your rule.
+  edit, and back up. Your list, your rule.
 - **AI in your corner.** Press `1` — or just watch — and mradio writes an
   intelligent liner note about the playing work via opencode, ollama, or any
   OpenAI-compatible API. The `opencode` CLI is auto-detected — install it and
@@ -44,11 +44,12 @@ Every valve lives in the machine room: **[KB.md](KB.md) (the long read)**.
 
 <p align="center">
   <img src="screenshots/favorites.png" alt="favorites menu" width="420">
-  <img src="screenshots/all-stations.png" alt="all-stations menu" width="420">
+  <img src="screenshots/player.png" alt="player screen" width="420">
 </p>
 
-`f` drops your favorites — one press tunes in. `s` opens the full curated
-catalog. `k` leaps straight to this book.
+`f` drops your favorites — one press tunes in. `s` opens a genre chooser
+(Classical / Jazz / Blues / Other) built from your favorites. `k` leaps
+straight to this book.
 
 ---
 

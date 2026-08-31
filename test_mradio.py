@@ -593,5 +593,52 @@ class TestNimSetup(unittest.TestCase):
         self.assertTrue(callable(_mradio.prompt_ollama))
 
 
+class TestGenres(unittest.TestCase):
+    def test_genre_of_classical(self):
+        for n in ("Venice Classic Radio", "Naim Classical", "radio klassik",
+                  "France Musique", "NPO Klassiek"):
+            self.assertEqual(_mradio.genre_of(n), "classical")
+
+    def test_genre_of_jazz(self):
+        for n in ("Swiss Jazz", "WBGO Jazz 88.3", "Swing Coconut"):
+            self.assertEqual(_mradio.genre_of(n), "jazz")
+
+    def test_genre_of_blues(self):
+        for n in ("Jazz Radio Blues", "181.FM True Blues", "Chicago Blues"):
+            self.assertEqual(_mradio.genre_of(n), "blues")
+
+    def test_genre_of_other(self):
+        self.assertEqual(_mradio.genre_of("Radio Paradise"), "other")
+        self.assertEqual(_mradio.genre_of(""), "other")
+        self.assertEqual(_mradio.genre_of("BBC Radio 3"), "other")
+
+    def test_genre_buckets_preserves_order_and_buckets(self):
+        stations = [
+            {"name": "A", "url": "u://a", "genre": "classical"},
+            {"name": "B", "url": "u://b", "genre": "jazz"},
+            {"name": "C", "url": "u://c", "genre": "classical"},
+            {"name": "D", "url": "u://d", "genre": "other"},
+        ]
+        b = _mradio.genre_buckets(stations)
+        self.assertEqual([e["name"] for e in b["classical"]], ["A", "C"])
+        self.assertEqual([e["name"] for e in b["jazz"]], ["B"])
+        self.assertEqual([e["name"] for e in b["other"]], ["D"])
+        self.assertEqual(b["blues"], [])
+
+    def test_load_favorites_backfills_genre_on_legacy_entries(self):
+        import tempfile
+        saved = _mradio.STATIONS_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.STATIONS_FILE = os.path.join(td, "stations.json")
+            _mradio.save_favorites([
+                {"name": "Swiss Jazz", "url": "https://s.example/stream.mp3"},
+            ])
+            try:
+                sts = _mradio.load_favorites()
+                self.assertEqual(sts[0]["genre"], "jazz")
+            finally:
+                _mradio.STATIONS_FILE = saved
+
+
 if __name__ == "__main__":
     unittest.main()
