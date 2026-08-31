@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.62] - 2026-08-31
+
+### Fixed
+
+- **In-play spinner label for NIM.** While the AI is querying, the spinner
+  (e.g. `▞ NIM 10s`) now shows the same display name as the footer (`NIM`)
+  instead of the internal `openai` name.
+
 ## [0.7.61] - 2026-08-31
 
 ### Added

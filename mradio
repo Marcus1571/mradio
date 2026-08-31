@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.61"
+VERSION = "0.7.62"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1895,7 +1895,7 @@ def main():
                 state["wiki_title"] = ""
             if enrich.pending(state["raw_title"]):
                 es = enrich.elapsed(state["raw_title"])
-                prov = state.get("ai_provider") or ""
+                prov = _PROVIDER_DISPLAY.get(state.get("ai_provider") or "", "")
                 state["pn"] = "▚▞"[(int(t * 2) % 2)] + \
                     (f" {prov} {es}s" if es > 0 else f" {prov}…")
             else:
