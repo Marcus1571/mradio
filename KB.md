@@ -28,12 +28,14 @@ manual. Version history lives in [CHANGELOG.md](CHANGELOG.md).
 7. [Updates & self-update](#7-updates--self-update)
 8. [AI enrichment](#8-ai-enrichment)
    - [8.1 What it adds](#81-what-it-adds-when-a-provider-is-enabled)
-   - [8.2 Setting up AI enrichment](#82-setting-up-ai-enrichment)
-   - [8.3 Prompt rules](#83-prompt-rules-nim--choice-3)
-   - [8.4 In-session control](#84-in-session-control)
-   - [8.5 How it works](#85-how-it-works)
-   - [8.6 Diagnostics](#86-diagnostics)
-   - [8.7 Settings & env](#87-settings-env)
+   - [8.2 Provider 1: OpenCode](#82-provider-1-opencode-recommended)
+   - [8.3 Provider 2: Ollama](#83-provider-2-ollama)
+   - [8.4 Provider 3: NIM](#84-provider-3-nim-nvidia)
+   - [8.5 Prompt rules](#85-prompt-rules-nim--choice-3)
+   - [8.6 In-session control](#86-in-session-control)
+   - [8.7 How it works](#87-how-it-works)
+   - [8.8 Diagnostics](#88-diagnostics)
+   - [8.9 Settings & env](#89-settings-env)
 9. [Configuration & persistence](#9-configuration--persistence)
    - [9.1 config.json](#91-configjson)
    - [9.2 settings.json](#92-settingsjson)
@@ -485,7 +487,7 @@ plain metadata display work perfectly and mradio makes no network calls for AI.
   match** (composer-surname + token overlap), so you never get a
   random-but-existing page.
 
-### 8.2 Setting up AI enrichment
+### 8.2 Provider 1: OpenCode (recommended)
 
 Three providers, in priority order. Only one needs to be configured — the
 first that is both enabled *and* responding wins.
@@ -496,24 +498,22 @@ first that is both enabled *and* responding wins.
 | 2 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | fastest, most private, requires local resources |
 | 3 | **NIM** | `3` in the UI → paste your NVIDIA API key | free hosted inference, no local resources |
 
-#### 8.2.1 Provider 1: OpenCode (recommended)
-
 OpenCode is the zero-config option — no API key, no account, just install and
 go. mradio auto-detects it on `PATH` and drives it headlessly.
 
-**Install (macOS):**
+#### Install (macOS):
 
 ```sh
 brew install anomalyco/tap/opencode
 ```
 
-**Install (Linux):**
+#### Install (Linux):
 
 ```sh
 curl -fsSL https://opencode.ai/install | bash
 ```
 
-**Authenticate (first time only):**
+#### Authenticate (first time only):
 
 ```sh
 opencode auth
@@ -522,31 +522,31 @@ opencode auth
 **Pros:** richest trivia, zero cost, no API key
 **Cons:** slowest (20–90 s per track), requires the CLI installed
 
-#### 8.2.2 Provider 2: Ollama
+### 8.3 Provider 2: Ollama
 
 Ollama runs a local LLM server. It's the fastest and most private option —
 everything stays on your machine. You can run it locally or on a remote machine
 (including Docker).
 
-**Install (macOS):**
+#### Install (macOS):
 
 ```sh
 brew install ollama
 ```
 
-**Install (Linux):**
+#### Install (Linux):
 
 ```sh
 curl -fsSL https://ollama.ai/install.sh | sh
 ```
 
-**Docker (local or remote):**
+#### Docker (local or remote):
 
 ```sh
 docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
 ```
 
-**Pull the recommended model:**
+#### Pull the recommended model:
 
 ```sh
 ollama pull gemma3:4b
@@ -556,7 +556,7 @@ This is the default model mradio uses. It's small, fast, and produces good
 trivia. Other models work too — `llama3`, `phi3`, `mistral` — but `gemma3:4b`
 is the sweet spot for quality vs speed.
 
-**Remote Ollama:**
+#### Remote Ollama:
 
 If Ollama runs on another machine (or inside Docker), point mradio to it by
 pressing **`2`** when no server is configured (or **`c`** while provider 2 is
@@ -581,31 +581,33 @@ Or in `~/.local/share/mradio/settings.json`:
 { "ollama_url": "http://192.168.1.100:11434" }
 ```
 
-**GPU offload:** If Ollama uses CPU instead of GPU, set
+#### GPU offload:
+
+If Ollama uses CPU instead of GPU, set
 `MRADIO_OLLAMA_NUM_GPU=999` (or `"ollama_gpu": 999` in settings.json).
 
 **Pros:** fastest, most private, no API key, runs offline
 **Cons:** requires local resources (RAM/GPU), quality depends on model size
 
-#### 8.2.3 Provider 3: NIM (NVIDIA)
+### 8.4 Provider 3: NIM (NVIDIA)
 
 NIM is NVIDIA's hosted inference service. It's free for the `minimaxai/minimax-m3`
 model and requires no local resources — just an NVIDIA account and API key.
 
-**Sign up:**
+#### Sign up:
 
 1. Go to **https://build.nvidia.com**
 2. Create an NVIDIA account (email + password)
 3. **Add a phone number** when prompted (required for API key access)
 4. Verify your phone number
 
-**Get your API key:**
+#### Get your API key:
 
 1. Go to **https://build.nvidia.com/settings/api-keys**
 2. Click **"Generate Key"**
 3. Copy the `nvapi-...` key
 
-**Set up in mradio:**
+#### Set up in mradio:
 
 Press **`3`** in the player to select NIM. If no API key is configured, a
 TUI popup will appear asking you to paste your key. Paste it and press Enter.
@@ -626,8 +628,7 @@ NIM catalogue changes often; other free models may appear or disappear.
 **Pros:** free, no local resources, no install required
 **Cons:** requires internet, requires NVIDIA account, slower than local
 
-### 8.3 Prompt rules (NIM / choice 3)
-
+### 8.5 Prompt rules (NIM / choice 3)
 Choice 3 ships with **extra "HARD TRUTHFULNESS RULES"** appended to its prompt
 (choices 1/2 keep the stock prompt): never invent premiere dates, dedicatees,
 film/TV/commercial appearances or awards; never claim a film appearance unless
@@ -635,7 +636,7 @@ certain; prefer verifiable structural facts; return `wiki` only if confident the
 article exists; and never drift onto a different composer, performer or work.
 It also relaxes the trivia length target — short-but-true beats padded.
 
-### 8.4 In-session control
+### 8.6 In-session control
 
 - **`1` / `2` / `3`** — switch provider live. The choice is saved to
   `config.json` and the current track is **re-requested immediately, even if
@@ -651,7 +652,7 @@ It also relaxes the trivia length target — short-but-true beats padded.
 
 While a provider is working you'll see a spinner with time, e.g. `▚ opencode 34s`.
 
-### 8.5 How it works
+### 8.7 How it works
 
 1. mradio reads the `icy-title` (and artist/station context) for the current track.
 2. A background thread asks the selected LLM for a structured enrichment
@@ -665,7 +666,7 @@ Repeating a track enriched by the current provider comes back **instantly**
 (with no LLM call), even across restarts. A cached note is only reused when the
 *same* provider is selected.
 
-### 8.6 Diagnostics
+### 8.8 Diagnostics
 
 Phased per-track timing goes to the log (`~/.local/share/mradio/mradio.log`):
 spawn/health, session, LLM call, wiki resolve, plus a per-provider elapsed
@@ -679,7 +680,7 @@ INFO ollama: eval=392tok rate=21.4 tok/s total=18.3s load=2.1s
 A low `rate` with an idle GPU usually means the model isn't GPU-offloaded —
 set `MRADIO_OLLAMA_NUM_GPU=999` (or fix the ollama server config) and re-test.
 
-### 8.7 Settings & env
+### 8.9 Settings & env
 
 Zero shell-config is possible: mradio self-writes `settings.json` on first run
 with your current choices, so you can just edit that file. Environment
