@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.58` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.59` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -243,6 +243,8 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 - **0.7.58** — **NIM (NVIDIA) in-app setup**: press `3` to paste API key
   (TUI popup), `c` to change; `3=NIM` in UI; full AI installation guide in
   KB.md (OpenCode, Ollama local/Docker/remote, NIM signup+key).
+- **0.7.59** — NIM API key popup fixed: placeholder is now light-grey hint
+  text below an empty input (no more `nvapi-` prefix doubling on paste).
 
 ## Env vars (optional overrides; settings.json is the source of truth)
 

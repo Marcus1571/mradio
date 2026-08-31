@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.58"
+VERSION = "0.7.59"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -334,37 +334,47 @@ def prompt_api_key(std, title="Enter NVIDIA NIM API key:", mask="nvapi-"):
     """Show a TUI popup asking for a NIM API key. Returns the key or None."""
     h, w = std.getmaxyx()
     pw = min(60, w - 4)
-    ph = 7
+    ph = 8
     y0 = max(0, (h - ph) // 2)
     x0 = max(0, (w - pw) // 2)
     win = curses.newwin(ph, pw, y0, x0)
     win.keypad(True)
-    win.attron(curses.color_pair(4) | curses.A_BOLD)
-    win.erase()
-    win.border()
     try:
+        win.erase()
+        win.attron(curses.color_pair(4) | curses.A_BOLD)
+        win.border()
         win.addnstr(1, 2, title, pw - 4)
-        win.addnstr(2, 2, "Key:", pw - 4)
         win.attroff(curses.color_pair(4) | curses.A_BOLD)
-        buf = list(mask)
-        pos = len(buf)
+        win.addnstr(3, 2, "Key:", pw - 4, curses.color_pair(5) | curses.A_DIM)
+        win.addnstr(5, 2, f"paste full key from build.nvidia.com/settings/api-keys",
+                    pw - 4, curses.color_pair(5) | curses.A_DIM)
+        win.addnstr(6, 2, f"starts with: {mask}", pw - 4,
+                    curses.color_pair(5) | curses.A_DIM)
+        buf = []
+        pos = 0
         while True:
-            win.move(3, 2)
+            win.move(4, 2)
             win.clrtoeol()
-            win.addnstr(3, 2, "".join(buf), pw - 4, curses.A_UNDERLINE)
-            win.move(3, 2 + min(pos, pw - 5))
+            display = "".join(buf) if buf else "(paste here)"
+            attr = curses.A_UNDERLINE if buf else (curses.color_pair(5) | curses.A_DIM)
+            win.addnstr(4, 2, display, pw - 4, attr)
+            win.move(4, 2 + min(pos, pw - 5))
             win.refresh()
             ch = win.getch()
             if ch in (10, 13):
                 key = "".join(buf).strip()
-                return key if key and key.startswith("nvapi-") else None
+                if key and key.startswith("nvapi-"):
+                    return key
+                win.addnstr(7, 2, "key must start with nvapi-", pw - 4,
+                            curses.color_pair(7) | curses.A_BOLD)
+                continue
             elif ch == 27:
                 return None
             elif ch in (curses.KEY_BACKSPACE, 127, 8):
                 if buf:
                     buf.pop()
                     pos = len(buf)
-            elif 32 <= ch < 256 and len(buf) < 64:
+            elif 32 <= ch < 256 and len(buf) < 80:
                 buf.append(chr(ch))
                 pos = len(buf)
     except Exception:

@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.59] - 2026-08-31
+
+### Fixed
+
+- **NIM API key popup no longer prefills `nvapi-`.** The placeholder now shows
+  as light-grey hint text below an empty input field, so pasting a full key
+  from NVIDIA works without doubling the prefix. The popup is framed and
+  validates the key on Enter.
+
 ## [0.7.58] - 2026-08-30
 
 ### Added
