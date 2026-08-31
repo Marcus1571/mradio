@@ -336,7 +336,7 @@ Top to bottom, on the player screen:
 | `u`         | when an update is available: open the release page |
 | `U`         | when an update is available: auto-update in place, then **restart to apply** (pill flips to `RESTART TO UPDATE`) |
 | `f`         | open the **favorites** menu |
-| `s`         | open the **genre** chooser (your favorites grouped by genre; Jazz/Blues also include curated stations) |
+| `s`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues also include curated stations) |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
 
 Arrow keys `→`/`←` double as volume hotkeys.
@@ -349,10 +349,10 @@ Three menus share the housekeeping keys; only picking differs:
 - **Genres (`s`)** — a picker of the genres present in your favorites:
   **Classical**, **Jazz**, **Blues**, **Other** (a genre with no favorites is
   hidden). Pick a number to open that genre's submenu.
-- **Genre submenu** — that genre's station list, numbered `1-0`. Classical and
-  Other show only your favorites in that genre. **Jazz** and **Blues** also
-  pull in the curated jazz/blues stations from the built-in catalog
-  (`DEFAULT_STATIONS`, de-duplicated against your favorites), so these genres
+- **Genre submenu** — that genre's station list, numbered `1-0`. Classical,
+  Jazz and Blues aggregate your favorites in that genre **plus** the curated
+  stations from the built-in catalog (`DEFAULT_STATIONS`, de-duplicated against
+  your favorites), so these genres
   have content even when your 10-slot favorites list is already full — the
   favorites file is never touched.
 
@@ -403,13 +403,14 @@ Two distinct lists — this split is deliberate:
   Blues / Other). Each favorite is auto-classified from its name; bare URLs
   with an unknown name fall into **Other**. Genres with no favorites are hidden
   from the picker. Numbers choose a genre, then pick a station inside it. The
-  **Jazz** and **Blues** submenus additionally include the curated jazz/blues
-  stations baked into `DEFAULT_STATIONS` (Jazz: WBGO, WWOZ, KCSM 91.1, KJAZZ
-  88.1, Jazz24, 1.FM Adore Jazz, TSF Jazz, JazzRadio 106.8 Berlin; Blues: Jazz
-  Radio Blues, Blues Radio Greece, Blues Music Fan, Blues Rock Cafe, 1.FM
-  Blues, 181.FM True Blues, Buddy Guy Radio Legends, WDCB 90.9, exclusive BB
-  King), de-duplicated against your favorites — so you get Jazz/Blues even
-  if your favorites list is full. Classical and Other stay favorites-only. The
+  **Classical**, **Jazz** and **Blues** submenus include the curated stations
+  baked into `DEFAULT_STATIONS` (Classical: WCRB, KUSC, WFMT, France Musique;
+  Jazz: WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1, Jazz24, 1.FM Adore Jazz, TSF Jazz,
+  JazzRadio 106.8 Berlin, KMHD; Blues: Jazz Radio Blues, Blues Radio Greece,
+  Blues Music Fan, Blues Rock Cafe, 1.FM Blues, 181.FM True Blues, Buddy Guy
+  Radio Legends, WDCB 90.9, exclusive BB King, Radio Caprice Chicago Blues),
+  de-duplicated against your favorites — so you get Classical/Jazz/Blues even
+  if your favorites list is full. Other stays favorites-only. The
   full researched station list (URLs + verification status) lives in
   `findings.md` at the repo root.
 

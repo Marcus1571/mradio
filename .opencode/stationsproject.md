@@ -51,16 +51,18 @@ does not add stations on its own initiative.
 ## Research notes
 
 - **Wired into mradio:** the classical presets below are baked in as part of
-  `DEFAULT_STATIONS` in `./mradio`. **0.7.66** expanded the curated genres to
-  **9 Jazz** (WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1, Jazz24, 1.FM Adore Jazz, TSF
-  Jazz, JazzRadio 106.8 Berlin — plus the user's Swiss Jazz favorite) and
-  **9 Blues** (Jazz Radio Blues, Blues Radio Greece, Blues Music Fan, Blues
-  Rock Cafe, 1.FM Blues, 181.FM True Blues, Buddy Guy Radio Legends, WDCB
-  90.9, exclusive BB King), replacing the 6 Jazz (incl. Adroit Jazz Underground
-  & SomaFM Secret Agent) / 3 Blues from **0.7.65**. All live-verified via mpv
+  `DEFAULT_STATIONS` in `./mradio`. **0.7.67** gives **10 curated Jazz** (adds
+  KMHD, Portland public, 256k AAC), **10 curated Blues** (adds Radio Caprice -
+  Chicago Blues, 320k AAC, 1333 votes — replacing the unverifiable 61 Blues)
+  and, as of 0.7.67, the **Classical submenu also aggregates curated +
+  favorites** (only Other stays favorites-only) with 3 new curated classical
+  stations: **WCRB** (Boston, 256k), **KUSC** (LA, 256k, icy), **WFMT**
+  (Chicago, 260k, icy). Earlier (0.7.66) the curated genres went to 9 each,
+  replacing the 6 Jazz (incl. Adroit Jazz Underground & SomaFM Secret Agent) /
+  3 Blues from **0.7.65**. All new entries live-verified via mpv
   (audio, bitrate, icy-title); higher bitrate + popular/reviewed picks win.
-  Surfaced in the **`s` genre submenus** for Jazz/Blues
-  (de-duplicated against favorites; Classical/Other and the favorites file are
+  Surfaced in the **`s` genre submenus** for Classical/Jazz/Blues
+  (de-duplicated against favorites; the favorites file is
   untouched). Your favorites live in `~/.local/share/mradio/stations.json`
   (key `"favorites"`, opened by `f`), seeded once from the first 10 of
   `DEFAULT_STATIONS` on first run; afterwards the file is entirely the user's

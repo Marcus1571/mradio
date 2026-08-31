@@ -58,7 +58,7 @@ the project's CURRENT state.
 
 ## Current state
 
-- **Latest version / release:** `0.7.66` (in-code `VERSION`, released tag +
+- **Latest version / release:** `0.7.67` (in-code `VERSION`, released tag +
   GitHub Release with assets `mradio` + `install.sh`, verified `Latest`).
   `main` is kept in sync with every release (push `main` alongside each tag).
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
@@ -76,20 +76,23 @@ the project's CURRENT state.
     Pick a number to open that genre's submenu, then pick a station. The flat
     all-stations catalog (`S01…Snn`) and the `a` add-to-favorites key were
     **removed** (0.7.63).
-  - **Curated Jazz/Blues in genre submenus (0.7.65+):** the **Jazz** and
-    **Blues** genre submenus also pull in the curated jazz/blues stations from
-    `DEFAULT_STATIONS` (de-duplicated against favorites), so those genres have
-    content even when the 10-slot favorites list is full. **Classical/Other
-    stay favorites-only.** The favorites file is never touched. `genre_stations_for()`
+  - **Curated stations in genre submenus (0.7.65+):** the **Classical**,
+    **Jazz** and **Blues** genre submenus pull in the curated stations for that
+    genre from `DEFAULT_STATIONS` (de-duplicated against favorites), so those
+    genres have content even when the 10-slot favorites list is full. As of
+    0.7.67 Classical aggregates too (only **Other** stays favorites-only). The
+    favorites file is never touched. `genre_stations_for()`
     = the per-genre list; `genre_station_counts()` backs the chooser counts.
-  - **9 curated Jazz + 9 curated Blues (0.7.66).** Each submenu now has **9**
-    stations. Jazz: WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1, Jazz24, 1.FM Adore
-    Jazz, TSF Jazz, JazzRadio 106.8 Berlin (plus the user's Swiss Jazz
-    favorite). Blues: Jazz Radio Blues, Blues Radio Greece, Blues Music Fan,
-    Blues Rock Cafe, 1.FM Blues, 181.FM True Blues, Buddy Guy Radio Legends,
-    WDCB 90.9, exclusive BB King. Every one was **live-verified** (mpv-decoded
-    audio, bitrate + icy-title confirmed); Adroit Jazz Underground & SomaFM
-    Secret Agent were replaced (couldn't be live-verified). Full URL/bitrate/
+  - **Curated rosters (0.7.67):** Jazz **10** (Swiss Jazz fav + WBGO, WWOZ,
+    KCSM 91.1, KJAZZ 88.1, Jazz24, 1.FM Adore Jazz, TSF Jazz, JazzRadio 106.8
+    Berlin, KMHD), Blues **10** (Jazz Radio Blues, Blues Radio Greece, Blues
+    Music Fan, Blues Rock Cafe, 1.FM Blues, 181.FM True Blues, Buddy Guy Radio
+    Legends, WDCB 90.9, exclusive BB King, Radio Caprice Chicago Blues),
+    Classical **12 curated** (adds WCRB, KUSC, WFMT to the existing curated
+    classical; displays 12 = 7 favs + 5 curated-not-favorite). Every new one
+    was **live-verified** (mpv-decoded audio, bitrate + icy-title confirmed).
+    KMHD added for Jazz (direct AAC URL), Radio Caprice Chicago Blues for the
+    blues 10th slot (user's 61 Blues pick wasn't verifiable). Full URL/bitrate/
     votes log in `findings.md`.
   - **Genre classification:** every favorite gets a `genre` field; auto-tagged
     on load by name via `genre_of()` (`_GENRE_KEYWORDS`); unknown names fall
@@ -276,6 +279,12 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.67** — **fill the 10th slots + Classical now fills too**: Jazz +**KMHD**
+  (Portland public, 256k AAC) → 10; Blues +**Radio Caprice - Chicago Blues**
+  (320k AAC, 1333 votes) → 10 (user's 61 Blues pick wasn't verifiable);
+  Classical now **aggregates curated + favorites** like Jazz/Blues and gained
+  **WCRB** / **KUSC** / **WFMT** (all live-verified, 256k-260k). Only Other is
+  still favorites-only. Favorites untouched; `findings.md` updated.
 - **0.7.65** — **curated Jazz & Blues in the genre submenus**: Jazz lists 6
   curated stations + your jazz favorites; Blues lists 3 curated + your blues
   favorites (de-duplicated). Favorites file untouched (it was already full at

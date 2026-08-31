@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.66"
+VERSION = "0.7.67"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -82,6 +82,13 @@ DEFAULT_STATIONS = [
     {"name": "France Musique",
      "url": "https://icecast.radiofrance.fr/francemusique-midfi.mp3",
      "genre": "classical"},
+    {"name": "WCRB",
+     "url": "https://wgbh-live.streamguys1.com/classical-hi", "genre": "classical"},
+    {"name": "KUSC",
+     "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/KUSCMP256.mp3",
+     "genre": "classical"},
+    {"name": "WFMT",
+     "url": "https://wfmt.streamguys1.com/main-source", "genre": "classical"},
     {"name": "BBC Radio 3",
      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-"
             "C1984642FA4B/audio/simulcast/hls/nonuk/audio_syndication_low_sbr_"
@@ -102,6 +109,8 @@ DEFAULT_STATIONS = [
      "url": "http://tsfjazz.ice.infomaniak.ch/tsfjazz-high.mp3", "genre": "jazz"},
     {"name": "JazzRadio 106.8 Berlin",
      "url": "https://streaming.radio.co/s774887f7b/listen", "genre": "jazz"},
+    {"name": "KMHD",
+     "url": "https://ais-sa3.cdnstream1.com/2442_128.aac", "genre": "jazz"},
     {"name": "Jazz Radio Blues",
      "url": "http://jazzblues.ice.infomaniak.ch/jazzblues-high.mp3",
      "genre": "blues"},
@@ -123,6 +132,8 @@ DEFAULT_STATIONS = [
     {"name": "exclusive BB King",
      "url": "https://streaming.exclusive.radio/er/bbking/icecast.audio",
      "genre": "blues"},
+    {"name": "Radio Caprice - Chicago Blues",
+     "url": "http://79.111.14.76:8000/chicagoblues", "genre": "blues"},
 ]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))
@@ -270,11 +281,12 @@ def genre_buckets(stations):
 
 def genre_stations_for(fav_stations, genre):
     """Stations shown in a genre submenu: the user's favorites in that genre,
-    plus the curated Jazz/Blues stations from DEFAULT_STATIONS (de-duplicated).
-    The favorites file is NEVER touched. Classical/Other stay favorites-only."""
+    plus the curated Classical/Jazz/Blues stations from DEFAULT_STATIONS
+    (de-duplicated). The favorites file is NEVER touched. Other stays
+    favorites-only."""
     favs = [e for e in (fav_stations or [])
             if (e.get("genre") or "other") == genre]
-    if genre not in ("jazz", "blues"):
+    if genre not in ("classical", "jazz", "blues"):
         return favs
     seen = set()
     out = []
@@ -289,7 +301,7 @@ def genre_stations_for(fav_stations, genre):
 
 
 def genre_station_counts(fav_stations):
-    """Per-genre counts for the chooser: favorites, plus curated Jazz/Blues."""
+    """Per-genre counts for the chooser: favorites, plus curated genres."""
     return {g: len(genre_stations_for(fav_stations, g)) for g in GENRES}
 
 

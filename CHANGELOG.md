@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.67] - 2026-09-01
+
+### Changed
+
+- **Curated Classical now fills the Classical submenu.** The Classical genre
+  submenu previously showed only your favorites; it now aggregates curated
+  Classical + favorites (de-duplicated) exactly like Jazz/Blues, so the curated
+  catalog can fill the submenu to 10 (0 = 10th slot) and beyond (arrow keys
+  scroll). Only **Other** stays favorites-only.
+- **Added 3 curated Classical stations** (all live-verified): **WCRB** (Boston,
+  256k), **KUSC** (Los Angeles, 256k, icy metadata), **WFMT** (Chicago, 260k,
+  icy metadata) — three premier US public classical stations.
+- **Jazz filled to 10**: added **KMHD** (Portland public, 256k AAC, icy) —
+  reached 9 via its direct non-HLS URL.
+- **Blues filled to 10**: added **Radio Caprice - Chicago Blues** (320k AAC,
+  icy, 1333 votes). Original pick **61 Blues** couldn't be live-verified
+  (0 listeners / no stream URL found), so the verified Chicago-electric-blues
+  station was chosen instead to match the intent.
+- Favorites file still untouched. `findings.md` updated with the Classical
+  research + full rosters.
+
 ## [0.7.66] - 2026-09-01
 
 ### Changed
