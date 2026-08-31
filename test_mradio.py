@@ -639,6 +639,18 @@ class TestGenres(unittest.TestCase):
             finally:
                 _mradio.STATIONS_FILE = saved
 
+    def test_back_target_genre_goes_to_genres(self):
+        self.assertEqual(_mradio.back_target("genre", True), "genres")
+        self.assertEqual(_mradio.back_target("genre", False), "genres")
+
+    def test_back_target_playing_leaves_menu(self):
+        self.assertIsNone(_mradio.back_target("fav", True))
+        self.assertIsNone(_mradio.back_target("genres", True))
+
+    def test_back_target_bare_launch_quits(self):
+        self.assertEqual(_mradio.back_target("fav", False), "QUIT")
+        self.assertEqual(_mradio.back_target("genres", False), "QUIT")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.64] - 2026-08-31
+
+### Fixed
+
+- **`Esc`/`q` inside a genre submenu now goes back to the genre chooser**
+  (parent menu) instead of leaving the menu or killing the app. The back
+  decision is extracted into `back_target()` (unit-tested). Exit still happens
+  from a menu only on a bare-launch screen (no player).
+
 ## [0.7.63] - 2026-08-31
 
 ### Added

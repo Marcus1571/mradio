@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.63"
+VERSION = "0.7.64"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1635,6 +1635,15 @@ def render(std, elapsed, s):
     std.refresh()
 
 
+def back_target(menu, playing):
+    """Where `q`/`Esc` should take you from a menu. Returns a menu name to go
+    back to, `None` to leave the menu (back to the player), or `"QUIT"` to
+    exit the app."""
+    if menu == "genre":
+        return "genres"
+    return None if playing else "QUIT"
+
+
 def render_menu(std, s, mode, cur):
     """Draw a station menu. Modes:
     `genres`  — pick a genre (Classical/Jazz/Blues/Other);
@@ -1888,9 +1897,11 @@ def main():
                 if ch == curses.KEY_RESIZE:
                     continue
                 if ch in (ord("q"), 27):
-                    if proc is None:
+                    target = back_target(menu, proc is not None)
+                    if target == "QUIT":
                         break
-                    menu = None
+                    menu = target
+                    cur_st = 0
                 elif ch == ord("f"):
                     if menu != "fav":
                         show_favorites()
