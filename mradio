@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.71"
+VERSION = "0.7.72"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -521,7 +521,8 @@ def load_cfg():
         return {}
 
 
-def persist_cfg(provider=None, theme=None, volume=None, mute=None):
+def persist_cfg(provider=None, theme=None, volume=None, mute=None,
+                last_url=None, last_name=None):
     d = load_cfg()
     if provider is not None:
         d["provider"] = provider
@@ -531,6 +532,10 @@ def persist_cfg(provider=None, theme=None, volume=None, mute=None):
         d["volume"] = volume
     if mute is not None:
         d["mute"] = mute
+    if last_url is not None:
+        d["last_url"] = last_url
+    if last_name is not None:
+        d["last_name"] = last_name
     try:
         os.makedirs(os.path.dirname(CFG_FILE), exist_ok=True)
         tmp = CFG_FILE + ".tmp"
@@ -539,6 +544,18 @@ def persist_cfg(provider=None, theme=None, volume=None, mute=None):
         os.replace(tmp, CFG_FILE)
     except Exception as e:
         log(f"config persist FAIL: {e}", "WARN")
+
+
+def save_last_station(url, name):
+    """Remember the most recently played station so `l` can resume it at
+    startup. Called only for real, non-empty streams we actually begin to
+    play."""
+    if not url or not str(url).strip():
+        return
+    try:
+        persist_cfg(last_url=str(url).strip(), last_name=(name or "").strip())
+    except Exception as e:
+        log(f"last station persist FAIL: {e}", "WARN")
 
 
 def fav_index(ch):
@@ -969,6 +986,14 @@ def check_on_v(state):
     force_check(state)
 
 
+def last_hint(s):
+    """Shortcut suffix `l:last played` shown to the right of `v:check` when a
+    previously played station is available to resume."""
+    if not (s.get("last_url") or "").strip():
+        return ""
+    return "   l:last played"
+
+
 def check_msg(s, now=None):
     """Live update-check text for the status/footer rows.
 
@@ -1142,7 +1167,8 @@ def make_state():
             "update_url": "", "update_zone": None, "update_pending": False,
             "update_msg": "", "update_msg_t": 0,
             "nim_hint_t": 0, "ollama_hint_t": 0,
-            "station": "", "station_resolved": False}
+            "station": "", "station_resolved": False,
+            "last_url": "", "last_name": ""}
 
 
 def apply_volume(mpc, vol, muted=None):
@@ -1771,6 +1797,7 @@ def render(std, elapsed, s):
                 mid = f" {msg}"
             else:
                 mid = (f" f:favorites   s:genres   k:kb   v:check" +
+                       last_hint(s) +
                        ("   u:page   U:apply" if s.get("update_url") else ""))
             add(std, h - 2, 1, mid[:lw], 5)
         if h >= 1:
@@ -1827,6 +1854,7 @@ def render(std, elapsed, s):
             mid = f" {msg}"
         else:
             mid = (f" f:favorites   s:genres   k:kb   v:check" +
+                   last_hint(s) +
                    ("" if s.get("update_pending")
                     else ("   u:page   U:apply" if s.get("update_url") else "")))
         add(std, h - 2, 1, mid[:lw], 5)
@@ -1958,6 +1986,7 @@ def render_menu(std, s, mode, cur):
             rest = "Enter:pick  ↑/↓:move  f:fav  v:check"
         else:
             rest = "1-9,0:pick  ↑/↓:move  s:genres  v:check"
+        rest += last_hint(s)
         if s.get("update_url") and not s.get("update_pending"):
             rest += "  u:page  U:apply"
         if top and s.get("update_pending"):
@@ -2041,6 +2070,9 @@ def main():
         state["all_stations"] = list(DEFAULT_STATIONS)
         ab = load_cfg().get("theme", "dark")
         state["theme"] = ab if ab in SCHEMES else "dark"
+        _cfg0 = load_cfg()
+        state["last_url"] = (_cfg0.get("last_url") or "").strip()
+        state["last_name"] = (_cfg0.get("last_name") or "").strip()
         enrich = Enricher()
         enrich.start()
         threading.Thread(target=update_watcher, daemon=True).start()
@@ -2057,7 +2089,11 @@ def main():
             if not nurl:
                 return
             url = nurl
-            state["station"] = (ent.get("name") or url.split("/")[2]).strip()
+            nm = (ent.get("name") or url.split("/")[2]).strip()
+            state["station"] = nm
+            state["last_url"] = url
+            state["last_name"] = nm
+            save_last_station(url, nm)
             state["raw_title"] = ""
             state["title"] = "connecting…"
             state["artist"] = state["performer"] = state["blurb"] = ""
@@ -2077,6 +2113,9 @@ def main():
         if menu is None:
             state["station"] = ovr_name or url.split("/")[2]
             state["station_resolved"] = bool(ovr_name)
+            state["last_url"] = url
+            state["last_name"] = state["station"]
+            save_last_station(url, state["station"])
             proc = launch_mpv(url)
             apply_volume(mpc, saved_vol)
 
@@ -2144,6 +2183,11 @@ def main():
                             subprocess.Popen(["open", state["update_url"]])
                 elif ch == ord("v"):
                     check_on_v(state)
+                elif ch == ord("l") and (state.get("last_url") or "").strip():
+                    switch_stream({"url": state["last_url"],
+                                   "name": state.get("last_name") or ""})
+                    menu = None
+                    cur_st = 0
                 elif ch in (curses.KEY_DOWN, ord("j")) and cur_st < len(lst) - 1:
                     cur_st += 1
                 elif ch in (curses.KEY_UP, ord("k")) and cur_st > 0:
@@ -2265,6 +2309,11 @@ def main():
                         subprocess.Popen(["open", state["update_url"]])
             elif ch == ord("v"):
                 check_on_v(state)
+            elif ch == ord("l"):
+                if (state.get("last_url") or "").strip() and \
+                        state.get("last_url") != url:
+                    switch_stream({"url": state["last_url"],
+                                   "name": state.get("last_name") or ""})
             elif ch in (ord("k"), ord("K")):
                 subprocess.Popen(["open", KB_URL])
             elif ch == ord("s"):

@@ -73,6 +73,7 @@ context in **[KB §2 — Requirements & install](KB.md#2-requirements--install)*
 | --- | ------------ |
 | `1`-`9`, `0` | tune a favorite, instantly |
 | `v` | check for the latest release (and watch it land) |
+| `l` | resume the **last-played station** (offered to the right of `v:check`) |
 | `k` | open the knowledge base |
 | **Full keyboard & menus**: **[KB.md](KB.md)** |
 

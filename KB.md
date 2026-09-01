@@ -337,6 +337,7 @@ Top to bottom, on the player screen:
 | `U`         | when an update is available: auto-update in place, then **restart to apply** (pill flips to `RESTART TO UPDATE`) |
 | `f`         | open the **favorites** menu |
 | `s`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill also include curated stations) |
+| `l`         | **play the last-played station** (offered as `l:last played` to the right of `v:check`; on the player that key jumps back to it) |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
 
 Arrow keys `→`/`←` double as volume hotkeys.

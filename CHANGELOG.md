@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.72] - 2026-09-01
+
+### Added
+
+- **Resume the last-played station.** The app now remembers the most recent
+  station you tuned (url + name, kept in `config.json` under `last_url` /
+  `last_name`). At startup the shortcut row offers **`l:last played`** to the
+  right of `v:check`; press `l` (in a menu or on the player) to play it
+  instantly. The hint only appears once a station has actually been played.
+  Tests → **85 pass** (+3).
+
 ## [0.7.71] - 2026-09-01
 
 ### Fixed

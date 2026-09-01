@@ -578,6 +578,41 @@ class TestStations(unittest.TestCase):
                 _mradio.CFG_FILE = saved_cfg
                 _mradio.STATIONS_FILE = saved_st
 
+    def test_save_last_station_roundtrip(self):
+        import tempfile
+        saved = _mradio.CFG_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.CFG_FILE = os.path.join(td, "config.json")
+            try:
+                _mradio.save_last_station("https://a.example/stream.mp3", "Alpha")
+                d = _mradio.load_cfg()
+                self.assertEqual(d["last_url"], "https://a.example/stream.mp3")
+                self.assertEqual(d["last_name"], "Alpha")
+            finally:
+                _mradio.CFG_FILE = saved
+
+    def test_save_last_station_ignores_blank(self):
+        import tempfile
+        saved = _mradio.CFG_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.CFG_FILE = os.path.join(td, "config.json")
+            try:
+                _mradio.save_last_station("", "Alpha")
+                self.assertEqual(_mradio.load_cfg(), {})
+                _mradio.save_last_station("   ", "Alpha")
+                self.assertEqual(_mradio.load_cfg(), {})
+            finally:
+                _mradio.CFG_FILE = saved
+
+    def test_last_hint_only_when_last_station_exists(self):
+        self.assertEqual(_mradio.last_hint(
+            {"last_url": "", "last_name": ""}), "")
+        self.assertEqual(_mradio.last_hint(
+            {"last_url": "   ", "last_name": ""}), "")
+        self.assertEqual(_mradio.last_hint(
+            {"last_url": "https://a.example/stream.mp3",
+             "last_name": "Alpha"}), "   l:last played")
+
 
 class TestNimSetup(unittest.TestCase):
     def test_provider_display_mapping(self):

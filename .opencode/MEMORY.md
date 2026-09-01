@@ -279,6 +279,11 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.72** — **resume the last-played station** via `l`: the app remembers
+  the most recent station (url+name in `config.json` `last_url`/`last_name`)
+  and offers **`l:last played`** to the right of `v:check`; `l` tunes it from
+  any menu or the player. `persist_cfg` gained `last_url`/`last_name`;
+  `save_last_station()` persists on every switch/start. Tests → 85 pass.
 - **0.7.71** — **update check no longer looks "stuck":** while a GitHub feed
   fetch is in flight, `checking for updates…` shows a `▚/▞` spinner + elapsed
   seconds so a slow check never appears frozen, and always resolves to a real
