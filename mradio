@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.69"
+VERSION = "0.7.70"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -194,6 +194,44 @@ DEFAULT_STATIONS = [
      "genre": "pop"},
     {"name": "Heart 70s (UK)", "url": "https://media-ssl.musicradio.com/Heart70sMP3",
      "genre": "pop"},
+    {"name": "SomaFM Space Station Soma",
+     "url": "https://ice5.somafm.com/spacestation-320-mp3", "genre": "focus"},
+    {"name": "Ambient Sleeping Pill", "url": "http://radio.stereoscenic.com/asp-h",
+     "genre": "focus"},
+    {"name": "SomaFM Drone Zone",
+     "url": "https://ice2.somafm.com/dronezone-128-mp3", "genre": "focus"},
+    {"name": "SomaFM Groove Salad",
+     "url": "https://ice5.somafm.com/groovesalad-128-mp3", "genre": "focus"},
+    {"name": "Cryosleep (Echoes of Blue Mars)",
+     "url": "http://streams.echoesofbluemars.org:8000/cryosleep", "genre": "focus"},
+    {"name": "SomaFM Deep Space One",
+     "url": "https://ice2.somafm.com/deepspaceone-128-mp3", "genre": "focus"},
+    {"name": "Radio Caprice - Relaxation Music",
+     "url": "http://79.120.39.202:9109/", "genre": "focus"},
+    {"name": "Total Instrumental (laut.fm)",
+     "url": "http://stream.laut.fm/total-instrumental", "genre": "focus"},
+    {"name": "Yoga Chill", "url": "http://178.32.111.41:8027/stream-128kmp3-YogaChill",
+     "genre": "focus"},
+    {"name": "Radio Art - Deep Focus & Concentration",
+     "url": "https://air.radioart.online/fDeep_focus.mp3", "genre": "focus"},
+    {"name": "1.FM Chillout Lounge",
+     "url": "http://strm112.1.fm/chilloutlounge_mobile_mp3", "genre": "chill"},
+    {"name": "Chilltrax", "url": "http://server1.chilltrax.com:9000/", "genre": "chill"},
+    {"name": "Café del Mar", "url": "https://streams.radio.co/se1a320b47/listen",
+     "genre": "chill"},
+    {"name": "Smooth Chill (UK)",
+     "url": "https://media-ssl.musicradio.com/ChillMP3", "genre": "chill"},
+    {"name": "Antenne Bayern Chillout",
+     "url": "http://mp3channels.webradio.antenne.de/chillout", "genre": "chill"},
+    {"name": "SomaFM Fluid", "url": "https://ice6.somafm.com/fluid-128-mp3",
+     "genre": "chill"},
+    {"name": "Costa del Mar - Chillout",
+     "url": "http://stream.cdm-chillout.com:8020/stream-AAC-Chill", "genre": "chill"},
+    {"name": "Jazz Lounge", "url": "http://eu8.fastcast4u.com:5068/", "genre": "chill"},
+    {"name": "Hi On Line Lounge",
+     "url": "http://mediaserv33.live-streams.nl:8036/live", "genre": "chill"},
+    {"name": "Costa del Mar - Zen",
+     "url": "http://stream.cdm-zen.com:8004/stream-mp3-Zen", "genre": "chill"},
 ]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))
@@ -305,10 +343,12 @@ OC_PID = os.environ.get("MRADIO_OC_PID",
 PROVIDERS = ("opencode", "ollama", "openai")
 _PROVIDER_DISPLAY = {"opencode": "opencode", "ollama": "ollama", "openai": "NIM"}
 
-GENRES = ("classical", "jazz", "blues", "country", "rock", "pop", "other")
+GENRES = ("classical", "jazz", "blues", "country", "rock", "pop", "focus",
+          "chill", "other")
 GENRE_LABELS = {"classical": "Classical", "jazz": "Jazz",
                 "blues": "Blues", "country": "Country", "rock": "Rock",
-                "pop": "Pop", "other": "Other"}
+                "pop": "Pop", "focus": "Focus", "chill": "Chill",
+                "other": "Other"}
 _GENRE_KEYWORDS = {
     "blues": ("blues",),
     "jazz": ("jazz", "swing", "bigband", "big band"),
@@ -319,13 +359,17 @@ _GENRE_KEYWORDS = {
                 "nash"),
     "rock": ("rock", "rockabilly", "metal", "hard rock", "punk"),
     "pop": ("pop", "top 40", "top40", "hits"),
+    "focus": ("focus", "meditation", "meditat", "relax", "new age", "newage",
+              "yoga", "zen", "ambient", "drone", "instrumental"),
+    "chill": ("chill", "chillout", "lounge", "downtempo", "del mar"),
 }
 
 
 def genre_of(name):
     """Best-effort genre for a station by its name; 'other' when unknown."""
     n = (name or "").lower()
-    for genre in ("blues", "jazz", "country", "rock", "pop", "classical"):
+    for genre in ("blues", "jazz", "country", "rock", "pop", "focus", "chill",
+                  "classical"):
         for kw in _GENRE_KEYWORDS[genre]:
             if kw in n:
                 return genre
@@ -346,12 +390,13 @@ def genre_buckets(stations):
 
 def genre_stations_for(fav_stations, genre):
     """Stations shown in a genre submenu: the user's favorites in that genre,
-    plus the curated Classical/Jazz/Blues/Country/Rock/Pop stations from
-    DEFAULT_STATIONS (de-duplicated). The favorites file is NEVER touched.
+    plus the curated Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill stations
+    from DEFAULT_STATIONS (de-duplicated). The favorites file is NEVER touched.
     Other stays favorites-only."""
     favs = [e for e in (fav_stations or [])
             if (e.get("genre") or "other") == genre]
-    if genre not in ("classical", "jazz", "blues", "country", "rock", "pop"):
+    if genre not in ("classical", "jazz", "blues", "country", "rock", "pop",
+                     "focus", "chill"):
         return favs
     seen = set()
     out = []
@@ -1785,7 +1830,7 @@ def back_target(menu, playing):
 
 def render_menu(std, s, mode, cur):
     """Draw a station menu. Modes:
-    `genres`  — pick a genre (Classical/Jazz/Blues/Country/Rock/Pop/Other);
+    `genres`  — pick a genre (Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill/Other);
     `genre`   — a genre's favorite stations (numbered);
     `fav`     — your full favorites list (1-9, 0)."""
     std.erase()
@@ -1806,7 +1851,7 @@ def render_menu(std, s, mode, cur):
         x += 10
         add(std, 0, x, " ▸ GENRE ", 8)
         x += 9
-        hint = " pick a number — favorites by genre (+ curated jazz/blues/country/rock/pop)"
+        hint = " pick a number — favorites by genre (+ curated jazz/blues/country/rock/pop/focus/chill)"
     elif mode == "genre":
         g = s.get("genre") or "other"
         label = GENRE_LABELS.get(g, "Stations")
@@ -1897,7 +1942,7 @@ def render_menu(std, s, mode, cur):
 
 def genre_entries(s):
     """Ordered list of (genre, label, count) for non-empty genre buckets
-    (favorites, plus curated Jazz/Blues/Country/Rock/Pop)."""
+    (favorites, plus curated Jazz/Blues/Country/Rock/Pop/Focus/Chill)."""
     counts = genre_station_counts(s.get("fav_stations") or [])
     return [(g, GENRE_LABELS[g], counts[g])
             for g in GENRES if counts[g]]

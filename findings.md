@@ -195,6 +195,67 @@ Runners-up verified but not chosen (Rock/Pop alternates): **Virgin Radio Rock
 
 ---
 
+## Focus (10) & Chill (10) — v0.7.70, new genres (categories 7 & 8), Other stays `0`
+
+The user wanted a "concentration" category covering instrumental / meditative /
+new-age / unplugged — the **Vangelis / Enya / Vollenweider** world — and okayed
+splitting it into two. Picker order: 1 Classical, 2 Jazz, 3 Blues, 4 Country,
+5 Rock, 6 Pop, 7 Focus, 8 Chill, **Other = literal `0` slot** (last). All 20
+were **live-verified** (mpv audio decode + bitrate + `icy-title`).
+
+### Focus (10) — the deep-concentration ambient/new-age/meditative palette
+
+| Station | Stream URL | Bitrate | icy | votes | Status |
+|---|---|---|---|---|---|
+| **SomaFM Space Station Soma** | `https://ice5.somafm.com/spacestation-320-mp3` | 320k | yes | 24285 | verified-live |
+| **Ambient Sleeping Pill** | `http://radio.stereoscenic.com/asp-h` | 256k | yes | 54109 | verified-live |
+| **SomaFM Drone Zone** | `https://ice2.somafm.com/dronezone-128-mp3` | 128k | yes | 3811 | verified-live |
+| **SomaFM Groove Salad** | `https://ice5.somafm.com/groovesalad-128-mp3` | 128k | yes | 47530 | verified-live |
+| **Cryosleep (Echoes of Blue Mars)** | `http://streams.echoesofbluemars.org:8000/cryosleep` | 128k | yes | 29299 | verified-live |
+| **SomaFM Deep Space One** | `https://ice2.somafm.com/deepspaceone-128-mp3` | 128k | yes | 2698 | verified-live |
+| **Radio Caprice - Relaxation Music** | `http://79.120.39.202:9109/` | 320k AAC | yes | 2455 | verified-live |
+| **Total Instrumental** (laut.fm) | `http://stream.laut.fm/total-instrumental` | 128k | yes | 6294 | verified-live |
+| **Yoga Chill** | `http://178.32.111.41:8027/stream-128kmp3-YogaChill` | 128k | yes | 7863 | verified-live |
+| **Radio Art - Deep Focus & Concentration** | `https://air.radioart.online/fDeep_focus.mp3` | 96k | yes | 42 | verified-live |
+
+> Note: many Focus picks are SomaFM because that network is the de-facto
+> standard for ambient/focus streams (Drone Zone, Space Station, Deep Space
+> One, Groove Salad are all famous, well-reviewed, commercial-free). Space
+> Station uses its **320k MP3** stream (higher quality); the 128k AAC variant
+> also exists.
+
+### Chill (10) — the loungier / downtempo side
+
+| Station | Stream URL | Bitrate | icy | votes | Status |
+|---|---|---|---|---|---|
+| **1.FM Chillout Lounge** | `http://strm112.1.fm/chilloutlounge_mobile_mp3` | 256k | yes | 11868 | verified-live |
+| **Chilltrax** | `http://server1.chilltrax.com:9000/` | 128k | yes | 10024 | verified-live |
+| **Café del Mar** | `https://streams.radio.co/se1a320b47/listen` | 192k | yes | 8650 | verified-live |
+| **Smooth Chill** (UK) | `https://media-ssl.musicradio.com/ChillMP3` | 128k | yes | 13174 | verified-live |
+| **Antenne Bayern Chillout** | `http://mp3channels.webradio.antenne.de/chillout` | 128k | yes | 15161 | verified-live |
+| **SomaFM Fluid** | `https://ice6.somafm.com/fluid-128-mp3` | 128k | yes | 5864 | verified-live |
+| **Costa del Mar - Chillout** | `http://stream.cdm-chillout.com:8020/stream-AAC-Chill` | 96k AAC | yes | 8607 | verified-live |
+| **Jazz Lounge** | `http://eu8.fastcast4u.com:5068/` | 320k | yes | 17619 | verified-live |
+| **Hi On Line Lounge** | `http://mediaserv33.live-streams.nl:8036/live` | 320k | yes | 5854 | verified-live |
+| **Costa del Mar - Zen** | `http://stream.cdm-zen.com:8004/stream-mp3-Zen` | 96k | yes | 2279 | verified-live |
+
+> `genre_of` learned focus & chill keywords ("meditation", "relax", "new age",
+> "yoga", "zen", "ambient", "drone", "instrumental", "focus"; "chill",
+> "chillout", "lounge", "downtempo", "del mar") so legacy favorites backfill
+> correctly; all curated carry explicit genres regardless.
+
+Runners-up considered but not chosen (Focus/Chill): **Radio Art - Meditation**
+and **Radio Art - New Age / Vocal New Age** (96k, lower vote), **Radio Caprice
+- New Age** (48k AAC — too low), **Enigmatic 3 / Enigmatic Immersion** (65k
+AAC, Enigma-style), **dinamo.fm sleep** (320k — didn't decode from this
+environment), **Costa del Mar Zen** chosen over the same 96k base.
+
+---
+
+## URLs researched but NOT used
+
+---
+
 ## URLs researched but NOT used
 
 ---
@@ -229,14 +290,14 @@ Blues / Country genre submenus aggregate the user's favorites in that genre
 de-duplicated). Only **Other** stays favorites-only. Since the aggregation is
 uniform, each genre's curated catalog can fill its submenu to 10 (0 acts as the
 10th hot-slot) or beyond (arrow keys scroll). This way Classical/Jazz/Blues/
-Country/Rock/Pop show up under `s` even though the favorites list is already
-full at its 10-slot cap, and the curated catalog is the controllable lever
-(favorites are never written to).
+Country/Rock/Pop/Focus/Chill show up under `s` even though the favorites list
+is already full at its 10-slot cap, and the curated catalog is the controllable
+lever (favorites are never written to).
 
-As of 0.7.69 the genre picker order is 1 Classical, 2 Jazz, 3 Blues,
-4 Country, 5 Rock, 6 Pop, and **Other is rendered as the literal `0` slot**
-(last entry in the list, even with fewer than 10 entries; the `0` key always
-selects the final genre).
+As of 0.7.70 the genre picker order is 1 Classical, 2 Jazz, 3 Blues,
+4 Country, 5 Rock, 6 Pop, 7 Focus, 8 Chill, and **Other is rendered as the
+literal `0` slot** (last entry in the list, even with fewer than 10 entries;
+the `0` key always selects the final genre).
 
 Live verification method: `curl -sS -I` for HTTP status + icy headers, then
 `mpv --no-video --ao=null <url>` for a few seconds to confirm the audio codec

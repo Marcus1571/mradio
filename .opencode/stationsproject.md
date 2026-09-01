@@ -51,21 +51,31 @@ does not add stations on its own initiative.
 ## Research notes
 
 - **Wired into mradio:** the curated presets below are baked in as part of
-  `DEFAULT_STATIONS` in `./mradio`. **0.7.69** adds the **Rock (category 5)**
-  and **Pop (category 6)** genres with **10 curated each**, all live-verified:
-  Rock — **Radio Caroline** (128k, 46k votes), **Virgin Classic Rock** (IT,
-  128k, 37k votes), **Rock Antenne** (DE, 128k), **Arrow Classic Rock** (NL,
-  192k), **1.FM Classic Rock Replay** (256k, 17k votes), **SomaFM Left Coast
-  70s** (320k, 19.8k votes), **Radio ROKS Hard'n'Heavy** (320k), **Radio ROKS
-  Ballads** (320k, 32.7k votes), **181.FM Rock 181** (128k), **Hard Rock
-  Heaven** (128k, 34.5k votes); Pop — **Capital FM London** (128k, 39.4k
-  votes), **Heart 80s** (128k, 35.3k votes), **Heart 70s** (128k, 18.6k
-  votes), **Radio 105 Italy** (128k, 34k votes), **LOS 40 España** (128k, 34k
-  votes), **Radio 538** (NL, 128k), **Energy Zürich NRJ** (CH, 128k),
-  **1.FM Absolute TOP 40** (256k), **SWR3** (DE, 128k), **Chocolate FM** (ES,
-  192k). The genre picker order is now 1 Classical, 2 Jazz, 3 Blues,
-  4 Country, 5 Rock, 6 Pop, and **Other is the literal `0` slot** (last).
-  Rock/Pop aggregate curated + favorites like the others; **0.7.68** added the
+  `DEFAULT_STATIONS` in `./mradio`. **0.7.70** adds the **Focus (category 7)**
+  and **Chill (category 8)** genres — the user's "concentration music" request
+  (instrumental / meditative / new-age / ambient / unplugged, the
+  Vangelis/Enya/Vollenweider world), split into two — with **10 curated each**,
+  all live-verified: Focus — **SomaFM Space Station Soma** (320k, 24.3k
+  votes), **Ambient Sleeping Pill** (256k, 54.1k votes), **SomaFM Drone Zone**
+  (128k, the classic focus/drone channel), **SomaFM Groove Salad** (128k, 47.5k
+  votes), **Cryosleep / Echoes of Blue Mars** (128k, 29.3k votes), **SomaFM
+  Deep Space One** (128k), **Radio Caprice - Relaxation Music** (320k AAC),
+  **Total Instrumental** (laut.fm, 128k), **Yoga Chill** (128k, 7.9k votes),
+  **Radio Art - Deep Focus & Concentration** (96k); Chill — **1.FM Chillout
+  Lounge** (256k, 11.9k votes), **Chilltrax** (128k, 10k votes), **Café del
+  Mar** (192k, 8.7k votes), **Smooth Chill** UK (128k, 13.2k votes),
+  **Antenne Bayern Chillout** (128k, 15.2k votes), **SomaFM Fluid** (128k),
+  **Costa del Mar - Chillout** (96k AAC, 8.6k votes), **Jazz Lounge** (320k,
+  17.6k votes), **Hi On Line Lounge** (320k), **Costa del Mar - Zen** (96k).
+  The genre picker order is now 1 Classical, 2 Jazz, 3 Blues, 4 Country,
+  5 Rock, 6 Pop, 7 Focus, 8 Chill, and **Other is the literal `0` slot**
+  (last). Focus/Chill aggregate curated + favorites like the others;
+  **0.7.69** added **Rock (5)** & **Pop (6)** with 10 each:
+  Rock — Radio Caroline, Virgin Classic Rock (IT), Rock Antenne, Arrow Classic
+  Rock (NL), 1.FM Classic Rock Replay, SomaFM Left Coast 70s, Radio ROKS
+  Hard'n'Heavy & Ballads, 181.FM Rock 181, Hard Rock Heaven; Pop — Capital FM
+  London, Heart 80s & 70s, Radio 105 Italy, LOS 40 España, Radio 538, Energy
+  Zürich NRJ, 1.FM Absolute TOP 40, SWR3, Chocolate FM. **0.7.68** added the
   **Country genre** (category 4) with 10 curated stations:
   **WSM 650 AM** (Nashville/Grand Ole Opry, 64k, icy), **.977 Country**
   (128k, 55k votes), **1.FM Absolute Country Hits** (256k, 16.6k votes),
@@ -84,7 +94,7 @@ does not add stations on its own initiative.
   Secret Agent) / 3 Blues from **0.7.65**. All new entries live-verified via
   mpv (audio, bitrate, icy-title); higher bitrate + popular/reviewed picks win.
   Surfaced in the **`s` genre submenus** for Classical/Jazz/Blues/Country/
-  Rock/Pop (de-duplicated against favorites; the favorites file is
+  Rock/Pop/Focus/Chill (de-duplicated against favorites; the favorites file is
   untouched). Your favorites live in `~/.local/share/mradio/stations.json`
   (key `"favorites"`, opened by `f`), seeded once from the first 10 of
   `DEFAULT_STATIONS` on first run; afterwards the file is entirely the user's

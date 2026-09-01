@@ -336,7 +336,7 @@ Top to bottom, on the player screen:
 | `u`         | when an update is available: open the release page |
 | `U`         | when an update is available: auto-update in place, then **restart to apply** (pill flips to `RESTART TO UPDATE`) |
 | `f`         | open the **favorites** menu |
-| `s`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues/Country/Rock/Pop also include curated stations) |
+| `s`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill also include curated stations) |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
 
 Arrow keys `→`/`←` double as volume hotkeys.
@@ -348,13 +348,13 @@ Three menus share the housekeeping keys; only picking differs:
 - **Favorites (`f`)** — your full `stations.json` list, `1-0` instant pick.
 - **Genres (`s`)** — a picker of the genres present in your favorites + curated:
   **Classical** (`1`), **Jazz** (`2`), **Blues** (`3`), **Country** (`4`),
-  **Rock** (`5`), **Pop** (`6`), and **Other** rendered as the literal **`0`**
-  slot (last). Pick a number to open that genre's submenu. Pressing `0` always
-  opens the final genre (Other).
+  **Rock** (`5`), **Pop** (`6`), **Focus** (`7`), **Chill** (`8`), and
+  **Other** rendered as the literal **`0`** slot (last). Pick a number to open
+  that genre's submenu. Pressing `0` always opens the final genre (Other).
 - **Genre submenu** — that genre's station list, numbered `1-0`. Classical,
-  Jazz, Blues, Country, Rock and Pop aggregate your favorites in that genre
-  **plus** the curated stations from the built-in catalog (`DEFAULT_STATIONS`,
-  de-duplicated against your favorites), so these genres
+  Jazz, Blues, Country, Rock, Pop, Focus and Chill aggregate your favorites in
+  that genre **plus** the curated stations from the built-in catalog
+  (`DEFAULT_STATIONS`, de-duplicated against your favorites), so these genres
   have content even when your 10-slot favorites list is already full — the
   favorites file is never touched.
 
@@ -402,14 +402,16 @@ Two distinct lists — this split is deliberate:
   the current curated selection so the menu is useful immediately; after that
   it's yours to edit.
 - **Genres** (`s`) — *your* favorites grouped by genre (Classical / Jazz /
-  Blues / Country / Rock / Pop / Other). Each favorite is auto-classified from
-  its name (country names match "country"/"americana"/"bluegrass"/"nash" and
-  win over the generic "classic"; rock matches "rock"/"rockabilly"/"metal";
-  pop matches "pop"/"top 40"/"hits"); bare URLs with an unknown name fall into
-  **Other**. Numbers choose a genre, then pick a station inside it. `0` always
-  opens the last genre (Other). The **Classical**, **Jazz**, **Blues**,
-  **Country**, **Rock** and **Pop** submenus include the curated stations
-  baked into `DEFAULT_STATIONS`
+  Blues / Country / Rock / Pop / Focus / Chill / Other). Each favorite is
+  auto-classified from its name (country names match "country"/"americana"/
+  "bluegrass"/"nash" and win over the generic "classic"; rock matches
+  "rock"/"rockabilly"/"metal"; pop matches "pop"/"top 40"/"hits"; focus
+  matches "meditation"/"relax"/"new age"/"yoga"/"zen"/"ambient"/"instrumental";
+  chill matches "chill"/"chillout"/"lounge"/"downtempo"); bare URLs with an
+  unknown name fall into **Other**. Numbers choose a genre, then pick a station
+  inside it. `0` always opens the last genre (Other). The **Classical**,
+  **Jazz**, **Blues**, **Country**, **Rock**, **Pop**, **Focus** and **Chill**
+  submenus include the curated stations baked into `DEFAULT_STATIONS`
   (Classical: WCRB, KUSC, WFMT, France Musique;
   Jazz: WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1, Jazz24, 1.FM Adore Jazz, TSF Jazz,
   JazzRadio 106.8 Berlin, KMHD; Blues: Jazz Radio Blues, Blues Radio Greece,
@@ -421,11 +423,16 @@ Two distinct lists — this split is deliberate:
   Arrow Classic Rock, 1.FM Classic Rock Replay, SomaFM Left Coast 70s,
   Radio ROKS Hard'n'Heavy & Ballads, 181.FM Rock 181, Hard Rock Heaven;
   Pop: Capital FM London, Heart 80s & 70s, Radio 105 Italy, LOS 40 España,
-  Radio 538, Energy Zürich NRJ, 1.FM Absolute TOP 40, SWR3, Chocolate FM),
+  Radio 538, Energy Zürich NRJ, 1.FM Absolute TOP 40, SWR3, Chocolate FM;
+  Focus: SomaFM Space Station Soma, Ambient Sleeping Pill, SomaFM Drone Zone,
+  Groove Salad, Cryosleep, Deep Space One, Radio Caprice Relaxation,
+  Total Instrumental, Yoga Chill, Radio Art Deep Focus; Chill: 1.FM Chillout
+  Lounge, Chilltrax, Café del Mar, Smooth Chill, Antenne Bayern Chillout,
+  SomaFM Fluid, Costa del Mar Chillout & Zen, Jazz Lounge, Hi On Line Lounge),
   de-duplicated against your favorites — so you get
-  Classical/Jazz/Blues/Country/Rock/Pop even if your favorites list is full.
-  Other stays favorites-only. The full researched station list (URLs +
-  verification status) lives in `findings.md` at the repo root.
+  Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill even if your favorites
+  list is full. Other stays favorites-only. The full researched station list
+  (URLs + verification status) lives in `findings.md` at the repo root.
 
 Related behaviors:
 

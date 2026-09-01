@@ -623,6 +623,17 @@ class TestGenres(unittest.TestCase):
         for n in ("Power Pop Radio", "Top 40 Hits", "Only Pop"):
             self.assertEqual(_mradio.genre_of(n), "pop")
 
+    def test_genre_of_focus(self):
+        for n in ("Ambient Radio", "Meditation Music", "Relaxation Station",
+                  "New Age Radio", "Yoga Sounds", "Deep Focus", "Zen FM",
+                  "Instrumental Only"):
+            self.assertEqual(_mradio.genre_of(n), "focus")
+
+    def test_genre_of_chill(self):
+        for n in ("Chilltrax", "Chillout Lounge", "Downtempo Cafe",
+                  "Lounge Radio", "Costa del Mar"):
+            self.assertEqual(_mradio.genre_of(n), "chill")
+
     def test_genre_of_other(self):
         self.assertEqual(_mradio.genre_of("Radio Paradise"), "other")
         self.assertEqual(_mradio.genre_of(""), "other")
@@ -703,6 +714,8 @@ class TestGenres(unittest.TestCase):
         self.assertGreaterEqual(counts["country"], 10)
         self.assertGreaterEqual(counts["rock"], 10)
         self.assertGreaterEqual(counts["pop"], 10)
+        self.assertGreaterEqual(counts["focus"], 10)
+        self.assertGreaterEqual(counts["chill"], 10)
 
     def test_genre_stations_for_rock_aggregates_curated(self):
         sts = _mradio.genre_stations_for([], "rock")
@@ -727,12 +740,37 @@ class TestGenres(unittest.TestCase):
                             f"{curated!r} missing")
         self.assertEqual(len(names), 10)
 
+    def test_genre_stations_for_focus_aggregates_curated(self):
+        sts = _mradio.genre_stations_for([], "focus")
+        names = [e["name"] for e in sts]
+        expected = ("Space Station Soma", "Ambient Sleeping Pill", "Drone Zone",
+                    "Groove Salad", "Cryosleep", "Deep Space One",
+                    "Radio Caprice - Relaxation", "Total Instrumental",
+                    "Yoga Chill", "Deep Focus")
+        for curated in expected:
+            self.assertTrue(any(curated in n for n in names),
+                            f"{curated!r} missing")
+        self.assertEqual(len(names), 10)
+
+    def test_genre_stations_for_chill_aggregates_curated(self):
+        sts = _mradio.genre_stations_for([], "chill")
+        names = [e["name"] for e in sts]
+        expected = ("Chillout Lounge", "Chilltrax", "Café del Mar",
+                    "Smooth Chill", "Antenne Bayern Chillout", "Fluid",
+                    "Costa del Mar - Chillout", "Jazz Lounge",
+                    "Hi On Line Lounge", "Costa del Mar - Zen")
+        for curated in expected:
+            self.assertTrue(any(curated in n for n in names),
+                            f"{curated!r} missing")
+        self.assertEqual(len(names), 10)
+
     def test_genre_entries_order_country_fourth_other_last(self):
         favs = [{"name": "Radio Paradise", "url": "u://rp", "genre": "other"}]
         entries = _mradio.genre_entries({"fav_stations": favs})
         genres = [g for g, _l, _c in entries]
-        self.assertEqual(genres[:6],
-                         ["classical", "jazz", "blues", "country", "rock", "pop"])
+        self.assertEqual(genres[:8],
+                         ["classical", "jazz", "blues", "country", "rock",
+                          "pop", "focus", "chill"])
         self.assertEqual(genres[-1], "other")
 
     def test_genre_menu_renders_country_4_and_other_0(self):
@@ -752,7 +790,9 @@ class TestGenres(unittest.TestCase):
         self.assertEqual(drawn[6], "4")
         self.assertEqual(drawn[7], "5")
         self.assertEqual(drawn[8], "6")
-        self.assertEqual(drawn[9], "0")
+        self.assertEqual(drawn[9], "7")
+        self.assertEqual(drawn[10], "8")
+        self.assertEqual(drawn[11], "0")
 
     def test_load_favorites_backfills_genre_on_legacy_entries(self):
         import tempfile

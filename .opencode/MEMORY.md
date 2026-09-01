@@ -201,7 +201,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
 | `f` | open your favorites (`1-9`,`0` quick-pick — max **10**, pads work too; `~/.local/share/mradio/stations.json`) |
-| `s` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Country / Rock / Pop / Other); number = open that genre's submenu, `0` = last (Other) |
+| `s` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Country / Rock / Pop / Focus / Chill / Other); number = open that genre's submenu, `0` = last (Other) |
 | `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
 
 ## Full feature history (CHANGELOG)
@@ -279,6 +279,16 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.70** — **new Focus (7) & Chill (8) genres, 10 curated each** (the user's
+  "concentration" request, split into two): Focus = Space Station Soma (320k),
+  Ambient Sleeping Pill, Drone Zone, Groove Salad, Cryosleep, Deep Space One,
+  Radio Caprice Relaxation, Total Instrumental, Yoga Chill, Radio Art Deep
+  Focus; Chill = 1.FM Chillout Lounge, Chilltrax, Café del Mar, Smooth Chill,
+  Antenne Bayern Chillout, SomaFM Fluid, Costa del Mar Chillout & Zen, Jazz
+  Lounge, Hi On Line Lounge. All live-verified via mpv. `genre_of` learned
+  focus/chill keywords. Picker order now 1-8 = Classical/Jazz/Blues/Country/
+  Rock/Pop/Focus/Chill, **Other = literal "0"** slot. Both aggregate curated +
+  favorites. Favorites untouched.
 - **0.7.69** — **new Rock (5) & Pop (6) genres, 10 curated each**: Rock =
   Radio Caroline, Virgin Classic Rock, Rock Antenne, Arrow Classic Rock,
   1.FM Classic Rock Replay, SomaFM Left Coast 70s, Radio ROKS Hard'n'Heavy &

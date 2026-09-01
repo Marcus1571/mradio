@@ -5,6 +5,37 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.70] - 2026-09-01
+
+### Added
+
+- **New "Focus" (category 7) and "Chill" (category 8) genres, 10 curated each.**
+  The genre picker is now 1 Classical, 2 Jazz, 3 Blues, 4 Country, 5 Rock,
+  6 Pop, 7 Focus, 8 Chill, with **Other kept as the literal `0` slot** (last).
+  Both aggregate curated + favorites (de-duplicated), like all other genres.
+  Every station was researched and live-tested (real audio via mpv + bitrate +
+  `icy-title` confirmed):
+  - **Focus (10)** — the deep-concentration ambient / new-age / meditative /
+    instrumental palette (the Vangelis / Enya / Vollenweider world, tuned for
+    concentrating, working and producing): SomaFM Space Station Soma (320k,
+    ambient synth), Ambient Sleeping Pill (256k, dreamy ambient), SomaFM Drone
+    Zone (128k, the classic focus/drone channel), SomaFM Groove Salad (128k,
+    the classic work-music), Cryosleep / Echoes of Blue Mars (128k, deep-space
+    ambient), SomaFM Deep Space One (128k, slow ambient), Radio Caprice -
+    Relaxation Music (320k AAC), Total Instrumental (laut.fm, 128k), Yoga Chill
+    (128k, meditative), Radio Art - Deep Focus & Concentration (96k).
+  - **Chill (10)** — the loungier / downtempo side: 1.FM Chillout Lounge
+    (256k), Chilltrax (128k), Café del Mar (192k), Smooth Chill UK (128k),
+    Antenne Bayern Chillout (128k), SomaFM Fluid (128k), Costa del Mar -
+    Chillout (96k AAC), Jazz Lounge (320k), Hi On Line Lounge (320k),
+    Costa del Mar - Zen (96k).
+- **`genre_of` now recognizes focus & chill keywords** ("meditation",
+  "relax", "new age", "yoga", "zen", "ambient", "drone", "instrumental",
+  "focus"; "chill", "chillout", "lounge", "downtempo", "del mar") so legacy
+  favorites backfill correctly.
+- Favorites file still untouched. `findings.md` updated with the Focus/Chill
+  research + full rosters. Tests updated → **79 pass**.
+
 ## [0.7.69] - 2026-09-01
 
 ### Added
