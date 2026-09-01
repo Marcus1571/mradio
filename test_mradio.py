@@ -169,7 +169,7 @@ class TestRightFooter(unittest.TestCase):
         bar_row = [c for c in f.calls if c[0] == row and (
             c[2].startswith("█") or c[2].startswith("░"))]
         self.assertTrue(bar_row, "volume bar not drawn")
-        badge = [c for c in f.calls if c[2] == "MUTE" and c[0] == row]
+        badge = [c for c in f.calls if c[2] in ("MUTE", "MUTED") and c[0] == row]
         self.assertEqual(len(badge), 1, "MUTE badge not drawn on the bar row")
         first, last = bar_row[0], bar_row[-1]
         self.assertGreaterEqual(badge[0][1], first[1],
@@ -193,7 +193,7 @@ class TestRightFooter(unittest.TestCase):
             _mradio.render(f, 12, s)
         finally:
             _mradio.curses.color_pair = _old
-        self.assertFalse(any(c[2] == "MUTE" for c in f.calls),
+        self.assertFalse(any(c[2] in ("MUTE", "MUTED") for c in f.calls),
                          "MUTE badge must only appear when muted")
 
 

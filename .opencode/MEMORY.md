@@ -279,6 +279,8 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.76** — **`MUTED` badge (spelling)**: the centered mute indicator reads
+  `MUTED` (not `MUTE`).
 - **0.7.75** — **Mute badge centered in the volume bar**: instead of `vol
   MUTED` to the left, a black-on-red **`MUTE`** chip (color pair 12) sits
   centered inside the graphical meter while muted; stored level still shows as

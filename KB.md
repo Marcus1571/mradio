@@ -301,7 +301,7 @@ Top to bottom, on the player screen:
 - **Format line** — kbps / kHz / codec / cache depth / elapsed stream time.
   The bitrate and kHz slots keep their unit labels even when mpv doesn't
   report a value (they show `— kbps · — kHz`).
-- **Volume meter** — bar + percentage. While muted, a **`MUTE` badge (black on
+- **Volume meter** — bar + percentage. While muted, a **`MUTED` badge (black on
   red) sits at the center of the bar**; the percentage still shows the stored
   level.
 - **Footer (three rows)**:
