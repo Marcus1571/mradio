@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.73"
+VERSION = "0.7.74"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -556,6 +556,31 @@ def save_last_station(url, name):
         persist_cfg(last_url=str(url).strip(), last_name=(name or "").strip())
     except Exception as e:
         log(f"last station persist FAIL: {e}", "WARN")
+
+
+def parse_stream_url(u):
+    """Normalize a user-entered stream URL to `(url, name)` or None if it
+    isn't a usable http(s) address."""
+    u = (u or "").strip()
+    if not u.startswith(("http://", "https://")):
+        return None
+    try:
+        host = urllib.parse.urlparse(u).netloc or u
+    except Exception:
+        host = u
+    name = (host.split(":")[0] if host else u).strip() or u
+    return u, (name or u)
+
+
+def upsert_favorite(favs, url, name):
+    """Return `(list, added)` — a copy of `favs` with a URL-new favorite
+    appended (genre auto-derived from the name)."""
+    favs = list(favs or [])
+    if any(str(x.get("url") or "").strip() == url for x in favs):
+        return favs, False
+    favs.append({"name": name or "", "url": url,
+                 "genre": genre_of(name or "")})
+    return favs, True
 
 
 def fav_index(ch):
@@ -1797,7 +1822,7 @@ def render(std, elapsed, s):
                 mid = f" {msg}"
             else:
                 mid = (f" f:favorites   s:genres   k:kb   v:check" +
-                       last_hint(s) +
+                       last_hint(s) + "   i:input" +
                        ("   u:page   U:apply" if s.get("update_url") else ""))
             add(std, h - 2, 1, mid[:lw], 5)
         if h >= 1:
@@ -1854,7 +1879,7 @@ def render(std, elapsed, s):
             mid = f" {msg}"
         else:
             mid = (f" f:favorites   s:genres   k:kb   v:check" +
-                   last_hint(s) +
+                   last_hint(s) + "   i:input" +
                    ("" if s.get("update_pending")
                     else ("   u:page   U:apply" if s.get("update_url") else "")))
         add(std, h - 2, 1, mid[:lw], 5)
@@ -1986,7 +2011,7 @@ def render_menu(std, s, mode, cur):
             rest = "Enter:pick  ↑/↓:move  f:fav  v:check"
         else:
             rest = "1-9,0:pick  ↑/↓:move  s:genres  v:check"
-        rest += last_hint(s)
+        rest += last_hint(s) + "   i:input"
         if s.get("update_url") and not s.get("update_pending"):
             rest += "  u:page  U:apply"
         if top and s.get("update_pending"):
@@ -2125,6 +2150,31 @@ def main():
             state["fav_stations"] = favs
             cur_st = min(cur_st, max(0, len(favs) - 1))
 
+        def add_url_stream(std):
+            """`i` — ask the user for a stream URL, play it, and keep it as a
+            favorite so it persists for next time."""
+            u = prompt_text(std, "Add a stream URL:", "URL:",
+                            ["e.g. https://ice.example.com:8000/stream.mp3",
+                             "http://host:port/mount",
+                             "any http(s) stream — added to favorites and played"],
+                            validate=lambda u: (u.strip()
+                                                if u.strip().startswith(
+                                                    ("http://", "https://"))
+                                                else None),
+                            err="must start with http:// or https://")
+            if not u:
+                return
+            parsed = parse_stream_url(u)
+            if not parsed:
+                return
+            nurl, name = parsed
+            switch_stream({"url": nurl, "name": name})
+            favs, added = upsert_favorite(
+                state.get("fav_stations") or [], nurl, name)
+            if added and save_favorites(favs):
+                state["fav_stations"] = favs
+                log(f"added favorite via i:input: {nurl}")
+
         log(f"startup: {time.time() - started:.2f}s to UI "
             f"({VERSION}, menu={menu}, last_url={'yes' if state['last_url'] else 'no'}, "
             f"provider={state['ai_provider'] or 'none'})")
@@ -2190,6 +2240,10 @@ def main():
                 elif ch == ord("l") and (state.get("last_url") or "").strip():
                     switch_stream({"url": state["last_url"],
                                    "name": state.get("last_name") or ""})
+                    menu = None
+                    cur_st = 0
+                elif ch == ord("i"):
+                    add_url_stream(stdscr)
                     menu = None
                     cur_st = 0
                 elif ch in (curses.KEY_DOWN, ord("j")) and cur_st < len(lst) - 1:
@@ -2318,6 +2372,8 @@ def main():
                         state.get("last_url") != url:
                     switch_stream({"url": state["last_url"],
                                    "name": state.get("last_name") or ""})
+            elif ch == ord("i"):
+                add_url_stream(stdscr)
             elif ch in (ord("k"), ord("K")):
                 subprocess.Popen(["open", KB_URL])
             elif ch == ord("s"):

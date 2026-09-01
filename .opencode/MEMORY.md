@@ -279,6 +279,11 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.74** — **`i:input` — add a stream URL on the fly**: shown in the
+  mid/footer line to the right of `l:last played`; `i` prompts for any http(s)
+  URL, plays it immediately, and saves it as a favorite (dedup by URL, genre
+  derived from host name via `parse_stream_url`/`upsert_favorite` helpers).
+  Works from menus and the player. Tests → 87 pass.
 - **0.7.73** — **startup timing logged**: `startup: X.XXs to UI (v…, menu=…,
   last_url=yes/no, provider=…)` written to `mradio.log` before the UI renders,
   making a slow launch diagnosable from logs.

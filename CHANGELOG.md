@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.74] - 2026-09-01
+
+### Added
+
+- **`i:input` — add a stream URL on the fly.** Shown in the mid/footer line to
+  the right of `l:last played`, pressing `i` opens a prompt to paste any
+  http(s) stream URL: it plays immediately and is saved as a favorite
+  (de-duplicated by URL, genre auto-derived from the host). Works from any
+  menu and from the player. `parse_stream_url` / `upsert_favorite` helpers
+  power it (tested). Tests → **87 pass** (+2).
+
 ## [0.7.73] - 2026-09-01
 
 ### Added

@@ -613,6 +613,27 @@ class TestStations(unittest.TestCase):
             {"last_url": "https://a.example/stream.mp3",
              "last_name": "Alpha"}), "   l:last played")
 
+    def test_parse_stream_url(self):
+        u, n = _mradio.parse_stream_url("https://ice.example.com:8000/x.mp3")
+        self.assertEqual(u, "https://ice.example.com:8000/x.mp3")
+        self.assertEqual(n, "ice.example.com")
+        self.assertEqual(_mradio.parse_stream_url("ftp://bogus/x"), None)
+        self.assertEqual(_mradio.parse_stream_url("not a url"), None)
+        self.assertEqual(_mradio.parse_stream_url(""), None)
+
+    def test_upsert_favorite_dedups_by_url(self):
+        favs = [{"name": "A", "url": "https://a.example/s.mp3",
+                 "genre": "classical"}]
+        out, added = _mradio.upsert_favorite(favs, "https://a.example/s.mp3", "A")
+        self.assertFalse(added)
+        self.assertEqual(len(out), 1)
+        out2, added2 = _mradio.upsert_favorite(
+            favs, "https://b.example/t.mp3", "B")
+        self.assertTrue(added2)
+        self.assertEqual(len(out2), 2)
+        self.assertEqual(out2[1]["url"], "https://b.example/t.mp3")
+        self.assertEqual(out2[1]["genre"], _mradio.genre_of("B"))
+
 
 class TestNimSetup(unittest.TestCase):
     def test_provider_display_mapping(self):

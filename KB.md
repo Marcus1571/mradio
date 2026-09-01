@@ -338,6 +338,7 @@ Top to bottom, on the player screen:
 | `f`         | open the **favorites** menu |
 | `s`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill also include curated stations) |
 | `l`         | **play the last-played station** (offered as `l:last played` to the right of `v:check`; on the player that key jumps back to it) |
+| `i`         | **add a stream URL on the fly** — paste any http(s) URL, it plays immediately and is saved as a favorite (shown as `i:input` to the right of `l:last played`) |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
 
 Arrow keys `→`/`←` double as volume hotkeys.
@@ -366,6 +367,7 @@ Three menus share the housekeeping keys; only picking differs:
 | `Enter` | play selected | open that genre |
 | `f` | switch to favorites | switch to favorites |
 | `s` | open genres | stay on genres |
+| `i` | **prompt for a stream URL to play (saves as favorite)** — same in both menus | same |
 | `q` / `Esc` | back to player while something is playing; **quit** in the bare-launch screen. In the menu footer the hint is **always the leftmost item**, reading `q/ESC:back` — or `q/ESC:quit` on the startup screen, where once `U` has applied an update mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
 
