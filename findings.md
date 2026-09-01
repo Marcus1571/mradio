@@ -137,6 +137,68 @@ genre picker; **Other** was pushed to the literal **`0`** (last) slot.
 
 ---
 
+## Rock (10) & Pop (10) — v0.7.69, new genres (categories 5 & 6), Other stays `0`
+
+Both new genres were picked from the radio-browser `bytag/rock` + `bytag/pop`
+popularity leaderboards and brand shortlists, then **live-verified** (mpv audio
+decode + bitrate + `icy-title`). Picker order: 1 Classical, 2 Jazz, 3 Blues,
+4 Country, 5 Rock, 6 Pop, **Other = literal `0` slot** (last).
+
+### Rock (10)
+
+| Station | Stream URL | Bitrate | icy | votes | Status |
+|---|---|---|---|---|---|
+| **Radio Caroline** (offshore pirate icon) | `http://78.129.202.200:8040/` | 128k | yes | 46216 | verified-live |
+| **Virgin Classic Rock** (IT) | `http://icy.unitedradio.it/VirginRockClassics.mp3` | 128k | yes | 37458 | verified-live |
+| **Rock Antenne** (DE) | `http://mp3channels.webradio.rockantenne.de/rockantenne` | 128k | yes | 25807 | verified-live |
+| **Arrow Classic Rock** (NL) | `http://stream.gal.io/arrow` | 192k | yes | 11309 | verified-live |
+| **1.FM Classic Rock Replay** | `http://strm112.1.fm/crock_mobile_mp3` | 256k | yes | 17454 | verified-live |
+| **SomaFM Left Coast 70s** (Rock) | `https://ice2.somafm.com/seventies-320-mp3` | 320k | yes | 19819 | verified-live |
+| **Radio ROKS Hard'n'Heavy** | `http://online.radioroks.ua/RadioROKS_HardnHeavy_HD` | 320k | yes | 14209 | verified-live |
+| **Radio ROKS Ballads** | `http://online.radioroks.ua/RadioROKS_Ballads_HD` | 320k | yes | 32690 | verified-live |
+| **181.FM Rock 181** | `http://listen.181fm.com/181-rock_128k.mp3` | 128k | yes | 5 | verified-live |
+| **Hard Rock Heaven** | `http://hydra.cdnstream.com/1521_128` | 128k | yes | 34470 | verified-live |
+
+### Pop (10)
+
+| Station | Stream URL | Bitrate | icy | votes | Status |
+|---|---|---|---|---|---|
+| **Capital FM London** (UK) | `https://media-ssl.musicradio.com/CapitalMP3` | 128k | yes | 39393 | verified-live |
+| **Heart 80s** (UK) | `https://media-ssl.musicradio.com/Heart80sMP3` | 128k | yes | 35267 | verified-live |
+| **Heart 70s** (UK) | `https://media-ssl.musicradio.com/Heart70sMP3` | 128k | yes | 18554 | verified-live |
+| **Radio 105 Italy** | `http://icecast.unitedradio.it/Radio105.mp3` | 128k | yes | 34000 | verified-live |
+| **LOS 40 España** | `https://playerservices.streamtheworld.com/api/livestream-redirect/Los40.mp3` | 128k | yes | 34013 | verified-live |
+| **Radio 538** (NL) | `http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3` | 128k | yes | 1469 | verified-live |
+| **Energy Zürich** (NRJ, CH) | `http://broadcast.infomaniak.ch/energyzuerich-high.mp3` | 128k | yes | 3279 | verified-live |
+| **1.FM Absolute TOP 40** | `http://strm112.1.fm/top40_mobile_mp3` | 256k | yes | 4398 | verified-live |
+| **SWR3** (DE) | `https://liveradio.swr.de/sw282p3/swr3/play.mp3` | 128k | yes | 18861 | verified-live |
+| **Chocolate FM** (ES) | `http://streaming5.elitecomunicacion.es:8082/live.mp3` | 192k | yes | 32048 | verified-live |
+
+> Notes:
+> - **Rock** favors high-bitrate + high-vote feeds: Radio ROKS (three 320k
+>   channels — picked Hard'n'Heavy + Ballads), SomaFM Left Coast 70s (320k),
+>   and 1.FM Classic Rock Replay (256k) give the best quality; Radio Caroline,
+>   Virgin, Rock Antenne and Arrow are the reputation/icon picks; 181.FM Rock
+>   181 + Hard Rock Heaven round out breadth.
+> - **Pop** favors the big European commercial brands (all 128k MP3 with
+>   working icy-title) + 1.FM Absolute TOP 40 (256k) and Chocolate FM (192k)
+>   for higher bitrate. Heart 80s/70s cover the classic-pop angle.
+> - `genre_of` learned rock & pop keywords ("rock", "rockabilly", "metal",
+>   "hard rock", "punk"; "pop", "top 40", "top40", "hits") so legacy favorites
+>   backfill correctly; all curated carry explicit genres regardless.
+
+Runners-up verified but not chosen (Rock/Pop alternates): **Virgin Radio Rock
+'80** (`http://icy.unitedradio.it/VirginRock80.mp3`), **ROCK FM RU**
+(`http://nashe1.hostingradio.ru/rock-128.mp3`), **Radio Nova** (FR, pop,
+`http://novazz.ice.infomaniak.ch/novazz-128.mp3`), plus HLS-only Europeans
+(**Power Pop** TR, **90s90s Hits** DE, **Capital**/iHeart-style HLS variants).
+
+---
+
+## URLs researched but NOT used
+
+---
+
 ## URLs researched but NOT used
 
 - **Arrow Blues Box** (StreamTheWorld) — 302 redirect; not chosen.
@@ -167,14 +229,14 @@ Blues / Country genre submenus aggregate the user's favorites in that genre
 de-duplicated). Only **Other** stays favorites-only. Since the aggregation is
 uniform, each genre's curated catalog can fill its submenu to 10 (0 acts as the
 10th hot-slot) or beyond (arrow keys scroll). This way Classical/Jazz/Blues/
-Country show up under `s` even though the favorites list is already full at its
-10-slot cap, and the curated catalog is the controllable lever (favorites are
-never written to).
+Country/Rock/Pop show up under `s` even though the favorites list is already
+full at its 10-slot cap, and the curated catalog is the controllable lever
+(favorites are never written to).
 
-As of 0.7.68 the genre picker order is 1 Classical, 2 Jazz, 3 Blues,
-4 Country, and **Other is rendered as the literal `0` slot** (last entry in the
-list, even with fewer than 10 entries; the `0` key always selects the final
-genre).
+As of 0.7.69 the genre picker order is 1 Classical, 2 Jazz, 3 Blues,
+4 Country, 5 Rock, 6 Pop, and **Other is rendered as the literal `0` slot**
+(last entry in the list, even with fewer than 10 entries; the `0` key always
+selects the final genre).
 
 Live verification method: `curl -sS -I` for HTTP status + icy headers, then
 `mpv --no-video --ao=null <url>` for a few seconds to confirm the audio codec

@@ -5,6 +5,33 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.69] - 2026-09-01
+
+### Added
+
+- **New "Rock" (category 5) and "Pop" (category 6) genres, 10 curated each.**
+  The genre chooser is now 1 Classical, 2 Jazz, 3 Blues, 4 Country, 5 Rock,
+  6 Pop, with **Other kept as the literal `0` slot** (last). Both new genres
+  aggregate curated + favorites (de-duplicated), exactly like the others. Every
+  station was researched and live-tested (real audio via mpv + bitrate +
+  `icy-title` confirmed):
+  - **Rock (10):** Radio Caroline (offshore pirate icon, 128k, icy),
+    Virgin Classic Rock (IT, 128k, icy), Rock Antenne (128k, icy),
+    Arrow Classic Rock (192k), 1.FM Classic Rock Replay (256k, icy),
+    SomaFM Left Coast 70s (320k, icy), Radio ROKS Hard'n'Heavy (320k, icy),
+    Radio ROKS Ballads (320k, icy), 181.FM Rock 181 (128k, icy),
+    Hard Rock Heaven (128k, icy).
+  - **Pop (10):** Capital FM London (helper, icy), Heart 80s (128k, icy),
+    Heart 70s (128k, icy), Radio 105 Italy (128k, icy), LOS 40 España
+    (128k, icy), Radio 538 NL (128k, icy), Energy Zürich NRJ CH (128k, icy),
+    1.FM Absolute TOP 40 (256k, icy), SWR3 DE (128k), Chocolate FM ES (192k,
+    icy).
+- **`genre_of` now recognizes rock & pop** ("rock", "rockabilly", "metal",
+  "hard rock", "punk"; "pop", "top 40", "top40", "hits") so legacy favorites
+  backfill correctly.
+- Favorites file still untouched. `findings.md` updated with the Rock/Pop
+  research + full rosters. Tests updated → **75 pass**.
+
 ## [0.7.68] - 2026-09-01
 
 ### Added

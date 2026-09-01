@@ -614,6 +614,15 @@ class TestGenres(unittest.TestCase):
         self.assertEqual(_mradio.genre_of("1.FM Classic Country"), "country")
         self.assertEqual(_mradio.genre_of("Venice Classic Radio"), "classical")
 
+    def test_genre_of_rock(self):
+        for n in ("Hard Rock Heaven", "Rock Antenne", "Rockabilly Radio",
+                  "Heavy Metal Radio", "Punk Radio"):
+            self.assertEqual(_mradio.genre_of(n), "rock")
+
+    def test_genre_of_pop(self):
+        for n in ("Power Pop Radio", "Top 40 Hits", "Only Pop"):
+            self.assertEqual(_mradio.genre_of(n), "pop")
+
     def test_genre_of_other(self):
         self.assertEqual(_mradio.genre_of("Radio Paradise"), "other")
         self.assertEqual(_mradio.genre_of(""), "other")
@@ -692,12 +701,38 @@ class TestGenres(unittest.TestCase):
         self.assertGreaterEqual(counts["jazz"], 10)
         self.assertGreaterEqual(counts["blues"], 10)
         self.assertGreaterEqual(counts["country"], 10)
+        self.assertGreaterEqual(counts["rock"], 10)
+        self.assertGreaterEqual(counts["pop"], 10)
+
+    def test_genre_stations_for_rock_aggregates_curated(self):
+        sts = _mradio.genre_stations_for([], "rock")
+        names = [e["name"] for e in sts]
+        expected = ("Radio Caroline", "Virgin Classic Rock", "Rock Antenne",
+                    "Arrow Classic Rock", "1.FM Classic Rock Replay",
+                    "SomaFM Left Coast 70s", "Radio ROKS Hard'n'Heavy",
+                    "Radio ROKS Ballads", "181.FM Rock 181", "Hard Rock Heaven")
+        for curated in expected:
+            self.assertTrue(any(curated in n for n in names),
+                            f"{curated!r} missing")
+        self.assertEqual(len(names), 10)
+
+    def test_genre_stations_for_pop_aggregates_curated(self):
+        sts = _mradio.genre_stations_for([], "pop")
+        names = [e["name"] for e in sts]
+        expected = ("Capital FM London", "Heart 80s", "Radio 105 Italy",
+                    "LOS 40 España", "Radio 538", "Energy Zürich",
+                    "1.FM Absolute TOP 40", "SWR3", "Chocolate FM", "Heart 70s")
+        for curated in expected:
+            self.assertTrue(any(curated in n for n in names),
+                            f"{curated!r} missing")
+        self.assertEqual(len(names), 10)
 
     def test_genre_entries_order_country_fourth_other_last(self):
         favs = [{"name": "Radio Paradise", "url": "u://rp", "genre": "other"}]
         entries = _mradio.genre_entries({"fav_stations": favs})
         genres = [g for g, _l, _c in entries]
-        self.assertEqual(genres[:4], ["classical", "jazz", "blues", "country"])
+        self.assertEqual(genres[:6],
+                         ["classical", "jazz", "blues", "country", "rock", "pop"])
         self.assertEqual(genres[-1], "other")
 
     def test_genre_menu_renders_country_4_and_other_0(self):
@@ -715,7 +750,9 @@ class TestGenres(unittest.TestCase):
         self.assertEqual(drawn[4], "2")
         self.assertEqual(drawn[5], "3")
         self.assertEqual(drawn[6], "4")
-        self.assertEqual(drawn[7], "0")
+        self.assertEqual(drawn[7], "5")
+        self.assertEqual(drawn[8], "6")
+        self.assertEqual(drawn[9], "0")
 
     def test_load_favorites_backfills_genre_on_legacy_entries(self):
         import tempfile

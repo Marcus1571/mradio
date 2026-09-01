@@ -51,17 +51,29 @@ does not add stations on its own initiative.
 ## Research notes
 
 - **Wired into mradio:** the curated presets below are baked in as part of
-  `DEFAULT_STATIONS` in `./mradio`. **0.7.68** adds the **new Country genre**
-  (category 4) with **10 curated Country stations**, all live-verified:
+  `DEFAULT_STATIONS` in `./mradio`. **0.7.69** adds the **Rock (category 5)**
+  and **Pop (category 6)** genres with **10 curated each**, all live-verified:
+  Rock — **Radio Caroline** (128k, 46k votes), **Virgin Classic Rock** (IT,
+  128k, 37k votes), **Rock Antenne** (DE, 128k), **Arrow Classic Rock** (NL,
+  192k), **1.FM Classic Rock Replay** (256k, 17k votes), **SomaFM Left Coast
+  70s** (320k, 19.8k votes), **Radio ROKS Hard'n'Heavy** (320k), **Radio ROKS
+  Ballads** (320k, 32.7k votes), **181.FM Rock 181** (128k), **Hard Rock
+  Heaven** (128k, 34.5k votes); Pop — **Capital FM London** (128k, 39.4k
+  votes), **Heart 80s** (128k, 35.3k votes), **Heart 70s** (128k, 18.6k
+  votes), **Radio 105 Italy** (128k, 34k votes), **LOS 40 España** (128k, 34k
+  votes), **Radio 538** (NL, 128k), **Energy Zürich NRJ** (CH, 128k),
+  **1.FM Absolute TOP 40** (256k), **SWR3** (DE, 128k), **Chocolate FM** (ES,
+  192k). The genre picker order is now 1 Classical, 2 Jazz, 3 Blues,
+  4 Country, 5 Rock, 6 Pop, and **Other is the literal `0` slot** (last).
+  Rock/Pop aggregate curated + favorites like the others; **0.7.68** added the
+  **Country genre** (category 4) with 10 curated stations:
   **WSM 650 AM** (Nashville/Grand Ole Opry, 64k, icy), **.977 Country**
   (128k, 55k votes), **1.FM Absolute Country Hits** (256k, 16.6k votes),
   **1.FM Classic Country** (256k, 14.3k votes), **181.FM Highway 181**
   (128k, 20.3k votes), **181.FM Kickin' Country** (128k, 8.5k votes),
   **181.FM Real Country** (128k, 3.3k votes), **KIX Country** (AUS, 128k),
   **Big R Radio Country** (128k, 1.4k votes), **Country Radio** (CZ, 128k AAC,
-  14.4k votes). The genre picker order is now 1 Classical, 2 Jazz, 3 Blues,
-  4 Country, and **Other is the literal `0` slot** (last). Country now
-  aggregates curated + favorites like Classical/Jazz/Blues. **0.7.67** gives
+  14.4k votes). **0.7.67** gives
   **10 curated Jazz** (adds KMHD, Portland public, 256k AAC), **10 curated
   Blues** (adds Radio Caprice - Chicago Blues, 320k AAC, 1333 votes —
   replacing the unverifiable 61 Blues) and the **Classical submenu also
@@ -71,8 +83,8 @@ does not add stations on its own initiative.
   to 9 each, replacing the 6 Jazz (incl. Adroit Jazz Underground & SomaFM
   Secret Agent) / 3 Blues from **0.7.65**. All new entries live-verified via
   mpv (audio, bitrate, icy-title); higher bitrate + popular/reviewed picks win.
-  Surfaced in the **`s` genre submenus** for Classical/Jazz/Blues/Country
-  (de-duplicated against favorites; the favorites file is
+  Surfaced in the **`s` genre submenus** for Classical/Jazz/Blues/Country/
+  Rock/Pop (de-duplicated against favorites; the favorites file is
   untouched). Your favorites live in `~/.local/share/mradio/stations.json`
   (key `"favorites"`, opened by `f`), seeded once from the first 10 of
   `DEFAULT_STATIONS` on first run; afterwards the file is entirely the user's

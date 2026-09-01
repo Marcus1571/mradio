@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.68"
+VERSION = "0.7.69"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -154,6 +154,46 @@ DEFAULT_STATIONS = [
      "url": "http://bigrradio.cdnstream1.com/5195_128", "genre": "country"},
     {"name": "Country Radio (CZ)", "url": "http://icecast2.play.cz:8000/country128aac",
      "genre": "country"},
+    {"name": "Radio Caroline", "url": "http://78.129.202.200:8040/", "genre": "rock"},
+    {"name": "Virgin Classic Rock (IT)",
+     "url": "http://icy.unitedradio.it/VirginRockClassics.mp3", "genre": "rock"},
+    {"name": "Rock Antenne", "url": "http://mp3channels.webradio.rockantenne.de/rockantenne",
+     "genre": "rock"},
+    {"name": "Arrow Classic Rock", "url": "http://stream.gal.io/arrow", "genre": "rock"},
+    {"name": "1.FM Classic Rock Replay",
+     "url": "http://strm112.1.fm/crock_mobile_mp3", "genre": "rock"},
+    {"name": "SomaFM Left Coast 70s (Rock)",
+     "url": "https://ice2.somafm.com/seventies-320-mp3", "genre": "rock"},
+    {"name": "Radio ROKS Hard'n'Heavy",
+     "url": "http://online.radioroks.ua/RadioROKS_HardnHeavy_HD", "genre": "rock"},
+    {"name": "Radio ROKS Ballads",
+     "url": "http://online.radioroks.ua/RadioROKS_Ballads_HD", "genre": "rock"},
+    {"name": "181.FM Rock 181", "url": "http://listen.181fm.com/181-rock_128k.mp3",
+     "genre": "rock"},
+    {"name": "Hard Rock Heaven", "url": "http://hydra.cdnstream.com/1521_128",
+     "genre": "rock"},
+    {"name": "Capital FM London (UK)",
+     "url": "https://media-ssl.musicradio.com/CapitalMP3", "genre": "pop"},
+    {"name": "Heart 80s (UK)", "url": "https://media-ssl.musicradio.com/Heart80sMP3",
+     "genre": "pop"},
+    {"name": "Radio 105 Italy", "url": "http://icecast.unitedradio.it/Radio105.mp3",
+     "genre": "pop"},
+    {"name": "LOS 40 España",
+     "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/Los40.mp3",
+     "genre": "pop"},
+    {"name": "Radio 538 (NL)",
+     "url": "http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3",
+     "genre": "pop"},
+    {"name": "Energy Zürich (NRJ, CH)",
+     "url": "http://broadcast.infomaniak.ch/energyzuerich-high.mp3", "genre": "pop"},
+    {"name": "1.FM Absolute TOP 40",
+     "url": "http://strm112.1.fm/top40_mobile_mp3", "genre": "pop"},
+    {"name": "SWR3 (DE)", "url": "https://liveradio.swr.de/sw282p3/swr3/play.mp3",
+     "genre": "pop"},
+    {"name": "Chocolate FM (ES)", "url": "http://streaming5.elitecomunicacion.es:8082/live.mp3",
+     "genre": "pop"},
+    {"name": "Heart 70s (UK)", "url": "https://media-ssl.musicradio.com/Heart70sMP3",
+     "genre": "pop"},
 ]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))
@@ -265,9 +305,10 @@ OC_PID = os.environ.get("MRADIO_OC_PID",
 PROVIDERS = ("opencode", "ollama", "openai")
 _PROVIDER_DISPLAY = {"opencode": "opencode", "ollama": "ollama", "openai": "NIM"}
 
-GENRES = ("classical", "jazz", "blues", "country", "other")
+GENRES = ("classical", "jazz", "blues", "country", "rock", "pop", "other")
 GENRE_LABELS = {"classical": "Classical", "jazz": "Jazz",
-                "blues": "Blues", "country": "Country", "other": "Other"}
+                "blues": "Blues", "country": "Country", "rock": "Rock",
+                "pop": "Pop", "other": "Other"}
 _GENRE_KEYWORDS = {
     "blues": ("blues",),
     "jazz": ("jazz", "swing", "bigband", "big band"),
@@ -276,13 +317,15 @@ _GENRE_KEYWORDS = {
                   "musique", "recital", "sonata", "concerto"),
     "country": ("country", "americana", "bluegrass", "honky tonk", "honky-tonk",
                 "nash"),
+    "rock": ("rock", "rockabilly", "metal", "hard rock", "punk"),
+    "pop": ("pop", "top 40", "top40", "hits"),
 }
 
 
 def genre_of(name):
     """Best-effort genre for a station by its name; 'other' when unknown."""
     n = (name or "").lower()
-    for genre in ("blues", "jazz", "country", "classical"):
+    for genre in ("blues", "jazz", "country", "rock", "pop", "classical"):
         for kw in _GENRE_KEYWORDS[genre]:
             if kw in n:
                 return genre
@@ -303,12 +346,12 @@ def genre_buckets(stations):
 
 def genre_stations_for(fav_stations, genre):
     """Stations shown in a genre submenu: the user's favorites in that genre,
-    plus the curated Classical/Jazz/Blues/Country stations from
+    plus the curated Classical/Jazz/Blues/Country/Rock/Pop stations from
     DEFAULT_STATIONS (de-duplicated). The favorites file is NEVER touched.
     Other stays favorites-only."""
     favs = [e for e in (fav_stations or [])
             if (e.get("genre") or "other") == genre]
-    if genre not in ("classical", "jazz", "blues", "country"):
+    if genre not in ("classical", "jazz", "blues", "country", "rock", "pop"):
         return favs
     seen = set()
     out = []
@@ -1742,7 +1785,7 @@ def back_target(menu, playing):
 
 def render_menu(std, s, mode, cur):
     """Draw a station menu. Modes:
-    `genres`  — pick a genre (Classical/Jazz/Blues/Country/Other);
+    `genres`  — pick a genre (Classical/Jazz/Blues/Country/Rock/Pop/Other);
     `genre`   — a genre's favorite stations (numbered);
     `fav`     — your full favorites list (1-9, 0)."""
     std.erase()
@@ -1763,7 +1806,7 @@ def render_menu(std, s, mode, cur):
         x += 10
         add(std, 0, x, " ▸ GENRE ", 8)
         x += 9
-        hint = " pick a number — favorites by genre (+ curated jazz/blues/country)"
+        hint = " pick a number — favorites by genre (+ curated jazz/blues/country/rock/pop)"
     elif mode == "genre":
         g = s.get("genre") or "other"
         label = GENRE_LABELS.get(g, "Stations")
@@ -1854,7 +1897,7 @@ def render_menu(std, s, mode, cur):
 
 def genre_entries(s):
     """Ordered list of (genre, label, count) for non-empty genre buckets
-    (favorites, plus curated Jazz/Blues/Country)."""
+    (favorites, plus curated Jazz/Blues/Country/Rock/Pop)."""
     counts = genre_station_counts(s.get("fav_stations") or [])
     return [(g, GENRE_LABELS[g], counts[g])
             for g in GENRES if counts[g]]

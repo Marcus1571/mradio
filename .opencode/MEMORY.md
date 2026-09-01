@@ -201,7 +201,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
 | `f` | open your favorites (`1-9`,`0` quick-pick — max **10**, pads work too; `~/.local/share/mradio/stations.json`) |
-| `s` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Country / Other); number = open that genre's submenu, `0` = last (Other) |
+| `s` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Country / Rock / Pop / Other); number = open that genre's submenu, `0` = last (Other) |
 | `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
 
 ## Full feature history (CHANGELOG)
@@ -279,6 +279,15 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.69** — **new Rock (5) & Pop (6) genres, 10 curated each**: Rock =
+  Radio Caroline, Virgin Classic Rock, Rock Antenne, Arrow Classic Rock,
+  1.FM Classic Rock Replay, SomaFM Left Coast 70s, Radio ROKS Hard'n'Heavy &
+  Ballads, 181.FM Rock 181, Hard Rock Heaven; Pop = Capital FM London,
+  Heart 80s & 70s, Radio 105 Italy, LOS 40 España, Radio 538, Energy Zürich
+  NRJ, 1.FM Absolute TOP 40, SWR3, Chocolate FM. All live-verified via mpv
+  (audio + bitrate + icy-title). `genre_of` learned rock/pop keywords. Picker
+  order now 1-6 = Classical/Jazz/Blues/Country/Rock/Pop, **Other = literal "0"**
+  slot. Rock/Pop aggregate curated + favorites. Favorites untouched.
 - **0.7.68** — **new Country genre (category 4) + Other → "0" slot**: 10 curated
   Country stations live-verified (WSM 650 AM, .977 Country, 1.FM Absolute &
   Classic Country, 181.FM Highway/Kickin'/Real Country, KIX Country, Big R
