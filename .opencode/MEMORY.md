@@ -201,7 +201,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
 | `f` | open your favorites (`1-9`,`0` quick-pick — max **10**, pads work too; `~/.local/share/mradio/stations.json`) |
-| `s` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Other); number = open that genre's submenu |
+| `s` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Country / Other); number = open that genre's submenu, `0` = last (Other) |
 | `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
 
 ## Full feature history (CHANGELOG)
@@ -279,6 +279,15 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.68** — **new Country genre (category 4) + Other → "0" slot**: 10 curated
+  Country stations live-verified (WSM 650 AM, .977 Country, 1.FM Absolute &
+  Classic Country, 181.FM Highway/Kickin'/Real Country, KIX Country, Big R
+  Radio Country, Country Radio). Picker order is now 1 Classical, 2 Jazz,
+  3 Blues, 4 Country, **Other last rendered as literal "0"** (`0` key selects
+  the final genre even with <10 entries). `genre_of` learned country keywords
+  and checks them before "classic" so "Classic Country" → Country not
+  Classical. Country aggregates curated + favorites like Jazz/Blues; Other
+  stays favorites-only. Favorites untouched; `findings.md` updated.
 - **0.7.67** — **fill the 10th slots + Classical now fills too**: Jazz +**KMHD**
   (Portland public, 256k AAC) → 10; Blues +**Radio Caprice - Chicago Blues**
   (320k AAC, 1333 votes) → 10 (user's 61 Blues pick wasn't verifiable);

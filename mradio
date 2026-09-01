@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.67"
+VERSION = "0.7.68"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -134,6 +134,26 @@ DEFAULT_STATIONS = [
      "genre": "blues"},
     {"name": "Radio Caprice - Chicago Blues",
      "url": "http://79.111.14.76:8000/chicagoblues", "genre": "blues"},
+    {"name": "WSM 650 AM (Nashville)", "url": "http://stream01048.westreamradio.com/wsm-am-mp3",
+     "genre": "country"},
+    {"name": ".977 Country", "url": "http://26343.live.streamtheworld.com/977_COUNTRY_SC",
+     "genre": "country"},
+    {"name": "1.FM Absolute Country Hits",
+     "url": "http://strm112.1.fm/acountry_mobile_mp3", "genre": "country"},
+    {"name": "1.FM Classic Country",
+     "url": "http://strm112.1.fm/ccountry_mobile_mp3", "genre": "country"},
+    {"name": "181.FM Highway 181",
+     "url": "http://listen.181fm.com/181-highway_128k.mp3", "genre": "country"},
+    {"name": "181.FM Kickin' Country",
+     "url": "http://listen.181fm.com/181-kickincountry_128k.mp3", "genre": "country"},
+    {"name": "181.FM Real Country",
+     "url": "http://listen.181fm.com/181-realcountry_128k.mp3", "genre": "country"},
+    {"name": "KIX Country (AU)", "url": "http://playerservices.streamtheworld.com/api/livestream-redirect/KIXCOUNTRY.mp3",
+     "genre": "country"},
+    {"name": "Big R Radio Country",
+     "url": "http://bigrradio.cdnstream1.com/5195_128", "genre": "country"},
+    {"name": "Country Radio (CZ)", "url": "http://icecast2.play.cz:8000/country128aac",
+     "genre": "country"},
 ]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))
@@ -245,22 +265,24 @@ OC_PID = os.environ.get("MRADIO_OC_PID",
 PROVIDERS = ("opencode", "ollama", "openai")
 _PROVIDER_DISPLAY = {"opencode": "opencode", "ollama": "ollama", "openai": "NIM"}
 
-GENRES = ("classical", "jazz", "blues", "other")
+GENRES = ("classical", "jazz", "blues", "country", "other")
 GENRE_LABELS = {"classical": "Classical", "jazz": "Jazz",
-                "blues": "Blues", "other": "Other"}
+                "blues": "Blues", "country": "Country", "other": "Other"}
 _GENRE_KEYWORDS = {
     "blues": ("blues",),
     "jazz": ("jazz", "swing", "bigband", "big band"),
     "classical": ("classic", "classical", "orchestra", "orchestral", "chamber",
                   "opera", "baroque", "symphony", "klassik", "klassiek",
                   "musique", "recital", "sonata", "concerto"),
+    "country": ("country", "americana", "bluegrass", "honky tonk", "honky-tonk",
+                "nash"),
 }
 
 
 def genre_of(name):
     """Best-effort genre for a station by its name; 'other' when unknown."""
     n = (name or "").lower()
-    for genre in ("blues", "jazz", "classical"):
+    for genre in ("blues", "jazz", "country", "classical"):
         for kw in _GENRE_KEYWORDS[genre]:
             if kw in n:
                 return genre
@@ -281,12 +303,12 @@ def genre_buckets(stations):
 
 def genre_stations_for(fav_stations, genre):
     """Stations shown in a genre submenu: the user's favorites in that genre,
-    plus the curated Classical/Jazz/Blues stations from DEFAULT_STATIONS
-    (de-duplicated). The favorites file is NEVER touched. Other stays
-    favorites-only."""
+    plus the curated Classical/Jazz/Blues/Country stations from
+    DEFAULT_STATIONS (de-duplicated). The favorites file is NEVER touched.
+    Other stays favorites-only."""
     favs = [e for e in (fav_stations or [])
             if (e.get("genre") or "other") == genre]
-    if genre not in ("classical", "jazz", "blues"):
+    if genre not in ("classical", "jazz", "blues", "country"):
         return favs
     seen = set()
     out = []
@@ -1720,7 +1742,7 @@ def back_target(menu, playing):
 
 def render_menu(std, s, mode, cur):
     """Draw a station menu. Modes:
-    `genres`  — pick a genre (Classical/Jazz/Blues/Other);
+    `genres`  — pick a genre (Classical/Jazz/Blues/Country/Other);
     `genre`   — a genre's favorite stations (numbered);
     `fav`     — your full favorites list (1-9, 0)."""
     std.erase()
@@ -1741,7 +1763,7 @@ def render_menu(std, s, mode, cur):
         x += 10
         add(std, 0, x, " ▸ GENRE ", 8)
         x += 9
-        hint = " pick a number — favorites by genre (+ curated jazz/blues)"
+        hint = " pick a number — favorites by genre (+ curated jazz/blues/country)"
     elif mode == "genre":
         g = s.get("genre") or "other"
         label = GENRE_LABELS.get(g, "Stations")
@@ -1770,7 +1792,7 @@ def render_menu(std, s, mode, cur):
                 break
             if i == cur:
                 add(std, y, 1, "▶", 2, curses.A_BOLD)
-            tag = f"{i + 1}" if i < 9 else "0"
+            tag = "0" if i == len(entries) - 1 else f"{i + 1}"
             add(std, y, 4, tag, 1)
             add(std, y, 8, f"{glabel}  ({cnt})"[: max(1, w - 10)], 6)
             y += 1
@@ -1832,7 +1854,7 @@ def render_menu(std, s, mode, cur):
 
 def genre_entries(s):
     """Ordered list of (genre, label, count) for non-empty genre buckets
-    (favorites, plus curated Jazz/Blues)."""
+    (favorites, plus curated Jazz/Blues/Country)."""
     counts = genre_station_counts(s.get("fav_stations") or [])
     return [(g, GENRE_LABELS[g], counts[g])
             for g in GENRES if counts[g]]
@@ -2017,7 +2039,11 @@ def main():
                         menu = None
                 else:
                     idx = fav_index(ch)
-                    if idx is not None and idx < len(lst) and lst:
+                    if menu == "genres" and idx == 9 and gentries:
+                        state["genre"] = gentries[-1][0]
+                        menu = "genre"
+                        cur_st = 0
+                    elif idx is not None and idx < len(lst) and lst:
                         if menu == "genres":
                             if idx < len(gentries):
                                 state["genre"] = gentries[idx][0]

@@ -5,6 +5,39 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.68] - 2026-09-01
+
+### Added
+
+- **New "Country" genre (category 4) with 10 curated, live-verified stations.**
+  The genre chooser is now 1 Classical, 2 Jazz, 3 Blues, 4 Country, with
+  **Other pushed to the literal `0` slot** (last). The Country submenu
+  aggregates curated + favorites (de-duplicated), just like Classical/Jazz/Blues.
+  Every station was researched and live-tested (real audio via mpv + bitrate +
+  `icy-title` confirmed):
+  - **WSM 650 AM** (Nashville, home of the Grand Ole Opry) — 64k, icy
+  - **.977 Country** — 128k, icy, 55k votes (most popular on radio-browser)
+  - **1.FM Absolute Country Hits** — 256k, icy, 16.6k votes
+  - **1.FM Classic Country** — 256k, icy, 14.3k votes
+  - **181.FM Highway 181** — 128k, icy, 20.3k votes
+  - **181.FM Kickin' Country** — 128k, 8.5k votes
+  - **181.FM Real Country** — 128k, icy, 3.3k votes
+  - **KIX Country** (Australia) — 128k
+  - **Big R Radio Country** — 128k, icy
+  - **Country Radio (CZ)** — 128k AAC
+- **`genre_of` now recognizes country station names** ("country", "americana",
+  "bluegrass", "honky-tonk", "nash") and checks them ahead of the generic
+  "classic" keyword so "Classic Country" resolves to Country, not Classical.
+- **Other is now the last/"0" slot** in the genre chooser; pressing `0` (or the
+  arrow keys + Enter) selects it, and it renders as `0` even though the menu has
+  fewer than 10 entries.
+- Favorites file still untouched. `findings.md` updated with the Country
+  research + full roster. Tests updated → **70 pass**.
+
+### Changed
+
+- `GENRES` order is now `classical, jazz, blues, country, other`.
+
 ## [0.7.67] - 2026-09-01
 
 ### Changed

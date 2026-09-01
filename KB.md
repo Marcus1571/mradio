@@ -336,7 +336,7 @@ Top to bottom, on the player screen:
 | `u`         | when an update is available: open the release page |
 | `U`         | when an update is available: auto-update in place, then **restart to apply** (pill flips to `RESTART TO UPDATE`) |
 | `f`         | open the **favorites** menu |
-| `s`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues also include curated stations) |
+| `s`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues/Country also include curated stations) |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
 
 Arrow keys `→`/`←` double as volume hotkeys.
@@ -346,13 +346,14 @@ Arrow keys `→`/`←` double as volume hotkeys.
 Three menus share the housekeeping keys; only picking differs:
 
 - **Favorites (`f`)** — your full `stations.json` list, `1-0` instant pick.
-- **Genres (`s`)** — a picker of the genres present in your favorites:
-  **Classical**, **Jazz**, **Blues**, **Other** (a genre with no favorites is
-  hidden). Pick a number to open that genre's submenu.
+- **Genres (`s`)** — a picker of the genres present in your favorites + curated:
+  **Classical** (`1`), **Jazz** (`2`), **Blues** (`3`), **Country** (`4`), and
+  **Other** rendered as the literal **`0`** slot (last). Pick a number to open
+  that genre's submenu. Pressing `0` always opens the final genre (Other).
 - **Genre submenu** — that genre's station list, numbered `1-0`. Classical,
-  Jazz and Blues aggregate your favorites in that genre **plus** the curated
-  stations from the built-in catalog (`DEFAULT_STATIONS`, de-duplicated against
-  your favorites), so these genres
+  Jazz, Blues and Country aggregate your favorites in that genre **plus** the
+  curated stations from the built-in catalog (`DEFAULT_STATIONS`, de-duplicated
+  against your favorites), so these genres
   have content even when your 10-slot favorites list is already full — the
   favorites file is never touched.
 
@@ -400,19 +401,23 @@ Two distinct lists — this split is deliberate:
   the current curated selection so the menu is useful immediately; after that
   it's yours to edit.
 - **Genres** (`s`) — *your* favorites grouped by genre (Classical / Jazz /
-  Blues / Other). Each favorite is auto-classified from its name; bare URLs
-  with an unknown name fall into **Other**. Genres with no favorites are hidden
-  from the picker. Numbers choose a genre, then pick a station inside it. The
-  **Classical**, **Jazz** and **Blues** submenus include the curated stations
-  baked into `DEFAULT_STATIONS` (Classical: WCRB, KUSC, WFMT, France Musique;
+  Blues / Country / Other). Each favorite is auto-classified from its name
+  (country names match "country"/"americana"/"bluegrass"/"nash" and win over
+  the generic "classic"); bare URLs with an unknown name fall into **Other**.
+  Numbers choose a genre, then pick a station inside it. `0` always opens the
+  last genre (Other). The **Classical**, **Jazz**, **Blues** and **Country**
+  submenus include the curated stations baked into `DEFAULT_STATIONS`
+  (Classical: WCRB, KUSC, WFMT, France Musique;
   Jazz: WBGO, WWOZ, KCSM 91.1, KJAZZ 88.1, Jazz24, 1.FM Adore Jazz, TSF Jazz,
   JazzRadio 106.8 Berlin, KMHD; Blues: Jazz Radio Blues, Blues Radio Greece,
   Blues Music Fan, Blues Rock Cafe, 1.FM Blues, 181.FM True Blues, Buddy Guy
-  Radio Legends, WDCB 90.9, exclusive BB King, Radio Caprice Chicago Blues),
-  de-duplicated against your favorites — so you get Classical/Jazz/Blues even
-  if your favorites list is full. Other stays favorites-only. The
-  full researched station list (URLs + verification status) lives in
-  `findings.md` at the repo root.
+  Radio Legends, WDCB 90.9, exclusive BB King, Radio Caprice Chicago Blues;
+  Country: WSM 650 AM, .977 Country, 1.FM Absolute & Classic Country,
+  181.FM Highway/Kickin'/Real Country, KIX Country, Big R Radio Country,
+  Country Radio), de-duplicated against your favorites — so you get
+  Classical/Jazz/Blues/Country even if your favorites list is full. Other
+  stays favorites-only. The full researched station list (URLs + verification
+  status) lives in `findings.md` at the repo root.
 
 Related behaviors:
 

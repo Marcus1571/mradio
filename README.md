@@ -25,8 +25,8 @@ Brahms from the Chicago Symphony, this minute, with a scholar's paragraph
 explaining what you're hearing. No accounts. No ads. No Electron.
 
 - **Curated, right-sized.** Your favorites are grouped by genre (Classical /
-  Jazz / Blues / Other) via `s`, and hot-picked `1-9` at all times — not a
-  firehose of 40,000 streams.
+  Jazz / Blues / Country / Other) via `s`, and hot-picked `1-9` at all times —
+  not a firehose of 40,000 streams.
 - **Favorites that are yours.** `stations.json` is a plain file you own,
   edit, and back up. Your list, your rule.
 - **AI in your corner.** Press `1` — or just watch — and mradio writes an
@@ -48,9 +48,9 @@ Every valve lives in the machine room: **[KB.md](KB.md) (the long read)**.
 </p>
 
 `f` drops your favorites — one press tunes in. `s` opens a genre chooser
-(Classical / Jazz / Blues / Other): your favorites grouped by genre, with a
-curated Jazz & Blues catalog filling those submenus even when your favorites
-list is full. `k` leaps straight to this book.
+(Classical / Jazz / Blues / Country / Other): your favorites grouped by genre,
+with curated catalogs filling those submenus even when your favorites list is
+full. `k` leaps straight to this book.
 
 ---
 

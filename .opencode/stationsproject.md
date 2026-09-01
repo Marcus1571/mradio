@@ -50,18 +50,28 @@ does not add stations on its own initiative.
 
 ## Research notes
 
-- **Wired into mradio:** the classical presets below are baked in as part of
-  `DEFAULT_STATIONS` in `./mradio`. **0.7.67** gives **10 curated Jazz** (adds
-  KMHD, Portland public, 256k AAC), **10 curated Blues** (adds Radio Caprice -
-  Chicago Blues, 320k AAC, 1333 votes — replacing the unverifiable 61 Blues)
-  and, as of 0.7.67, the **Classical submenu also aggregates curated +
-  favorites** (only Other stays favorites-only) with 3 new curated classical
-  stations: **WCRB** (Boston, 256k), **KUSC** (LA, 256k, icy), **WFMT**
-  (Chicago, 260k, icy). Earlier (0.7.66) the curated genres went to 9 each,
-  replacing the 6 Jazz (incl. Adroit Jazz Underground & SomaFM Secret Agent) /
-  3 Blues from **0.7.65**. All new entries live-verified via mpv
-  (audio, bitrate, icy-title); higher bitrate + popular/reviewed picks win.
-  Surfaced in the **`s` genre submenus** for Classical/Jazz/Blues
+- **Wired into mradio:** the curated presets below are baked in as part of
+  `DEFAULT_STATIONS` in `./mradio`. **0.7.68** adds the **new Country genre**
+  (category 4) with **10 curated Country stations**, all live-verified:
+  **WSM 650 AM** (Nashville/Grand Ole Opry, 64k, icy), **.977 Country**
+  (128k, 55k votes), **1.FM Absolute Country Hits** (256k, 16.6k votes),
+  **1.FM Classic Country** (256k, 14.3k votes), **181.FM Highway 181**
+  (128k, 20.3k votes), **181.FM Kickin' Country** (128k, 8.5k votes),
+  **181.FM Real Country** (128k, 3.3k votes), **KIX Country** (AUS, 128k),
+  **Big R Radio Country** (128k, 1.4k votes), **Country Radio** (CZ, 128k AAC,
+  14.4k votes). The genre picker order is now 1 Classical, 2 Jazz, 3 Blues,
+  4 Country, and **Other is the literal `0` slot** (last). Country now
+  aggregates curated + favorites like Classical/Jazz/Blues. **0.7.67** gives
+  **10 curated Jazz** (adds KMHD, Portland public, 256k AAC), **10 curated
+  Blues** (adds Radio Caprice - Chicago Blues, 320k AAC, 1333 votes —
+  replacing the unverifiable 61 Blues) and the **Classical submenu also
+  aggregates curated + favorites** (only Other stays favorites-only) with 3 new
+  curated classical stations: **WCRB** (Boston, 256k), **KUSC** (LA, 256k,
+  icy), **WFMT** (Chicago, 260k, icy). Earlier (0.7.66) the curated genres went
+  to 9 each, replacing the 6 Jazz (incl. Adroit Jazz Underground & SomaFM
+  Secret Agent) / 3 Blues from **0.7.65**. All new entries live-verified via
+  mpv (audio, bitrate, icy-title); higher bitrate + popular/reviewed picks win.
+  Surfaced in the **`s` genre submenus** for Classical/Jazz/Blues/Country
   (de-duplicated against favorites; the favorites file is
   untouched). Your favorites live in `~/.local/share/mradio/stations.json`
   (key `"favorites"`, opened by `f`), seeded once from the first 10 of

@@ -98,6 +98,45 @@ France Musique + WCRB + KUSC + WFMT).
 
 ---
 
+## Country (10) — v0.7.68, new genre (category 4), Other → "0" slot
+
+Picked from radiostationsusa.com's "25 Best Country Radio Stations" + the
+radio-browser global popularity leaderboard, then **live-verified** (mpv audio
+decode + bitrate + `icy-name`/`icy-title`). Country = category **4** in the
+genre picker; **Other** was pushed to the literal **`0`** (last) slot.
+
+| Station | Stream URL | Bitrate | icy | votes | Status |
+|---|---|---|---|---|---|
+| **WSM 650 AM** (Nashville, Grand Ole Opry) | `http://stream01048.westreamradio.com/wsm-am-mp3` | 64k | yes | 3940 | verified-live |
+| **.977 Country** | `http://26343.live.streamtheworld.com/977_COUNTRY_SC` | 128k | yes | 55119 | verified-live |
+| **1.FM Absolute Country Hits** | `http://strm112.1.fm/acountry_mobile_mp3` | 256k | yes | 16624 | verified-live |
+| **1.FM Classic Country** | `http://strm112.1.fm/ccountry_mobile_mp3` | 256k | yes | 14298 | verified-live |
+| **181.FM Highway 181** | `http://listen.181fm.com/181-highway_128k.mp3` | 128k | yes | 20330 | verified-live |
+| **181.FM Kickin' Country** | `http://listen.181fm.com/181-kickincountry_128k.mp3` | 128k | yes | 8500 | verified-live |
+| **181.FM Real Country** | `http://listen.181fm.com/181-realcountry_128k.mp3` | 128k | yes | 3320 | verified-live |
+| **KIX Country** (AU) | `http://playerservices.streamtheworld.com/api/livestream-redirect/KIXCOUNTRY.mp3` | 128k | yes | — | verified-live |
+| **Big R Radio Country** | `http://bigrradio.cdnstream1.com/5195_128` | 128k | yes | 1444 | verified-live |
+| **Country Radio (CZ)** | `http://icecast2.play.cz:8000/country128aac` | 128k AAC | yes | 14409 | verified-live |
+
+> Notes:
+> - **WSM 650 AM** is the genre's iconic institution (home of the Grand Ole
+>   Opry since 1925); its only weakness is a 64k mp3 — kept despite that.
+> - Streaming networks win the popularity slots: **.977** (55k votes) and
+>   **1.FM** (16.6k + 14.3k) are the top two online country providers on
+>   radio-browser; 181.FM contributes 3 curated feeds (Highway = roots/classic,
+>   Kickin' = today's hits, Real = mainstream).
+> - **Dropped as not-good-enough for "best":** Czech "Country Radio" was going
+>   to be cut for non-English icy titles but its 14.4k-vote relevance won the
+>   10th slot; **KORA Texas Country 98.3** (48k only) and the iHeart/Audacy US
+>   terrestrial stations (KILT, WSIX, KKBQ, KYGO, KSON, WSOC, KPLX, KNIX)
+>   have no reliable direct/geo-unrestricted URLs; **Boot Kickin' Country**
+>   direct URL not found; **Nash Icon** streams are 48k AAC via streamtheworld.
+> - `genre_of` learned country keywords ("country", "americana", "bluegrass",
+>   "honky tonk", "honky-tonk", "nash") and checks them **before** the generic
+>   "classic" keyword, so "Classic Country" parses as Country, not Classical.
+
+---
+
 ## URLs researched but NOT used
 
 - **Arrow Blues Box** (StreamTheWorld) — 302 redirect; not chosen.
@@ -108,17 +147,34 @@ France Musique + WCRB + KUSC + WFMT).
   but direct stream URLs could not be pinned here either. Left as future work.
 - **KMHD HLS** `https://ais-sa3.cdnstream1.com/2442_128.aac/playlist.m3u8` —
   flaky keepalive; the direct AAC `2442_128.aac` is used instead.
+- **Country rejects (0.7.68):**
+  - **KORA Texas Country 98.3** — only 48k AAC (`7410_48k.aac/playlist.m3u8`,
+    streamon.fm); dropped on bitrate.
+  - **Nash Icon** (95.5 WWSM etc.) — 48k AAC+ via streamtheworld (some FLV);
+    listed under "best country" by radiostationsusa but bitrate too low vs. the
+    10 chosen.
+  - **US terrestrial iHeart/Audacy** (KILT, WSIX, KKBQ, KYGO, KSON, WSOC,
+    KPLX, KNIX, WIVK, KSON) — radio-browser shows them as iHeart HLS
+    (`revma.ihrhls`) or geo-blocked Audacy; no reliable direct URL verifiable.
+  - **Boot Kickin' Country** — only "Classic Kickin' Country" web artifact; no
+    direct stream URL found.
 
 ## How these are surfaced in mradio (decision, 0.7.65, extended 0.7.67)
 
 Per user direction: **favorites file is NOT touched.** The Classical / Jazz /
-Blues genre submenus aggregate the user's favorites in that genre **plus** the
-curated stations for that genre (from `DEFAULT_STATIONS`, de-duplicated).
-Only **Other** stays favorites-only. Since the aggregation is uniform, each
-genre's curated catalog can fill its submenu to 10 (0 acts as the 10th hot-slot)
-or beyond (arrow keys scroll). This way Classical/Jazz/Blues show up under `s`
-even though the favorites list is already full at its 10-slot cap, and the
-curated catalog is the controllable lever (favorites are never written to).
+Blues / Country genre submenus aggregate the user's favorites in that genre
+**plus** the curated stations for that genre (from `DEFAULT_STATIONS`,
+de-duplicated). Only **Other** stays favorites-only. Since the aggregation is
+uniform, each genre's curated catalog can fill its submenu to 10 (0 acts as the
+10th hot-slot) or beyond (arrow keys scroll). This way Classical/Jazz/Blues/
+Country show up under `s` even though the favorites list is already full at its
+10-slot cap, and the curated catalog is the controllable lever (favorites are
+never written to).
+
+As of 0.7.68 the genre picker order is 1 Classical, 2 Jazz, 3 Blues,
+4 Country, and **Other is rendered as the literal `0` slot** (last entry in the
+list, even with fewer than 10 entries; the `0` key always selects the final
+genre).
 
 Live verification method: `curl -sS -I` for HTTP status + icy headers, then
 `mpv --no-video --ao=null <url>` for a few seconds to confirm the audio codec
