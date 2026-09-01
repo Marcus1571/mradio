@@ -490,7 +490,7 @@ the new file.
 
 | Key | What it does |
 | --- | ------------ |
-| `v` | force a check *now*; flashes `checking for updates…`, then `new version vX.Y.Z — press U`, `up to date (vX.Y.Z)`, or `check failed` in the AI row |
+| `v` | force a check *now*; flashes `checking for updates…` (with a `▚/▞` spinner + elapsed seconds while the fetch runs, so a slow check never looks frozen), then resolves to `new version vX.Y.Z — press U`, `up to date (vX.Y.Z)`, or `check failed (offline?)` in the AI row |
 | `u` | open the release page (falls back appropriately) |
 | `U` | **auto-update in place** (then `RESTART TO UPDATE` until you restart) |
 
@@ -861,7 +861,7 @@ OpenAI-compatible API, or `MRADIO_OLLAMA=http://host:11434` with ollama.
 
 **`v` says "check failed".**
 Network/GitHub hiccup — hourly watcher will retry. Very small repro rate is
-fine; genuinely offline machines just get `check failed`.
+fine; genuinely offline machines just get `check failed (offline?)`.
 
 **AI enrichment never fires.**
 No provider configured (see §8), or the current provider was unreachable and

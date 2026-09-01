@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.71] - 2026-09-01
+
+### Fixed
+
+- **Update check no longer looks "stuck" on `checking for updates…".**
+  While a GitHub feed fetch is in flight the transient line now stays on
+  screen with a spinner (`▚/▞`) and the elapsed seconds, so a slow or hung
+  check never appears frozen. On completion it always resolves to a real
+  result ("up to date", "new version … press U", or "check failed (offline?)").
+  Feed-fetch timeout tightened to a single 6s budget (`CHECK_TIMEOUT`); a failed
+  fetch now reads "check failed (offline?)" instead of the bare "check failed".
+  New `check_msg()` helper centralizes the flash logic (resolved note ~5s).
+  Tests → **82 pass** (+3 for the new helper).
+
 ## [0.7.70] - 2026-09-01
 
 ### Added

@@ -279,6 +279,12 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.71** — **update check no longer looks "stuck":** while a GitHub feed
+  fetch is in flight, `checking for updates…` shows a `▚/▞` spinner + elapsed
+  seconds so a slow check never appears frozen, and always resolves to a real
+  result (`up to date` / `new version vX.Y.Z — press U` / `check failed
+  (offline?)`). Single 6s fetch budget (`CHECK_TIMEOUT`). New `check_msg()`
+  helper centralizes the ~5s flash. Tests → 82 pass.
 - **0.7.70** — **new Focus (7) & Chill (8) genres, 10 curated each** (the user's
   "concentration" request, split into two): Focus = Space Station Soma (320k),
   Ambient Sleeping Pill, Drone Zone, Groove Salad, Cryosleep, Deep Space One,

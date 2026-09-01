@@ -335,6 +335,37 @@ class TestReleaseFeed(unittest.TestCase):
             _mradio.force_check = saved
             _mradio._latest = _old
 
+    def test_check_msg_empty_when_none(self):
+        self.assertEqual(_mradio.check_msg({"update_msg": "", "update_msg_t": 0}), "")
+
+    def test_check_msg_resolved_note_flashes_then_clears(self):
+        saved_busy = _mradio._check_busy
+        _mradio._check_busy = False
+        try:
+            s = {"update_msg": "up to date (v0.7.70)", "update_msg_t": 0}
+            # t=1s past -> within the ~5s window, still shown
+            self.assertIn("up to date", _mradio.check_msg(s, now=1))
+            # t=9s past -> window expired, cleared
+            self.assertEqual(_mradio.check_msg(s, now=9), "")
+        finally:
+            _mradio._check_busy = saved_busy
+
+    def test_check_msg_busy_stays_visible_with_spinner(self):
+        saved_busy = _mradio._check_busy
+        saved_t = _mradio._check_busy_t
+        _mradio._check_busy = True
+        _mradio._check_busy_t = 100.0
+        try:
+            s = {"update_msg": "checking for updates…", "update_msg_t": 100.0}
+            line = _mradio.check_msg(s, now=103.5)
+            # remains visible long past the 5s window while fetch is in flight,
+            # with the elapsed seconds shown so it never looks frozen
+            self.assertIn("checking", line)
+            self.assertIn("3s", line)
+        finally:
+            _mradio._check_busy = saved_busy
+            _mradio._check_busy_t = saved_t
+
     def test_check_update_note_when_current(self):
         _old = _mradio._latest
         _mradio._latest = dict(_old)

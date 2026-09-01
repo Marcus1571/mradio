@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.70"
+VERSION = "0.7.71"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -37,6 +37,9 @@ UPDATE_INTERVAL = max(60, int(os.environ.get("MRADIO_UPDATE_INTERVAL", "3600")))
 _latest = {"version": None, "etag": "", "tag": None, "note": "", "t": 0}
 _check_lock = threading.Lock()
 _forced_lock = threading.Lock()
+_check_busy = False
+_check_busy_t = 0.0
+CHECK_TIMEOUT = 6  # seconds allowed for one GitHub feed fetch
 
 LOG = os.environ.get("MRADIO_LOG",
                      os.path.expanduser("~/.local/share/mradio/mradio.log"))
@@ -871,6 +874,9 @@ def check_update():
     feed order cannot report an older release. On completion _latest["note"]
     holds a one-line result (shown when `v` is pressed)."""
     with _check_lock:
+        global _check_busy, _check_busy_t
+        _check_busy = True
+        _check_busy_t = time.time()
         body = None
         note = None
         try:
@@ -879,28 +885,30 @@ def check_update():
                 headers["If-None-Match"] = _latest["etag"]
             with urllib.request.urlopen(urllib.request.Request(
                     f"https://github.com/{UPDATE_REPO}/releases.atom",
-                    headers=headers), timeout=6) as r:
+                    headers=headers), timeout=CHECK_TIMEOUT) as r:
                 _latest["etag"] = r.headers.get("ETag") or _latest["etag"]
                 body = r.read().decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
             if e.code != 304:
                 log(f"update check FAIL: {e}", "WARN")
-                note = "check failed"
+                note = "check failed (offline?)"
             else:
                 log("update check: 304, re-fetching unconditionally")
                 try:
                     with urllib.request.urlopen(urllib.request.Request(
                             f"https://github.com/{UPDATE_REPO}/releases.atom",
                             headers={"User-Agent": "mradio/" + VERSION}),
-                            timeout=6) as r:
+                            timeout=CHECK_TIMEOUT) as r:
                         _latest["etag"] = r.headers.get("ETag") or _latest["etag"]
                         body = r.read().decode("utf-8", "replace")
                 except Exception as e2:
                     log(f"update check FAIL: {e2}", "WARN")
-                    note = "check failed"
+                    note = "check failed (offline?)"
         except Exception as e:
             log(f"update check FAIL: {e}", "WARN")
-            note = "check failed"
+            note = "check failed (offline?)"
+        finally:
+            _check_busy = False
         if body is not None:
             _latest["tag"] = latest_release_tag(body)
             _latest["version"] = latest_release_version(body)
@@ -959,6 +967,28 @@ def check_on_v(state):
         state["update_msg"] = note
         state["update_msg_t"] = time.time()
     force_check(state)
+
+
+def check_msg(s, now=None):
+    """Live update-check text for the status/footer rows.
+
+    Returns the line to show, or "" when nothing belongs on screen. A resolved
+    note (up to date / new version / check failed) flashes for ~5s. While a
+    fetch is still in flight the transient "checking…" line stays visible with
+    a spinner and the elapsed seconds, so a slow or hung check never looks
+    frozen and is never left unresolved."""
+    msg = s.get("update_msg") or ""
+    if not msg:
+        return ""
+    if now is None:
+        now = time.time()
+    if _check_busy:
+        el = int(now - (s.get("update_msg_t") or _check_busy_t))
+        sp = "▚▞"[int(now * 2) % 2]
+        return f"{msg} {sp} {max(0, el)}s"
+    if now - (s.get("update_msg_t") or 0) < 5:
+        return msg
+    return ""
 
 
 def update_watcher():
@@ -1731,12 +1761,14 @@ def render(std, elapsed, s):
                 hint = "press to re-request"
             line = (f" AI: 1=opencode  2=ollama  3=NIM   "
                     f"now:{_PROVIDER_DISPLAY.get(prov, '')}   {hint}   z:collapse")
-            if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
-                line = s["update_msg"]
+            msg = check_msg(s)
+            if msg:
+                line = msg
             add(std, h - 3, 1, line[:lw], 3)
         if h >= 2:
-            if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
-                mid = f" {s['update_msg']}"
+            msg = check_msg(s)
+            if msg:
+                mid = f" {msg}"
             else:
                 mid = (f" f:favorites   s:genres   k:kb   v:check" +
                        ("   u:page   U:apply" if s.get("update_url") else ""))
@@ -1790,8 +1822,9 @@ def render(std, elapsed, s):
     lw = max(8, min(tw, rlim - 2)) if rlim < w else tw
 
     if h >= 2:
-        if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
-            mid = f" {s['update_msg']}"
+        msg = check_msg(s)
+        if msg:
+            mid = f" {msg}"
         else:
             mid = (f" f:favorites   s:genres   k:kb   v:check" +
                    ("" if s.get("update_pending")
@@ -1808,8 +1841,9 @@ def render(std, elapsed, s):
             hint = "press to re-request"
         line = (f" AI: 1=opencode  2=ollama  3=NIM   now:{_PROVIDER_DISPLAY.get(prov, '')}   "
                 f"{hint}   z:expand")
-        if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
-            line = s["update_msg"]
+        msg = check_msg(s)
+        if msg:
+            line = msg
         add(std, h - 3, 1, line[:lw], 3)
 
     if h >= 1:
@@ -1911,10 +1945,8 @@ def render_menu(std, s, mode, cur):
     rlim = min(w, (s.get("update_zone") or (0, w))[1]) if s.get("update_zone") else w
     lw = max(8, min(w - 2, rlim - 2)) if rlim < w else w - 2
     if h >= 2:
-        if s.get("update_msg") and time.time() - (s.get("update_msg_t") or 0) < 6:
-            line = s["update_msg"]
-        else:
-            line = hint
+        msg = check_msg(s)
+        line = msg if msg else hint
         add(std, h - 2, 1, line[:lw], 3)
     if h >= 1:
         top = not (s.get("station") or "")

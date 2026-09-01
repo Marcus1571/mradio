@@ -195,6 +195,18 @@ Runners-up verified but not chosen (Rock/Pop alternates): **Virgin Radio Rock
 
 ---
 
+## Update-check robustness — v0.7.71 (non-station fix)
+
+`checking for updates…` was transient-by-design (~6s window), but a slow GitHub
+feed fetch could hold that line on screen long enough to look "stuck"
+(unresolved). Fixed: while a fetch is in flight the line shows a `▚/▞` spinner +
+elapsed seconds and stays visible until it resolves; it always resolves to a
+real result (`up to date` / `new version vX.Y.Z — press U` / `check failed
+(offline?)`). Single 6s fetch budget (was up to 6s + 6s on the 304 re-fetch).
+New `check_msg()` helper centralizes the flash (resolved note ~5s). Tests: 82.
+
+---
+
 ## Focus (10) & Chill (10) — v0.7.70, new genres (categories 7 & 8), Other stays `0`
 
 The user wanted a "concentration" category covering instrumental / meditative /
