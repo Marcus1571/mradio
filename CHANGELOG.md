@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.75] - 2026-09-01
+
+### Changed
+
+- **Mute indicator moved into the volume bar.** Instead of `vol MUTED` to the
+  left, a **`MUTE` badge (black on red, pair 12)** now sits centered inside the
+  graphical volume bar when muted; the stored level still shows as `%` on the
+  right. Tests → **89 pass** (+2).
+
 ## [0.7.74] - 2026-09-01
 
 ### Added

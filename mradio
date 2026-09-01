@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.74"
+VERSION = "0.7.75"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -820,11 +820,13 @@ def init_colors(theme="dark"):
         for n in range(1, 11):
             curses.init_pair(n, *_SCHEME_PAL_256[theme][n])
         curses.init_pair(11, 235, 252)  # input field: dark fg on light grey bg
+        curses.init_pair(12, 0, 196)  # MUTE badge: black on red
     else:
         pal = _SCHEME_PAL_ANSI[theme]
         for n in range(1, 11):
             curses.init_pair(n, pal[n], CHIP_BG.get(n, -1))
         curses.init_pair(11, -1, curses.COLOR_WHITE)
+        curses.init_pair(12, curses.COLOR_BLACK, curses.COLOR_RED)
 
 
 def ai_configured():
@@ -1865,9 +1867,19 @@ def render(std, elapsed, s):
     if h - y > 4:
         vol = s["vol"] if isinstance(s["vol"], (int, float)) else 0
         vw = max(10, w - 14)
-        add(std, y, 1, " vol " + ("MUTED " if s["mute"] else ""), 1)
-        add(std, y + 1, 1, " " + meter(vw, vol, 100), 4)
-        add(std, y + 1, 1 + vw + 2, f" {int(vol)}%", 2)
+        badge = "MUTE"
+        add(std, y, 1, " vol ", 1)
+        add(std, y + 1, 1, " ", 1)
+        bar = meter(vw, vol, 100)
+        if s["mute"] and vw >= len(badge):
+            st = (vw - len(badge)) // 2
+            if st > 0:
+                add(std, y + 1, 2, bar[:st], 4)
+            add(std, y + 1, 2 + st, badge, 12)
+            add(std, y + 1, 2 + st + len(badge), bar[st + len(badge):], 4)
+        else:
+            add(std, y + 1, 2, bar, 4)
+        add(std, y + 1, 2 + vw + 1, f" {int(vol)}%", 2)
         y += 3
 
     rlim = draw_right(std, s, h, w)

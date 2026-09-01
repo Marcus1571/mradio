@@ -151,6 +151,51 @@ class TestRightFooter(unittest.TestCase):
                             for c in f.calls), "UPDATE pill not drawn")
         self.assertIsNotNone(s.get("update_zone"))
 
+    def test_muted_badge_centered_in_volume_bar(self):
+        s = _mradio.make_state()
+        s["vol"] = 60
+        s["mute"] = True
+        s["artist"] = "Some Artist"
+        f = _FakeStd(24, 100)
+        _old = _mradio.curses.color_pair
+        _mradio.curses.color_pair = lambda p: p
+        try:
+            _mradio.render(f, 12, s)
+        finally:
+            _mradio.curses.color_pair = _old
+        bar = next((c for c in f.calls if c[2].startswith("█")), None)
+        self.assertIsNotNone(bar, "volume bar not drawn")
+        row, x0 = bar[0], bar[1]
+        bar_row = [c for c in f.calls if c[0] == row and (
+            c[2].startswith("█") or c[2].startswith("░"))]
+        self.assertTrue(bar_row, "volume bar not drawn")
+        badge = [c for c in f.calls if c[2] == "MUTE" and c[0] == row]
+        self.assertEqual(len(badge), 1, "MUTE badge not drawn on the bar row")
+        first, last = bar_row[0], bar_row[-1]
+        self.assertGreaterEqual(badge[0][1], first[1],
+                                "badge should sit inside the bar")
+        self.assertLessEqual(badge[0][1] + len(badge[0][2]),
+                             last[1] + len(last[2]),
+                             "badge should sit inside the bar")
+        left = badge[0][1] - first[1]
+        right = (last[1] + len(last[2])) - (badge[0][1] + len(badge[0][2]))
+        self.assertAlmostEqual(left, right, delta=2,
+                               msg="badge should be centered in the bar")
+
+    def test_no_mute_badge_when_unmuted(self):
+        s = _mradio.make_state()
+        s["vol"] = 60
+        s["mute"] = False
+        f = _FakeStd(24, 100)
+        _old = _mradio.curses.color_pair
+        _mradio.curses.color_pair = lambda p: p
+        try:
+            _mradio.render(f, 12, s)
+        finally:
+            _mradio.curses.color_pair = _old
+        self.assertFalse(any(c[2] == "MUTE" for c in f.calls),
+                         "MUTE badge must only appear when muted")
+
 
 class TestPalettes(unittest.TestCase):
     def test_next_theme_cycles_all_schemes(self):
@@ -199,9 +244,9 @@ class TestPalettes(unittest.TestCase):
                 else:
                     _mradio.curses.COLORS = _old_c
                 _mradio.curses.init_pair = _old
-            self.assertEqual(sorted(pairs), list(range(1, 12)),
-                             f"{scheme} must define all 10 pairs + popup input pair")
-            self.assertEqual(len(pairs), 11)
+            self.assertEqual(sorted(pairs), list(range(1, 13)),
+                             f"{scheme} must define all 10 pairs + popup input + MUTE badge")
+            self.assertEqual(len(pairs), 12)
 
 
 class TestProviderRules(unittest.TestCase):
