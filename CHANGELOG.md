@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.77] - 2026-09-02
+
+### Added
+
+- **`d:delete` — maintenance for your favorites.** From a favorites or genre
+  submenu, `d` toggles a `DELETE MODE` chip (black on red); pick a slot with a
+  number or `↑/↓`, then a confirmation popup shows the slot + host:
+
+  ```
+   Do you want to delete:
+   6. Classic FM   ice-the.musicradio.com
+   press Y or del to delete / press n, q or ESC to go back
+  ```
+
+  Confirm with `Y`/`del`/`Enter`. A deleted slot **stays empty** (rendered
+  `— empty`) — the 10-numbering never shifts, and a later `i` (URL add) or
+  future move can reuse the hole. Press `q`/`Esc` once to leave delete mode,
+  again to go back. Slot-preserving favorites are persisted as `null`
+  placeholders and survive restarts. Tests → **98 pass** (+9).
+
 ## [0.7.76] - 2026-09-01
 
 ### Fixed

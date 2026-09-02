@@ -279,6 +279,13 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.77** — **`d:delete` maintenance**: from a favorites/genre submenu, `d`
+  toggles a black-on-red `DELETE MODE` chip; pick a slot (number or `↑/↓`),
+  confirm via popup (`Y`/`del`/`Enter`). Deleted slots **stay empty** — menu
+  renders `— empty`, numbering never shifts, persisted as `null` and survives
+  restarts; `i` (URL add) fills the first empty slot. Favorites become
+  slot-preserving (`None` placeholders through load/norm, genre functions,
+  render, play). Tests → 98 pass.
 - **0.7.76** — **`MUTED` badge (spelling)**: the centered mute indicator reads
   `MUTED` (not `MUTE`).
 - **0.7.75** — **Mute badge centered in the volume bar**: instead of `vol

@@ -952,6 +952,119 @@ class TestGenres(unittest.TestCase):
         self.assertEqual(_mradio.back_target("fav", False), "QUIT")
         self.assertEqual(_mradio.back_target("genres", False), "QUIT")
 
+    def test_delete_favorite_removes_by_url_leaving_slot_empty(self):
+        favs = [{"name": "A", "url": "https://a.example/s",
+                 "genre": "classical"},
+                {"name": "B", "url": "https://b.example/t",
+                 "genre": "jazz"}]
+        out, removed = _mradio.delete_favorite(favs, "https://a.example/s")
+        self.assertTrue(removed)
+        self.assertEqual(len(out), 2, "slot count must stay the same")
+        self.assertTrue(_mradio.is_empty_slot(out[0]),
+                        "deleted slot becomes empty placeholder")
+        self.assertEqual(out[1]["name"], "B")
+        out2, removed2 = _mradio.delete_favorite(
+            [None, {"name": "B", "url": "https://b.example/t",
+                    "genre": "jazz"}], "https://nope.example/z")
+        self.assertFalse(removed2)
+        self.assertEqual(len(out2), 2)
+
+    def test_delete_favorite_slot_stays_empty(self):
+        favs = [{"name": "A", "url": "https://a.example/s",
+                 "genre": "classical"},
+                {"name": "B", "url": "https://b.example/t",
+                 "genre": "jazz"},
+                {"name": "C", "url": "https://c.example/u",
+                 "genre": "blues"}]
+        out, removed = _mradio.delete_favorite(favs, "https://b.example/t")
+        self.assertTrue(removed)
+        self.assertEqual(len(out), 3, "slot count must stay the same")
+        self.assertEqual(out[0]["name"], "A", "list before slot untouched")
+        self.assertTrue(_mradio.is_empty_slot(out[1]),
+                        "deleted slot should become an empty placeholder")
+        self.assertEqual(out[2]["name"], "C", "list after slot untouched")
+
+    def test_delete_ignores_emoji_placeholder_keeps_other_empty(self):
+        favs = [None, {"name": "B", "url": "https://b.example/t",
+                       "genre": "jazz"}]
+        out, removed = _mradio.delete_favorite(favs, "https://b.example/t")
+        self.assertTrue(removed)
+        self.assertEqual(len(out), 2)
+        self.assertTrue(_mradio.is_empty_slot(out[0]))
+        self.assertTrue(_mradio.is_empty_slot(out[1]))
+
+    def test_upsert_favorite_fills_first_empty_slot(self):
+        favs = [None, {"name": "A", "url": "https://a.example/s",
+                       "genre": "classical"}]
+        out, added = _mradio.upsert_favorite(
+            favs, "https://new.example/x", "NewOne")
+        self.assertTrue(added)
+        self.assertEqual(out[0]["name"], "NewOne")
+        self.assertEqual(out[0]["url"], "https://new.example/x")
+        self.assertEqual(out[1]["name"], "A")
+        self.assertEqual(len(out), 2, "no append when an empty slot exists")
+
+    def test_upsert_favorite_no_duplicate_url(self):
+        favs = [{"name": "A", "url": "https://a.example/s", "genre": "jazz"}]
+        out, added = _mradio.upsert_favorite(favs, "https://a.example/s", "A")
+        self.assertFalse(added)
+        self.assertEqual(len(out), 1)
+
+    def test_load_favorites_roundtrips_empty_slot(self):
+        import tempfile
+        saved = _mradio.STATIONS_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.STATIONS_FILE = os.path.join(td, "stations.json")
+            _mradio.save_favorites([None, {"name": "B",
+                                           "url": "https://b.example/t",
+                                           "genre": "jazz"}])
+            try:
+                sts = _mradio.load_favorites()
+                self.assertEqual(len(sts), 2)
+                self.assertTrue(_mradio.is_empty_slot(sts[0]))
+                self.assertEqual(sts[1]["name"], "B")
+            finally:
+                _mradio.STATIONS_FILE = saved
+
+    def test_genre_stations_for_skips_empty_slots(self):
+        favs = [None, {"name": "Swiss Jazz", "url": "https://s.example/x",
+                       "genre": "jazz"}]
+        sts = _mradio.genre_stations_for(favs, "jazz")
+        self.assertTrue(all(not _mradio.is_empty_slot(e) for e in sts))
+        self.assertTrue(any(e["name"] == "Swiss Jazz" for e in sts))
+
+    def test_render_menu_del_mode_shows_delete_chip_and_footer(self):
+        state = {"fav_stations": [
+            {"name": "Alpha", "url": "https://a.example/s",
+             "genre": "other"}]}
+        f = _FakeStd(24, 100)
+        _old = _mradio.curses.color_pair
+        _mradio.curses.color_pair = lambda p: p
+        try:
+            _mradio.render_menu(f, state, "fav", 0, True)
+        finally:
+            _mradio.curses.color_pair = _old
+        self.assertTrue(any(c[2] == " DELETE MODE " for c in f.calls),
+                        "DELETE MODE chip not drawn")
+        self.assertTrue(any("Y/del:delete" in c[2] for c in f.calls),
+                        "delete footer hint missing")
+
+    def test_render_menu_no_delete_chip_when_not_in_del_mode(self):
+        state = {"fav_stations": [
+            {"name": "Alpha", "url": "https://a.example/s",
+             "genre": "other"}]}
+        f = _FakeStd(24, 100)
+        _old = _mradio.curses.color_pair
+        _mradio.curses.color_pair = lambda p: p
+        try:
+            _mradio.render_menu(f, state, "fav", 0, False)
+        finally:
+            _mradio.curses.color_pair = _old
+        self.assertFalse(any(" DELETE MODE " in c[2] for c in f.calls),
+                         "DELETE MODE chip drawn while not in delete mode")
+        self.assertTrue(any("d:delete" in c[2] for c in f.calls),
+                        "d:delete hint missing")
+
 
 if __name__ == "__main__":
     unittest.main()

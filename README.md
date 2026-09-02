@@ -75,6 +75,7 @@ context in **[KB §2 — Requirements & install](KB.md#2-requirements--install)*
 | `v` | check for the latest release (and watch it land) |
 | `l` | resume the **last-played station** (offered to the right of `v:check`) |
 | `i` | **add a stream URL on the fly** — paste any http(s) URL, plays + saves as a favorite |
+| `d` | **delete mode** (favorites / genre menus): press `d`, pick a number or `↑/↓`, confirm to clear a slot (it stays `— empty`, the numbering never shifts) |
 | `k` | open the knowledge base |
 | **Full keyboard & menus**: **[KB.md](KB.md)** |
 

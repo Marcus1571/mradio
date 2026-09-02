@@ -362,6 +362,22 @@ Three menus share the housekeeping keys; only picking differs:
   have content even when your 10-slot favorites list is already full — the
   favorites file is never touched.
 
+**Delete mode (`d`)** — from a **favorites** or **genre submenu**, press `d` to
+toggle a `DELETE MODE` chip (black on red) to the right of the menu title. Then
+press a number (moves to that slot) or move with `↑`/`↓`, and a confirmation
+popup shows the slot + host:
+
+```
+ Do you want to delete:
+ 6. Classic FM   ice-the.musicradio.com
+ press Y or del to delete / press n, q or ESC to go back
+```
+
+Confirm with `Y`/`del`/`Enter` to clear that slot. A deleted slot **stays
+empty** (rendered `— empty`): the 10-numbering never shifts, so a later `i`
+(URL add) or move can reuse it. Press `q`/`Esc` once to leave delete mode, again
+to go back.
+
 | Key | Favorites / genre submenu | Genres picker |
 | --- | ------------------------- | ------------- |
 | `1`…`9` `0` | **instant pick** (`0` = 10th) | **open that genre** |
@@ -370,6 +386,7 @@ Three menus share the housekeeping keys; only picking differs:
 | `f` | switch to favorites | switch to favorites |
 | `s` | open genres | stay on genres |
 | `i` | **prompt for a stream URL to play (saves as favorite)** — same in both menus | same |
+| `d` | **delete mode** (favorites / genre lists only): shows a `DELETE MODE` chip; press a number or ↑/↓, then confirm the popup to clear that slot (it stays empty) | — |
 | `q` / `Esc` | back to player while something is playing; **quit** in the bare-launch screen. In the menu footer the hint is **always the leftmost item**, reading `q/ESC:back` — or `q/ESC:quit` on the startup screen, where once `U` has applied an update mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
 
