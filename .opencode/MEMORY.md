@@ -200,7 +200,7 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `k`/`K` | open KB.md in the browser (player screen; `k` = cursor-up inside station menus) |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
-| `f` | open your favorites (`1-9`,`0` quick-pick for slots 1-10 — `0` = #10; slots **11-16** via arrows; `~/.local/share/mradio/stations.json`, **16 slots**) |
+| `f` | open your favorites (`1-9`,`0` quick-pick for slots 1-10 — `0` = #10; slots **11-12** via arrows; `~/.local/share/mradio/stations.json`, **12 slots**) |
 | `g` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Country / Rock / Pop / Focus / Chill / Other); number = open that genre's submenu, `0` = last (Other) |
 | `e` | **edit mode** (favorites/genre): `s` = select-to-move (light-blue), `d` = delete slot under `▶`; `Enter` = move to landing slot, pushing others down |
 | `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
@@ -280,6 +280,8 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.82** — **Slots 16 → 12**: `MAX_FAV = 12` (`1`-`9`, #10 = `0`, 11-12 via
+  arrows). Tests → 103 pass.
 - **0.7.81** — **Edit mode + move + 16 slots**: `e` toggles edit mode (`EDIT`
   chip between `SELECT` and theme), replacing delete mode; `s` = select-to-move
   (full-width light-blue, pair 13), `d` = delete slot under `▶`, `Enter` =

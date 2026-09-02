@@ -564,13 +564,13 @@ class TestStations(unittest.TestCase):
         self.assertIsNone(_mradio.fav_index(ord(" ")))
         self.assertIsNone(_mradio.fav_index(-1))
 
-    def test_slot_tag_labels_16_slots(self):
-        # 1-9 shown as 1..9, slot #10 as '0', slots 11-16 as full numbers.
+    def test_slot_tag_labels_12_slots(self):
+        # 1-9 shown as 1..9, slot #10 as '0', slots 11-12 as full numbers.
         for i in range(9):
             self.assertEqual(_mradio.slot_tag(i), str(i + 1))
         self.assertEqual(_mradio.slot_tag(9), "0")  # slot #10 = "0"
         self.assertEqual(_mradio.slot_tag(10), "11")
-        self.assertEqual(_mradio.slot_tag(15), "16")
+        self.assertEqual(_mradio.slot_tag(11), "12")
 
     def test_move_favorite_pushes_down_into_landing_slot(self):
         A = {"name": "radio1", "url": "https://a.example/1", "genre": "other"}
@@ -588,10 +588,10 @@ class TestStations(unittest.TestCase):
         got = [None if x is None else x["name"] for x in out][:3]
         self.assertEqual(got, [None, "radio5", "radio1"])
 
-    def test_move_favorite_clamps_to_16_slots(self):
+    def test_move_favorite_clamps_to_12_slots(self):
         A = {"name": "radio1", "url": "https://a.example/1", "genre": "other"}
         favs = [A] * _mradio.MAX_FAV
-        out = _mradio.move_favorite(favs, 0, 15)
+        out = _mradio.move_favorite(favs, 0, _mradio.MAX_FAV - 1)
         self.assertEqual(len(out), _mradio.MAX_FAV)
 
     def test_load_favorites_seeds_from_defaults(self):
@@ -617,7 +617,7 @@ class TestStations(unittest.TestCase):
             ])
             try:
                 sts = _mradio.load_favorites()
-                self.assertEqual(len(sts), _mradio.MAX_FAV)  # padded to 16 slots
+                self.assertEqual(len(sts), _mradio.MAX_FAV)  # padded to 12 slots
                 self.assertEqual(sts[0]["name"], "Alpha")
                 self.assertEqual(sts[1]["url"], "https://b.example/stream.aac")
                 self.assertIsNone(sts[2])  # empty slot padded
@@ -1055,7 +1055,7 @@ class TestGenres(unittest.TestCase):
                 self.assertEqual(len(sts), _mradio.MAX_FAV)
                 self.assertTrue(_mradio.is_empty_slot(sts[0]))
                 self.assertEqual(sts[1]["name"], "B")
-                self.assertIsNone(sts[2])  # trailing slots padded to 16
+                self.assertIsNone(sts[2])  # trailing slots padded to 12
             finally:
                 _mradio.STATIONS_FILE = saved
 

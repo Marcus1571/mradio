@@ -353,8 +353,8 @@ Arrow keys `→`/`←` double as volume hotkeys.
 Three menus share the housekeeping keys; only picking differs:
 
 - **Favorites (`f`)** — your full `stations.json` list, `1-0` instant pick.
-  There are **16 quick-pick slots**: `1`-`9`, slot #10 is still called **`0`**,
-  and slots **11–16** are reached with the arrow keys (they have no digit).
+  There are **12 quick-pick slots**: `1`-`9`, slot #10 is still called **`0`**,
+  and slots **11–12** are reached with the arrow keys (they have no digit).
 - **Genres (`g`)** — a picker of the genres present in your favorites + curated:
   **Classical** (`1`), **Jazz** (`2`), **Blues** (`3`), **Country** (`4`),
   **Rock** (`5`), **Pop** (`6`), **Focus** (`7`), **Chill** (`8`), and
@@ -364,7 +364,7 @@ Three menus share the housekeeping keys; only picking differs:
   Jazz, Blues, Country, Rock, Pop, Focus and Chill aggregate your favorites in
   that genre **plus** the curated stations from the built-in catalog
   (`DEFAULT_STATIONS`, de-duplicated against your favorites), so these genres
-  have content even when your 16-slot favorites list is already full — the
+  have content even when your 12-slot favorites list is already full — the
   favorites file is never touched.
 
 **Edit mode (`e`)** — from a **favorites** or **genre submenu**, press `e` to
@@ -397,7 +397,7 @@ or move can reuse it.
 
 | Key | Favorites / genre submenu | Genres picker |
 | --- | ------------------------- | ------------- |
-| `1`…`9` `0` | **instant pick** (`0` = 10th; 11–16 via arrows) | **open that genre** |
+| `1`…`9` `0` | **instant pick** (`0` = 10th; 11–12 via arrows) | **open that genre** |
 | `↑`/`↓` or `j`/`k` | move selection | move selection |
 | `Enter` | play selected | open that genre |
 | `f` | switch to favorites | switch to favorites |

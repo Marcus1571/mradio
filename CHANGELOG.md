@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.82] - 2026-09-02
+
+### Changed
+
+- **Quick-pick slots 16 → 12** (`MAX_FAV`): `1`-`9`, slot #10 stays **`0`**, and
+  slots 11-12 are reached with the arrow keys. Tests → **103 pass**.
+
 ## [0.7.81] - 2026-09-02
 
 ### Added

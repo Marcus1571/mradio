@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.81"
+VERSION = "0.7.82"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -620,7 +620,7 @@ def move_favorite(favs, src, dst):
     """Move the favorite at slot `src` into slot `dst`, pushing everything
     from `dst` down by one. The picked landing slot takes the moved station
     and the rest slide down: e.g. [A, @, C] move src=2 (C) to dst=0 (A)
-    yields [C, A, @]. Returns the new 16-slot padded list."""
+    yields [C, A, @]. Returns the new 12-slot padded list."""
     favs = list(favs or [])
     if src < 0 or src >= len(favs) or is_empty_slot(favs[src]):
         return favs
@@ -634,12 +634,12 @@ def move_favorite(favs, src, dst):
     return favs
 
 
-MAX_FAV = 16  # total quick-pick slots; slot #10 is the one still called "0"
+MAX_FAV = 12  # total quick-pick slots; slot #10 is the one still called "0"
 
 
 def fav_index(ch):
     """Map a digit key ('1'-'9' or '0') to a favorites index; 0 = #10.
-    Slots 11-16 (`i >= 10`) are reachable only via the arrow keys."""
+    Slots 11-12 (`i >= 10`) are reachable only via the arrow keys."""
     if ord("1") <= ch <= ord("9"):
         return ch - ord("1")
     if ch == ord("0"):
@@ -649,7 +649,7 @@ def fav_index(ch):
 
 def slot_tag(i):
     """Label for favorites slot `i` (0-based). ''1'-'9' are 1-9, slot #10 is
-    shown as '0', and slots 11-16 keep their full number."""
+    shown as '0', and slots 11-12 keep their full number."""
     if i < 9:
         return str(i + 1)
     if i == 9:
@@ -2050,7 +2050,7 @@ def render_menu(std, s, mode, cur, edit=False, mark=-1):
     """Draw a station menu. Modes:
     `genres`  — pick a genre (Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill/Other);
     `genre`   — a genre's favorite stations (numbered);
-    `fav`     — your full favorites list (1-9, 0, 11-16).
+    `fav`     — your full favorites list (1-9, 0, 11-12).
     `edit`    — edit mode: `s` marks the source slot to move, `d` deletes the
     slot under the triangle. `mark` is the currently marked source slot (-1
     if none), drawn with a light-blue background."""
