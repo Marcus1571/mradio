@@ -77,6 +77,7 @@ context in **[KB §2 — Requirements & install](KB.md#2-requirements--install)*
 | `v` | check for the latest release (and watch it land) |
 | `l` | resume the **last-played station** (offered to the right of `v:check`) |
 | `i` | **add a stream URL on the fly** — paste any http(s) URL, plays + saves as a favorite |
+| `*` | **add to favorites** — on the player adds the playing station; in a genre submenu's **edit mode** adds the station under `▶` (incl. curated ones) to your `1`-`0` list. Fills the next free slot; flashes `no free slots in favorites — delete a station first` when full |
 | `g` | open the **genre chooser** (favorites grouped by genre) |
 | `e` | **edit mode** (favorites / genre menus): `s` selects a station to move (light-blue) then `Enter`/`Space` lands it pushing the rest down; `d` deletes the slot under `▶` (confirm, stays `— empty`, numbering never shifts). `Enter`/`Space` also plays a picked station |
 | `k` | open the knowledge base |

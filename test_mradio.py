@@ -1171,6 +1171,39 @@ class TestGenres(unittest.TestCase):
         self.assertFalse(_mradio.vol_key(m, ord("a")))
         self.assertFalse(_mradio.vol_key(m, 0))
 
+    def test_add_fav_msg_fills_next_free_slot(self):
+        saved = _mradio.save_favorites
+        logged = _mradio.log
+        _mradio.save_favorites = lambda f: True
+        _mradio.log = lambda *a, **k: None
+        try:
+            favs = [{"name": "A", "url": "uA", "genre": "rock"},
+                    None, None, None]
+            s = {"fav_stations": list(favs)}
+            # fills the first free slot (index 1 -> slot number 2)
+            msg = _mradio.add_fav_msg(s, "uB", "B station")
+            self.assertEqual(s["fav_stations"][1]["url"], "uB")
+            self.assertIn("slot 2", msg)
+            # already a favorite
+            dup = _mradio.add_fav_msg(s, "uA", "A")
+            self.assertEqual(dup, "already a favorite")
+        finally:
+            _mradio.save_favorites = saved
+            _mradio.log = logged
+
+    def test_add_fav_msg_no_free_slots(self):
+        saved = _mradio.save_favorites
+        _mradio.save_favorites = lambda f: True
+        try:
+            full = [{"name": str(i), "url": str(i), "genre": "rock"}
+                    for i in range(_mradio.MAX_FAV)]
+            s = {"fav_stations": list(full)}
+            msg = _mradio.add_fav_msg(s, "NEW", "New one")
+            self.assertIn("no free slots", msg)
+            self.assertEqual(len(s["fav_stations"]), _mradio.MAX_FAV)
+        finally:
+            _mradio.save_favorites = saved
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.85] - 2026-09-02
+
+### Added
+
+- **Add to favorites with `*`.** Pressing `*` adds a station to your `1`-`0`
+  favorites list: on the **player screen** it adds the currently-playing
+  station; inside a **genre submenu's edit mode** (`*:to fav`) it adds the
+  station under `▶`, including curated ones from the built-in catalog. It fills
+  the next free slot (or appends when there's room); if the 12-slot list is
+  already full it flashes `no free slots in favorites — delete a station
+  first`. Already a favorite? It says `already a favorite`. Tests → **106**.
+
 ## [0.7.84] - 2026-09-02
 
 ### Added

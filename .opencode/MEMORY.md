@@ -282,6 +282,10 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.85** — **`*` adds to favorites**: on the player adds the current
+  station; in a genre submenu's edit mode (`*:to fav`) adds the entry under `▶`
+  (incl. curated). `add_fav_msg()` fills the next free slot / says `no free
+  slots in favorites — delete a station first` / `already a favorite`. 106 tests.
 - **0.7.84** — **Volume & mute global**: `+`/`=`/`→` up, `-`/`←` down, `m`
   mute — work inside the favorites/genre menus too (shared `vol_key()` helper
   used by both the player and menu loops). Tests → 104 pass.

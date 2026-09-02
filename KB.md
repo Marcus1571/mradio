@@ -373,8 +373,9 @@ Three menus share the housekeeping keys; only picking differs:
 **Edit mode (`e`)** — from a **favorites** or **genre submenu**, press `e` to
 toggle an `EDIT` chip (black on red) between `SELECT` and the theme name. In
 edit mode the housekeeping row drops `e:edit` (you're already editing) and
-offers `s:select` (favorites only) and `d:delete`. Press `q`/`Esc` once to leave
-edit mode, again to go back.
+offers `s:select` (favorites only) and `d:delete`; on a **genre submenu** it
+ also offers `*:to fav` (see below). Press `q`/`Esc` once to leave edit mode,
+ again to go back.
 
 **Move (`s` + `Enter`)** — favorites only. In edit mode, put the `▶` on the
 station you want to move (arrows/numbers), press **`s`** to *select* it: the
@@ -397,6 +398,15 @@ confirmation popup shows the slot + host:
 Confirm with `Y`/`del`/`Enter` to clear that slot. A deleted slot **stays
 empty** (rendered `— empty`): numbering never shifts, so a later `i` (URL add)
 or move can reuse it.
+
+**Add to favorites (`*`)** — a *genre submenu* shows **curated** stations too
+(not just your own favorites), so in edit mode put the `▶` on any entry and
+press **`*`** (`*:to fav`) to copy it into your `1`–`0` favorites list — it fills
+the **next free slot** (or appends if there's room). If the 12-slot favorites
+list is already full you get a message: `no free slots in favorites — delete a
+station first`. The `*` key also works on the **player screen**: it adds the
+currently-playing station to favorites the same way. Already a favorite? It
+just says `already a favorite`.
 
 | Key | Favorites / genre submenu | Genres picker |
 | --- | ------------------------- | ------------- |
