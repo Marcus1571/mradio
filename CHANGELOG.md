@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.83] - 2026-09-02
+
+### Changed
+
+- **`Space` acts like `Enter` for selection actions** — play a picked station,
+  land a move, pick a genre. The confirmation popups (delete confirm) still
+  require their explicit keys (`Y`/`del`/`Enter`), not `Space`. Footer nav hints
+  now read `Enter/Space:play` / `...:move` / `...:pick`. Tests → **103 pass**.
+
 ## [0.7.82] - 2026-09-02
 
 ### Changed

@@ -1118,8 +1118,8 @@ class TestGenres(unittest.TestCase):
         self.assertIsNotNone(nav, "nav row not drawn")
         self.assertTrue(nav[2].startswith("q/ESC:quit"),
                         "primary q/ESC key must survive a narrow window")
-        self.assertIn("Enter:play", nav[2],
-                      "primary Enter:play key must survive a narrow window")
+        self.assertIn("Enter/Space:play", nav[2],
+                      "primary Enter/Space:play key must survive a narrow window")
         house = next((c for c in f.calls if c[0] == f._h - 2 and c[1] == 1), None)
         self.assertIsNotNone(house, "housekeeping row not drawn")
         msg = next((c for c in f.calls if c[0] == f._h - 3 and c[1] == 1), None)

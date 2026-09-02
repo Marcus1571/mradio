@@ -376,7 +376,7 @@ edit mode, again to go back.
 **Move (`s` + `Enter`)** — favorites only. In edit mode, put the `▶` on the
 station you want to move (arrows/numbers), press **`s`** to *select* it: the
 whole station line turns **light blue**. Then move the `▶` (arrows/numbers) to
-the **landing slot** and press **`Enter`**: the selected station moves there and
+the **landing slot** and press **`Enter`** (or **`Space`**): the selected station moves there and
 everything from the landing slot down is pushed a step lower. For example with
 `1. radio1`, `2. (empty)`, `3. radio5`, select slot 3 and land on slot 1, then
 `Enter` gives `1. radio5`, `2. radio1`, `3. (empty)`. Light-blue empties render
@@ -399,7 +399,7 @@ or move can reuse it.
 | --- | ------------------------- | ------------- |
 | `1`…`9` `0` | **instant pick** (`0` = 10th; 11–12 via arrows) | **open that genre** |
 | `↑`/`↓` or `j`/`k` | move selection | move selection |
-| `Enter` | play selected | open that genre |
+| `Enter` / `Space` | play selected / open that genre | open that genre |
 | `f` | switch to favorites | switch to favorites |
 | `g` | open genres | stay on genres |
 | `e` | **edit mode** (favorites / genre lists only) | — |
@@ -413,8 +413,12 @@ The menu footer uses three stacked bands so it stays short on narrow windows:
 on the main favorites menu the top band leads with `1-9,0:pick  ↑/↓` to the
 left of the count hint (e.g. `pick a number — 10 favorite(s)`); the middle row
 holds the rest of the housekeeping (`g:genres  e:edit  v:check  l:last played
-i:input`); `q/ESC` + `Enter` live on the bottom row. Nothing important is ever
-clipped away.
+i:input`); `q/ESC` + `Enter`/`Space` live on the bottom row. Nothing important
+is ever clipped away.
+
+`Space` acts like `Enter` for the *selection* actions (**play**, **move**,
+**pick a genre**); the confirmation popups (e.g. the delete confirm above) still
+require their explicit keys (`Y`/`del`/`Enter`, not `Space`).
 
 - **Numeric pad** behaves exactly like the main number row: `1-0` hot-pick
   works from the pad, and pad `Enter` acts like `Enter`. (Terminals send

@@ -280,6 +280,9 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.83** — **`Space` = `Enter` for selections**: play/move/pick genre accept
+  `Space`; confirmation popups (delete confirm) still need `Y`/`del`/`Enter` not
+  `Space`. Nav hints read `Enter/Space:play|:move|:pick`. Tests → 103 pass.
 - **0.7.82** — **Slots 16 → 12**: `MAX_FAV = 12` (`1`-`9`, #10 = `0`, 11-12 via
   arrows). Tests → 103 pass.
 - **0.7.81** — **Edit mode + move + 16 slots**: `e` toggles edit mode (`EDIT`

@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.82"
+VERSION = "0.7.83"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -2201,13 +2201,13 @@ def render_menu(std, s, mode, cur, edit=False, mark=-1):
     if h >= 1:
         nav = chip
         if mode == "genres":
-            nav += "   Enter:pick"
+            nav += "   Enter/Space:pick"
         elif edit and mode in ("fav", "genre"):
-            act = " Enter:move" if mark >= 0 and not is_empty_slot(
-                sts[mark]) else " Enter:play"
+            act = " Enter/Space:move" if mark >= 0 and not is_empty_slot(
+                sts[mark]) else " Enter/Space:play"
             nav += act
         elif mode in ("fav", "genre"):
-            nav += "   Enter:play"
+            nav += "   Enter/Space:play"
         if top and s.get("update_pending"):
             add(std, h - 1, 1, "RESTART TO UPDATE"[:lw], 8, curses.A_BOLD)
         else:
@@ -2421,7 +2421,7 @@ def main():
                         idx = fav_index(ch)
                         if idx is not None and idx < len(lst):
                             cur_st = idx
-                        elif ch in (10, 13, curses.KEY_ENTER):
+                        elif ch in (10, 13, curses.KEY_ENTER, ord(" ")):
                             if menu == "fav" and mark >= 0 and \
                                     not is_empty_slot(lst[mark]):
                                 favs = move_favorite(
@@ -2497,7 +2497,7 @@ def main():
                     cur_st += 1
                 elif ch in (curses.KEY_UP, ord("k")) and cur_st > 0:
                     cur_st -= 1
-                elif ch in (10, 13, curses.KEY_ENTER):
+                elif ch in (10, 13, curses.KEY_ENTER, ord(" ")):
                     if menu == "genres":
                         if cur_st < len(gentries):
                             state["genre"] = gentries[cur_st][0]
