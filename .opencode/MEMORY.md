@@ -279,6 +279,8 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.80** — **fav menu footer**: lead-in reads `1-9,0:pick  ↑/↓` (dropped
+  the `:move` label).
 - **0.7.79** — **Favorites menu footer lead-in**: `1-9,0:pick  ↑/↓:move` moved
   to the top footer band, left of `pick a number — N favorite(s)`; dropped from
   the mid housekeeping row. Tests → 99 pass.

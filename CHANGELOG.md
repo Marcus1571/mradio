@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.80] - 2026-09-02
+
+### Changed
+
+- **Favorites-menu footer lead-in shortened**: `1-9,0:pick  ↑/↓:move` now reads
+  `1-9,0:pick  ↑/↓`. Tests → **99 pass**.
+
 ## [0.7.79] - 2026-09-02
 
 ### Changed

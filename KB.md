@@ -394,7 +394,7 @@ to go back.
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
 
 The menu footer uses three stacked bands so it stays short on narrow windows:
-on the main favorites menu the top band leads with `1-9,0:pick  ↑/↓:move` to the
+on the main favorites menu the top band leads with `1-9,0:pick  ↑/↓` to the
 left of the count hint (e.g. `pick a number — 10 favorite(s)`); the middle row
 holds the rest of the housekeeping (`s:genres  v:check  d:delete  l:last played
 i:input`); `q/ESC` + `Enter` live on the bottom row. Nothing important is ever
