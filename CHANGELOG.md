@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.84] - 2026-09-02
+
+### Added
+
+- **Volume & mute work everywhere** — `+` `=` `→` (up), `-` `←` (down) and `m`
+  (mute) now work inside the favorites/genre menus too, not just on the player,
+  so you can adjust the sound without leaving a menu. Refactored into a single
+  `vol_key()` helper shared by both loops. Tests → **104 pass**.
+
 ## [0.7.83] - 2026-09-02
 
 ### Changed

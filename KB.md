@@ -328,9 +328,9 @@ Top to bottom, on the player screen:
 | --- | ------ |
 | `q` / `Esc` | quit |
 | `space`     | pause / resume |
-| `+` `=` `→` | volume up (+5, remembered) |
-| `-` `←`     | volume down (−5, remembered) |
-| `m`         | mute toggle (**remembered**, re-applied on reconnect) |
+| `+` `=` `→` | volume up (+5, remembered) — **works everywhere, menus included** |
+| `-` `←`     | volume down (−5, remembered) — **works everywhere, menus included** |
+| `m`         | mute toggle (**remembered**, re-applied on reconnect) — **works everywhere, menus included** |
 | `r` / `R`   | reconnect the stream (revive a dead station/mount) |
 | `o` / `O`   | open the **verified** Wikipedia article in your browser (only when one exists) |
 | `z` / `Z`   | expand/collapse the full trivia note (fills the screen); no note = toggles detail view |
@@ -346,7 +346,10 @@ Top to bottom, on the player screen:
 | `i`         | **add a stream URL on the fly** — paste any http(s) URL, it plays immediately and is saved as a favorite (shown as `i:input` to the right of `l:last played`) |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
 
-Arrow keys `→`/`←` double as volume hotkeys.
+Arrow keys `→`/`←` double as volume hotkeys — and **`+`/`=`/`→`/`-`/`←`/`m`
+work everywhere in the app**, including inside the favorites/genre menus, so
+you can adjust the sound without leaving a menu. (`↑`/`↓` still move the
+selection, `←`/`→` adjust volume.)
 
 ### 5.2 Station menus (`f` favorites / `g` genres)
 

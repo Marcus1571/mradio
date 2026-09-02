@@ -1132,6 +1132,45 @@ class TestGenres(unittest.TestCase):
         # on a very narrow window, but the prefix must lead)
         self.assertNotEqual(msg[2].find("1-9,0:pick"), -1)
 
+    def test_vol_key_global_volume_and_mute(self):
+        class M:
+            def __init__(self):
+                self.vol, self.mut, self.cmds = 50, False, []
+            def cmd(self, c, *a):
+                self.cmds.append((c, a))
+                if c == "add" and a[0] == "volume":
+                    self.vol += a[1]
+                elif c == "cycle" and a[0] == "mute":
+                    self.mut = not self.mut
+                return None
+            def get(self, k):
+                if k == "volume":
+                    return self.vol
+                if k == "mute":
+                    return self.mut
+                return None
+        m = M()
+        # volume up
+        self.assertTrue(_mradio.vol_key(m, ord("+")))
+        self.assertEqual(m.vol, 55)
+        m.vol = 20
+        # KEY_RIGHT also raises
+        self.assertTrue(_mradio.vol_key(m, 261))  # curses.KEY_RIGHT
+        self.assertEqual(m.vol, 25)
+        # volume down via '-' and KEY_LEFT
+        self.assertTrue(_mradio.vol_key(m, ord("-")))
+        self.assertEqual(m.vol, 20)
+        self.assertTrue(_mradio.vol_key(m, 260))  # curses.KEY_LEFT
+        self.assertEqual(m.vol, 15)
+        # mute
+        self.assertTrue(_mradio.vol_key(m, ord("m")))
+        self.assertTrue(m.mut)
+        self.assertTrue(_mradio.vol_key(m, ord("m")))
+        self.assertFalse(m.mut)
+        # unrelated keys are not consumed
+        self.assertFalse(_mradio.vol_key(m, ord("a")))
+        self.assertFalse(_mradio.vol_key(m, 0))
+
 
 if __name__ == "__main__":
     unittest.main()

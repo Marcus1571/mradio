@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.83"
+VERSION = "0.7.84"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1337,6 +1337,30 @@ def apply_volume(mpc, vol, muted=None):
         pass
 
 
+def vol_key(mpc, ch):
+    """Handle a global volume / mute key (`+`/`=`/`→` up, `-`/`←` down, `m`
+    mute). Works everywhere, menus included. Returns True if `ch` was one of
+    these keys, so callers skip their own handling."""
+    if ch in (ord("+"), ord("="), curses.KEY_RIGHT):
+        mpc.cmd("add", "volume", 5)
+        v = mpc.get("volume")
+        if isinstance(v, (int, float)):
+            persist_cfg(volume=int(v))
+        return True
+    if ch in (ord("-"), curses.KEY_LEFT):
+        mpc.cmd("add", "volume", -5)
+        v = mpc.get("volume")
+        if isinstance(v, (int, float)):
+            persist_cfg(volume=int(v))
+        return True
+    if ch == ord("m"):
+        mpc.cmd("cycle", "mute")
+        m = bool(mpc.get("mute"))
+        persist_cfg(mute=m)
+        return True
+    return False
+
+
 SINCERITY_RULES = (
     "\n\nHARD TRUTHFULNESS RULES (never violated):\n"
     "- Never invent facts. If a specific fact is not known to you with "
@@ -2398,6 +2422,8 @@ def main():
                     ch = _follow_esc(stdscr)
                 if ch == curses.KEY_RESIZE:
                     continue
+                if vol_key(mpc, ch):
+                    continue
                 if ch in (ord("q"), 27):
                     if edit and menu in ("fav", "genre"):
                         edit = False
@@ -2581,22 +2607,10 @@ def main():
                 continue
             if ch in (ord("q"), 27):
                 break
+            elif vol_key(mpc, ch):
+                pass
             elif ch == ord(" "):
                 mpc.cmd("cycle", "pause")
-            elif ch in (ord("+"), ord("="), curses.KEY_RIGHT):
-                mpc.cmd("add", "volume", 5)
-                v = mpc.get("volume")
-                if isinstance(v, (int, float)):
-                    persist_cfg(volume=int(v))
-            elif ch in (ord("-"), curses.KEY_LEFT):
-                mpc.cmd("add", "volume", -5)
-                v = mpc.get("volume")
-                if isinstance(v, (int, float)):
-                    persist_cfg(volume=int(v))
-            elif ch == ord("m"):
-                mpc.cmd("cycle", "mute")
-                m = bool(mpc.get("mute"))
-                persist_cfg(mute=m)
             elif ch in (ord("o"), ord("O")):
                 if state["wiki_url"]:
                     subprocess.Popen(["open", state["wiki_url"]])
