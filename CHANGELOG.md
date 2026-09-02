@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.78] - 2026-09-02
+
+### Changed
+
+- **Footer reorganized into two distinct bands so nothing is cut off on narrow
+  terminals.** The station-menu footer is now a stacked three-band layout: the
+  dynamic message (slot count / delete-mode note) sits on its own row; the
+  housekeeping keys (`1-9,0:pick ↑/↓:move s:genres v:check d:delete
+  l:last played i:input u/U`) live on the mid row; and `q/ESC` + `Enter` live on
+  the bottom row. The player already split work this way (housekeeping mid row,
+  transport bottom row). Both now clip to the footer's right-hand zone (update
+  pill / version) so keys never collide on the right. Primary nav (`q/ESC`,
+  `Enter`) always stays visible. Tests → **99 pass** (+1).
+
 ## [0.7.77] - 2026-09-02
 
 ### Added

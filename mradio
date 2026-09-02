@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.77"
+VERSION = "0.7.78"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -2096,42 +2096,48 @@ def render_menu(std, s, mode, cur, del_mode=False):
                 add(std, y, sx, host[:w - sx - 1], 5)
             y += 1
 
-    draw_right(std, s, h, w)
-    rlim = min(w, (s.get("update_zone") or (0, w))[1]) if s.get("update_zone") else w
-    lw = max(8, min(w - 2, rlim - 2)) if rlim < w else w - 2
+    _rleft = draw_right(std, s, h, w)
+    rlim = _rleft
+    lw = max(8, min(w - 2, rlim - 2))
+    top = not (s.get("station") or "")
+    chip = "q/ESC:" + ("quit" if top else "back")
+
+    # Three distinct bands: h-3 dynamic message, h-2 housekeeping keys,
+    # h-1 navigation/play keys. Splitting keeps the footer short so no
+    # command is ever cut off on a narrow terminal.
     if h >= 2:
-        msg = check_msg(s)
-        line = msg
-        if not line:
-            if del_mode and mode in ("fav", "genre"):
-                line = " delete mode — press a number or move with ↑/↓, then confirm"
+        if h >= 3:
+            msg = check_msg(s)
+            if msg:
+                add(std, h - 3, 1, f" {msg}"[:lw], 3)
+            elif del_mode and mode in ("fav", "genre"):
+                add(std, h - 3, 1,
+                    " delete mode — pick a slot, then confirm"[:lw], 3)
             else:
-                line = hint
-        add(std, h - 2, 1, line[:lw], 3)
-    if h >= 1:
-        top = not (s.get("station") or "")
-        esc = "quit" if top else "back"
-        chip = "q/ESC:" + esc
+                add(std, h - 3, 1, f" {hint}"[:lw], 3)
         if del_mode and mode in ("fav", "genre"):
-            rest = "Y/del:delete  n/q/ESC:back"
-        elif mode == "genre":
-            rest = "Enter:pick  ↑/↓:move  s:genres  f:fav  v:check  d:delete"
-        elif mode == "genres":
-            rest = "Enter:pick  ↑/↓:move  f:fav  v:check"
+            add(std, h - 2, 1, "Y/del:delete  n/q/ESC:back"[:lw], 5)
         else:
-            rest = "1-9,0:pick  ↑/↓:move  s:genres  v:check  d:delete"
-        rest += last_hint(s) + "   i:input"
-        if s.get("update_url") and not s.get("update_pending"):
-            rest += "  u:page  U:apply"
+            house = ({
+                "fav": "1-9,0:pick  ↑/↓:move  s:genres  f:fav  v:check  d:delete",
+                "genre": "Enter:pick  ↑/↓:move  s:genres  f:fav  v:check  d:delete",
+                "genres": "Enter:pick  ↑/↓:move  f:fav  v:check",
+            }.get(mode, "") + last_hint(s) + "   i:input")
+            if s.get("update_url") and not s.get("update_pending"):
+                house += "  u:page  U:apply"
+            add(std, h - 2, 1, house[:lw], 5)
+    if h >= 1:
+        nav = chip
+        if mode == "genres":
+            nav += "   Enter:pick"
+        elif del_mode and mode in ("fav", "genre"):
+            nav = "n/q/ESC:back   Enter:delete"
+        elif mode in ("fav", "genre"):
+            nav += "   Enter:play"
         if top and s.get("update_pending"):
-            x = 1
-            clen = min(len(chip), lw)
-            add(std, h - 1, x, chip[:clen], 8, curses.A_BOLD)
-            x += clen + 2
-            if x < 1 + lw:
-                add(std, h - 1, x, rest[:1 + lw - x], 6)
+            add(std, h - 1, 1, "RESTART TO UPDATE"[:lw], 8, curses.A_BOLD)
         else:
-            add(std, h - 1, 1, (chip + "  " + rest)[:lw], 6)
+            add(std, h - 1, 1, nav[:lw], 6)
     std.refresh()
 
 

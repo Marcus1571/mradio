@@ -311,11 +311,14 @@ Top to bottom, on the player screen:
   - **row 2 (mid, dark grey)** — `f:favorites`, `s:all` (open the two station
     menus), `k:kb` (open this knowledge base in your browser), `v:check`
     (instant answer from the last check; quiet background refresh only when
-    stale); when an update exists this row
+    stale), plus `l:last played` and `i:input`; when an update exists this row
     also gains `u:page` and `U:apply`. The black-on-yellow **`UPDATE`** pill
-    sits at its right edge.
-  - **row 3 (bottom)** — transport keys `q`, `space`, `+/−`, `m`, `r`; the
-    running version sits at the right edge.
+    sits at its right edge. Splitting housekeeping onto this row and keeping
+    transport keys to row 3 means the **bottom row stays short** — nothing gets
+    cut off on a narrow terminal.
+  - **row 3 (bottom)** — transport keys `q`, `space`, `+/−`, `m`, `r` (and
+    `o:open article` when a Wikipedia link exists); the running version sits at
+    the right edge.
 
 ## 5. Controls
 
@@ -389,6 +392,11 @@ to go back.
 | `d` | **delete mode** (favorites / genre lists only): shows a `DELETE MODE` chip; press a number or ↑/↓, then confirm the popup to clear that slot (it stays empty) | — |
 | `q` / `Esc` | back to player while something is playing; **quit** in the bare-launch screen. In the menu footer the hint is **always the leftmost item**, reading `q/ESC:back` — or `q/ESC:quit` on the startup screen, where once `U` has applied an update mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
+
+The menu footer uses three stacked bands so it stays short on narrow windows:
+pick/move (and `d:delete`, `l:last played`, `i:input`) live on the middle row;
+`q/ESC` + `Enter` live on the bottom row; the context message (slot count or
+delete-mode note) sits just above. Nothing important is ever clipped away.
 
 - **Numeric pad** behaves exactly like the main number row: `1-0` hot-pick
   works from the pad, and pad `Enter` acts like `Enter`. (Terminals send

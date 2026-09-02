@@ -1065,6 +1065,27 @@ class TestGenres(unittest.TestCase):
         self.assertTrue(any("d:delete" in c[2] for c in f.calls),
                         "d:delete hint missing")
 
+    def test_menu_footer_split_keeps_nav_on_narrow_terminal(self):
+        state = {"fav_stations": [
+            {"name": "A", "url": "https://a.example/s", "genre": "other"}]}
+        f = _FakeStd(24, 40)  # narrow: housekeeping will truncate
+        _old = _mradio.curses.color_pair
+        _mradio.curses.color_pair = lambda p: p
+        try:
+            _mradio.render_menu(f, state, "fav", 0, False)
+        finally:
+            _mradio.curses.color_pair = _old
+        nav = next((c for c in f.calls if c[0] == f._h - 1 and c[1] == 1), None)
+        self.assertIsNotNone(nav, "nav row not drawn")
+        self.assertTrue(nav[2].startswith("q/ESC:quit"),
+                        "primary q/ESC key must survive a narrow window")
+        self.assertIn("Enter:play", nav[2],
+                      "primary Enter:play key must survive a narrow window")
+        house = next((c for c in f.calls if c[0] == f._h - 2 and c[1] == 1), None)
+        self.assertIsNotNone(house, "housekeeping row not drawn")
+        self.assertTrue("pick" in house[2] or "↑/↓" in house[2],
+                        "pick/move keys should be on the mid row")
+
 
 if __name__ == "__main__":
     unittest.main()
