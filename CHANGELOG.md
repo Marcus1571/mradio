@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.79] - 2026-09-02
+
+### Changed
+
+- **Favorites menu now leads with `1-9,0:pick  ↑/↓:move`** at the top of the
+  footer, to the left of `pick a number — N favorite(s)`. It was dropped from
+  the mid (housekeeping) row to avoid duplication. The mid row keeps the rest
+  (`s:genres  v:check  d:delete  l:last played  i:input`); `q/ESC` + `Enter`
+  stay on the bottom row. Tests → **99 pass**.
+
 ## [0.7.78] - 2026-09-02
 
 ### Changed

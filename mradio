@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.78"
+VERSION = "0.7.79"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -2113,13 +2113,16 @@ def render_menu(std, s, mode, cur, del_mode=False):
             elif del_mode and mode in ("fav", "genre"):
                 add(std, h - 3, 1,
                     " delete mode — pick a slot, then confirm"[:lw], 3)
+            elif mode == "fav":
+                add(std, h - 3, 1,
+                    (" 1-9,0:pick  ↑/↓:move  " + " " + hint.strip())[:lw], 3)
             else:
                 add(std, h - 3, 1, f" {hint}"[:lw], 3)
         if del_mode and mode in ("fav", "genre"):
             add(std, h - 2, 1, "Y/del:delete  n/q/ESC:back"[:lw], 5)
         else:
             house = ({
-                "fav": "1-9,0:pick  ↑/↓:move  s:genres  f:fav  v:check  d:delete",
+                "fav": "s:genres  f:fav  v:check  d:delete",
                 "genre": "Enter:pick  ↑/↓:move  s:genres  f:fav  v:check  d:delete",
                 "genres": "Enter:pick  ↑/↓:move  f:fav  v:check",
             }.get(mode, "") + last_hint(s) + "   i:input")

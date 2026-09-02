@@ -279,6 +279,9 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.79** — **Favorites menu footer lead-in**: `1-9,0:pick  ↑/↓:move` moved
+  to the top footer band, left of `pick a number — N favorite(s)`; dropped from
+  the mid housekeeping row. Tests → 99 pass.
 - **0.7.78** — **Two-band footer** (narrow-terminal fix): menus use a stacked
   three-band footer — dynamic message (slot count / delete-mode note) on its own
   row, housekeeping (`pick move s v d:delete l last i u/U`) on the mid row,

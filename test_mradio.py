@@ -1083,8 +1083,15 @@ class TestGenres(unittest.TestCase):
                       "primary Enter:play key must survive a narrow window")
         house = next((c for c in f.calls if c[0] == f._h - 2 and c[1] == 1), None)
         self.assertIsNotNone(house, "housekeeping row not drawn")
-        self.assertTrue("pick" in house[2] or "↑/↓" in house[2],
-                        "pick/move keys should be on the mid row")
+        msg = next((c for c in f.calls if c[0] == f._h - 3 and c[1] == 1), None)
+        self.assertIsNotNone(msg, "message row not drawn")
+        self.assertIn("1-9,0:pick", msg[2],
+                      "pick keys should be left of the count hint")
+        self.assertIn("↑/↓:move", msg[2],
+                      "move keys should be left of the count hint")
+        # the count hint follows the pick/move prefix (may itself be clipped
+        # on a very narrow window, but the prefix must lead)
+        self.assertNotEqual(msg[2].find("1-9,0:pick"), -1)
 
 
 if __name__ == "__main__":

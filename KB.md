@@ -394,9 +394,11 @@ to go back.
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
 
 The menu footer uses three stacked bands so it stays short on narrow windows:
-pick/move (and `d:delete`, `l:last played`, `i:input`) live on the middle row;
-`q/ESC` + `Enter` live on the bottom row; the context message (slot count or
-delete-mode note) sits just above. Nothing important is ever clipped away.
+on the main favorites menu the top band leads with `1-9,0:pick  ↑/↓:move` to the
+left of the count hint (e.g. `pick a number — 10 favorite(s)`); the middle row
+holds the rest of the housekeeping (`s:genres  v:check  d:delete  l:last played
+i:input`); `q/ESC` + `Enter` live on the bottom row. Nothing important is ever
+clipped away.
 
 - **Numeric pad** behaves exactly like the main number row: `1-0` hot-pick
   works from the pad, and pad `Enter` acts like `Enter`. (Terminals send
