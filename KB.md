@@ -341,19 +341,21 @@ Top to bottom, on the player screen:
 | `u`         | when an update is available: open the release page |
 | `U`         | when an update is available: auto-update in place, then **restart to apply** (pill flips to `RESTART TO UPDATE`) |
 | `f`         | open the **favorites** menu |
-| `s`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill also include curated stations) |
+| `g`         | open the **genre** chooser (your favorites grouped by genre; Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill also include curated stations) |
 | `l`         | **play the last-played station** (offered as `l:last played` to the right of `v:check`; on the player that key jumps back to it) |
 | `i`         | **add a stream URL on the fly** — paste any http(s) URL, it plays immediately and is saved as a favorite (shown as `i:input` to the right of `l:last played`) |
 | mouse click | only with `"mouse": 1` in `config.json`: click the trivia text to expand/collapse it; click the `UPDATE` pill to open the release page |
 
 Arrow keys `→`/`←` double as volume hotkeys.
 
-### 5.2 Station menus (`f` favorites / `s` genres)
+### 5.2 Station menus (`f` favorites / `g` genres)
 
 Three menus share the housekeeping keys; only picking differs:
 
 - **Favorites (`f`)** — your full `stations.json` list, `1-0` instant pick.
-- **Genres (`s`)** — a picker of the genres present in your favorites + curated:
+  There are **16 quick-pick slots**: `1`-`9`, slot #10 is still called **`0`**,
+  and slots **11–16** are reached with the arrow keys (they have no digit).
+- **Genres (`g`)** — a picker of the genres present in your favorites + curated:
   **Classical** (`1`), **Jazz** (`2`), **Blues** (`3`), **Country** (`4`),
   **Rock** (`5`), **Pop** (`6`), **Focus** (`7`), **Chill** (`8`), and
   **Other** rendered as the literal **`0`** slot (last). Pick a number to open
@@ -362,13 +364,26 @@ Three menus share the housekeeping keys; only picking differs:
   Jazz, Blues, Country, Rock, Pop, Focus and Chill aggregate your favorites in
   that genre **plus** the curated stations from the built-in catalog
   (`DEFAULT_STATIONS`, de-duplicated against your favorites), so these genres
-  have content even when your 10-slot favorites list is already full — the
+  have content even when your 16-slot favorites list is already full — the
   favorites file is never touched.
 
-**Delete mode (`d`)** — from a **favorites** or **genre submenu**, press `d` to
-toggle a `DELETE MODE` chip (black on red) to the right of the menu title. Then
-press a number (moves to that slot) or move with `↑`/`↓`, and a confirmation
-popup shows the slot + host:
+**Edit mode (`e`)** — from a **favorites** or **genre submenu**, press `e` to
+toggle an `EDIT` chip (black on red) between `SELECT` and the theme name. In
+edit mode the housekeeping row drops `e:edit` (you're already editing) and
+offers `s:select` (favorites only) and `d:delete`. Press `q`/`Esc` once to leave
+edit mode, again to go back.
+
+**Move (`s` + `Enter`)** — favorites only. In edit mode, put the `▶` on the
+station you want to move (arrows/numbers), press **`s`** to *select* it: the
+whole station line turns **light blue**. Then move the `▶` (arrows/numbers) to
+the **landing slot** and press **`Enter`**: the selected station moves there and
+everything from the landing slot down is pushed a step lower. For example with
+`1. radio1`, `2. (empty)`, `3. radio5`, select slot 3 and land on slot 1, then
+`Enter` gives `1. radio5`, `2. radio1`, `3. (empty)`. Light-blue empties render
+as `— empty`.
+
+**Delete (`d`)** — in edit mode, put the `▶` on a slot and press `d`; a
+confirmation popup shows the slot + host:
 
 ```
  Do you want to delete:
@@ -377,26 +392,27 @@ popup shows the slot + host:
 ```
 
 Confirm with `Y`/`del`/`Enter` to clear that slot. A deleted slot **stays
-empty** (rendered `— empty`): the 10-numbering never shifts, so a later `i`
-(URL add) or move can reuse it. Press `q`/`Esc` once to leave delete mode, again
-to go back.
+empty** (rendered `— empty`): numbering never shifts, so a later `i` (URL add)
+or move can reuse it.
 
 | Key | Favorites / genre submenu | Genres picker |
 | --- | ------------------------- | ------------- |
-| `1`…`9` `0` | **instant pick** (`0` = 10th) | **open that genre** |
+| `1`…`9` `0` | **instant pick** (`0` = 10th; 11–16 via arrows) | **open that genre** |
 | `↑`/`↓` or `j`/`k` | move selection | move selection |
 | `Enter` | play selected | open that genre |
 | `f` | switch to favorites | switch to favorites |
-| `s` | open genres | stay on genres |
+| `g` | open genres | stay on genres |
+| `e` | **edit mode** (favorites / genre lists only) | — |
+| `s` | in edit mode (favorites): **select a station to move** (light-blue) | — |
+| `d` | in edit mode: **delete** the slot under `▶` (popup confirm, stays empty) | — |
 | `i` | **prompt for a stream URL to play (saves as favorite)** — same in both menus | same |
-| `d` | **delete mode** (favorites / genre lists only): shows a `DELETE MODE` chip; press a number or ↑/↓, then confirm the popup to clear that slot (it stays empty) | — |
-| `q` / `Esc` | back to player while something is playing; **quit** in the bare-launch screen. In the menu footer the hint is **always the leftmost item**, reading `q/ESC:back` — or `q/ESC:quit` on the startup screen, where once `U` has applied an update mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
+| `q` / `Esc` | exit edit mode first, then back to player while something is playing; **quit** in the bare-launch screen. In the menu footer the hint is **always the leftmost item**, reading `q/ESC:back` — or `q/ESC:quit` on the startup screen, where once `U` has applied an update mradio renders it as a **light-green chip**, the suggested action (quit & restart onto the new version) | same |
 | `v`, `u`, `U`, `p` | same as the player (update check / release page / auto-update / theme) | same |
 
 The menu footer uses three stacked bands so it stays short on narrow windows:
 on the main favorites menu the top band leads with `1-9,0:pick  ↑/↓` to the
 left of the count hint (e.g. `pick a number — 10 favorite(s)`); the middle row
-holds the rest of the housekeeping (`s:genres  v:check  d:delete  l:last played
+holds the rest of the housekeeping (`g:genres  e:edit  v:check  l:last played
 i:input`); `q/ESC` + `Enter` live on the bottom row. Nothing important is ever
 clipped away.
 
@@ -433,7 +449,7 @@ Two distinct lists — this split is deliberate:
   run of a fresh machine the file is **auto-seeded once** with the first 10 of
   the current curated selection so the menu is useful immediately; after that
   it's yours to edit.
-- **Genres** (`s`) — *your* favorites grouped by genre (Classical / Jazz /
+- **Genres** (`g`) — *your* favorites grouped by genre (Classical / Jazz /
   Blues / Country / Rock / Pop / Focus / Chill / Other). Each favorite is
   auto-classified from its name (country names match "country"/"americana"/
   "bluegrass"/"nash" and win over the generic "classic"; rock matches
@@ -860,7 +876,7 @@ provider that produced it. Both `config.json` and `cache.json` are written
 
 **No sound / dead stream.**
 Press `r` (reconnect). If that fails, the stream itself is down — check the
-mount with a browser, or pick another preset (`f`/`s`). mpv is the engine, so
+mount with a browser, or pick another preset (`f`/`g`). mpv is the engine, so
 any stream mpv can't demux won't play; mradio just relays.
 
 **Station shows no name.**

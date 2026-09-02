@@ -103,7 +103,7 @@ the project's CURRENT state.
     JSON label (label is only a fallback; the v0.7.34 fix).
 - **Footer (0.7.30+):** 3 rows — h-3 AI (`z:expand`, `c:change API Key` when
   NIM is active), h-2 dark-grey mid
-  (`f:favorites s:genres k:kb v:check`; update pill + `u:page U:apply` there;
+  (`f:favorites g:genres k:kb v:check`; update pill + `u:page U:apply` there;
   the `v` check result flashes here, works without AI), h-1 transport + version.
 - **Docs:** `README.md` = short marketing appetite (tagline, screenshots,
   every paragraph links to the KB); **`KB.md`** = the complete reference
@@ -200,8 +200,9 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
 | `k`/`K` | open KB.md in the browser (player screen; `k` = cursor-up inside station menus) |
 | `z` | expand/collapse full trivia note (full-screen) |
 | `1`/`2`/`3` | pick AI provider (opencode/ollama/api) — re-fetches current track even if cached |
-| `f` | open your favorites (`1-9`,`0` quick-pick — max **10**, pads work too; `~/.local/share/mradio/stations.json`) |
-| `s` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Country / Rock / Pop / Focus / Chill / Other); number = open that genre's submenu, `0` = last (Other) |
+| `f` | open your favorites (`1-9`,`0` quick-pick for slots 1-10 — `0` = #10; slots **11-16** via arrows; `~/.local/share/mradio/stations.json`, **16 slots**) |
+| `g` | open the genre chooser (your favorites grouped: Classical / Jazz / Blues / Country / Rock / Pop / Focus / Chill / Other); number = open that genre's submenu, `0` = last (Other) |
+| `e` | **edit mode** (favorites/genre): `s` = select-to-move (light-blue), `d` = delete slot under `▶`; `Enter` = move to landing slot, pushing others down |
 | `p` | rotate color schemes: `dark`, `light`, `light-navy`, `light-mauve` (remembered) |
 
 ## Full feature history (CHANGELOG)
@@ -279,6 +280,13 @@ mpv's IPC socket — decoding/network/metadata all belong to mpv.
   Radio Legends, exclusive BB King to Blues; dropped Adroit Jazz Underground
   & SomaFM Secret Agent (not live-verifiable). Every station live-verified via
   mpv; higher bitrate + icy-title preferred; `findings.md` updated.
+- **0.7.81** — **Edit mode + move + 16 slots**: `e` toggles edit mode (`EDIT`
+  chip between `SELECT` and theme), replacing delete mode; `s` = select-to-move
+  (full-width light-blue, pair 13), `d` = delete slot under `▶`, `Enter` =
+  move to landing slot pushing the rest down. Favorites now have **16** slots
+  (#10 = `0`; 11-16 via arrows; `MAX_FAV`, `slot_tag`, `move_favorite`). `s`
+  now selects in edit mode, so **`g`** opens genres everywhere (`s:genres` → `g:genres`).
+  Count hint = occupied slots. Tests → **103 pass**.
 - **0.7.80** — **fav menu footer**: lead-in reads `1-9,0:pick  ↑/↓` (dropped
   the `:move` label).
 - **0.7.79** — **Favorites menu footer lead-in**: `1-9,0:pick  ↑/↓:move` moved

@@ -244,9 +244,9 @@ class TestPalettes(unittest.TestCase):
                 else:
                     _mradio.curses.COLORS = _old_c
                 _mradio.curses.init_pair = _old
-            self.assertEqual(sorted(pairs), list(range(1, 13)),
-                             f"{scheme} must define all 10 pairs + popup input + MUTE badge")
-            self.assertEqual(len(pairs), 12)
+            self.assertEqual(sorted(pairs), list(range(1, 14)),
+                             f"{scheme} must define all 10 pairs + popup input + MUTE badge + mark highlight")
+            self.assertEqual(len(pairs), 13)
 
 
 class TestProviderRules(unittest.TestCase):
@@ -564,6 +564,36 @@ class TestStations(unittest.TestCase):
         self.assertIsNone(_mradio.fav_index(ord(" ")))
         self.assertIsNone(_mradio.fav_index(-1))
 
+    def test_slot_tag_labels_16_slots(self):
+        # 1-9 shown as 1..9, slot #10 as '0', slots 11-16 as full numbers.
+        for i in range(9):
+            self.assertEqual(_mradio.slot_tag(i), str(i + 1))
+        self.assertEqual(_mradio.slot_tag(9), "0")  # slot #10 = "0"
+        self.assertEqual(_mradio.slot_tag(10), "11")
+        self.assertEqual(_mradio.slot_tag(15), "16")
+
+    def test_move_favorite_pushes_down_into_landing_slot(self):
+        A = {"name": "radio1", "url": "https://a.example/1", "genre": "other"}
+        B = {"name": "radio5", "url": "https://b.example/5", "genre": "other"}
+        favs = [A, None, B] + [None] * (_mradio.MAX_FAV - 3)
+        out = _mradio.move_favorite(favs, 2, 0)
+        got = [None if x is None else x["name"] for x in out][:3]
+        self.assertEqual(got, ["radio5", "radio1", None])
+
+    def test_move_favorite_into_empty_landing_pushes_rest_down(self):
+        A = {"name": "radio1", "url": "https://a.example/1", "genre": "other"}
+        B = {"name": "radio5", "url": "https://b.example/5", "genre": "other"}
+        favs = [A, None, B] + [None] * (_mradio.MAX_FAV - 3)
+        out = _mradio.move_favorite(favs, 0, 2)
+        got = [None if x is None else x["name"] for x in out][:3]
+        self.assertEqual(got, [None, "radio5", "radio1"])
+
+    def test_move_favorite_clamps_to_16_slots(self):
+        A = {"name": "radio1", "url": "https://a.example/1", "genre": "other"}
+        favs = [A] * _mradio.MAX_FAV
+        out = _mradio.move_favorite(favs, 0, 15)
+        self.assertEqual(len(out), _mradio.MAX_FAV)
+
     def test_load_favorites_seeds_from_defaults(self):
         import tempfile
         saved = _mradio.STATIONS_FILE
@@ -571,7 +601,7 @@ class TestStations(unittest.TestCase):
             _mradio.STATIONS_FILE = os.path.join(td, "stations.json")
             try:
                 sts = _mradio.load_favorites()
-                self.assertEqual(sts, list(_mradio.DEFAULT_STATIONS)[:10])
+                self.assertEqual(sts, list(_mradio.DEFAULT_STATIONS)[:_mradio.MAX_FAV])
                 self.assertTrue(os.path.exists(_mradio.STATIONS_FILE))
             finally:
                 _mradio.STATIONS_FILE = saved
@@ -587,9 +617,10 @@ class TestStations(unittest.TestCase):
             ])
             try:
                 sts = _mradio.load_favorites()
-                self.assertEqual(len(sts), 2)
+                self.assertEqual(len(sts), _mradio.MAX_FAV)  # padded to 16 slots
                 self.assertEqual(sts[0]["name"], "Alpha")
                 self.assertEqual(sts[1]["url"], "https://b.example/stream.aac")
+                self.assertIsNone(sts[2])  # empty slot padded
             finally:
                 _mradio.STATIONS_FILE = saved
 
@@ -601,7 +632,8 @@ class TestStations(unittest.TestCase):
             with open(_mradio.STATIONS_FILE, "w") as fh:
                 json.dump({"favorites": []}, fh)
             try:
-                self.assertEqual(_mradio.load_favorites(), [])
+                self.assertEqual(_mradio.load_favorites(),
+                                 [None] * _mradio.MAX_FAV)
             finally:
                 _mradio.STATIONS_FILE = saved
 
@@ -1020,9 +1052,10 @@ class TestGenres(unittest.TestCase):
                                            "genre": "jazz"}])
             try:
                 sts = _mradio.load_favorites()
-                self.assertEqual(len(sts), 2)
+                self.assertEqual(len(sts), _mradio.MAX_FAV)
                 self.assertTrue(_mradio.is_empty_slot(sts[0]))
                 self.assertEqual(sts[1]["name"], "B")
+                self.assertIsNone(sts[2])  # trailing slots padded to 16
             finally:
                 _mradio.STATIONS_FILE = saved
 
@@ -1044,12 +1077,16 @@ class TestGenres(unittest.TestCase):
             _mradio.render_menu(f, state, "fav", 0, True)
         finally:
             _mradio.curses.color_pair = _old
-        self.assertTrue(any(c[2] == " DELETE MODE " for c in f.calls),
-                        "DELETE MODE chip not drawn")
-        self.assertTrue(any("Y/del:delete" in c[2] for c in f.calls),
-                        "delete footer hint missing")
+        self.assertTrue(any(c[2] == " EDIT " for c in f.calls),
+                        "EDIT chip not drawn")
+        self.assertTrue(any("s:select" in c[2] for c in f.calls),
+                        "edit footer should offer s:select")
+        self.assertTrue(any("d:delete" in c[2] for c in f.calls),
+                        "edit footer should offer d:delete")
+        self.assertFalse(any("e:edit" in c[2] for c in f.calls),
+                         "e:edit should be hidden once inside edit mode")
 
-    def test_render_menu_no_delete_chip_when_not_in_del_mode(self):
+    def test_render_menu_no_edit_chip_when_not_in_edit_mode(self):
         state = {"fav_stations": [
             {"name": "Alpha", "url": "https://a.example/s",
              "genre": "other"}]}
@@ -1060,10 +1097,12 @@ class TestGenres(unittest.TestCase):
             _mradio.render_menu(f, state, "fav", 0, False)
         finally:
             _mradio.curses.color_pair = _old
+        self.assertFalse(any(" EDIT " in c[2] for c in f.calls),
+                         "EDIT chip drawn while not in edit mode")
         self.assertFalse(any(" DELETE MODE " in c[2] for c in f.calls),
-                         "DELETE MODE chip drawn while not in delete mode")
-        self.assertTrue(any("d:delete" in c[2] for c in f.calls),
-                        "d:delete hint missing")
+                         "DELETE MODE chip gone")
+        self.assertTrue(any("e:edit" in c[2] for c in f.calls),
+                        "e:edit hint missing")
 
     def test_menu_footer_split_keeps_nav_on_narrow_terminal(self):
         state = {"fav_stations": [

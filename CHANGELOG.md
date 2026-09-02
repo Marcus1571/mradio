@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.81] - 2026-09-02
+
+### Added
+
+- **Edit mode (`e`)** — replaces the old delete mode on the favorites/genre
+  menus. Toggling shows an `EDIT` chip between `SELECT` and the theme name, and
+  the housekeeping row drops `e:edit` in favour of `s:select` and `d:delete`.
+- **Move favorites**: in edit mode, `s` marks the station under the `▶` with a
+  full-width light-blue highlight, then `↑`/`↓` (or numbers) pick the landing
+  slot and `Enter` moves the station there — the landing slot is reused and the
+  rest are pushed down (e.g. `1.radio1 / 3.radio5` select-3-land-1 gives
+  `1.radio5 2.radio1`). Deterministic via `move_favorite`.
+- **16 quick-pick slots** (was 10): `1`-`9`, slot #10 stays labelled **`0`**, and
+  slots 11-16 are reached with the arrow keys. `MAX_FAV = 16`.
+- **Delete** now lives inside edit mode: `d` deletes the slot under the `▶`
+  after the usual confirmation popup (slot stays `— empty`).
+
+### Changed
+
+- **`s` → `g`** everywhere for opening the **genres** chooser (`s:genres` →
+  `g:genres` in the player and menu footers); `s` is now **select-to-move** in
+  edit mode (favorites). The mode label reads **`EDIT`** (was `DELETE MODE`).
+- **New color pair 13** for the selected-to-move highlight: black on light blue.
+- The favorites count hint counts **occupied** slots, so it reads the real number
+  (e.g. `3 favorite(s)`) rather than the fixed 16.
+
+### Tests
+
+- **103 pass** (added `slot_tag`, `move_favorite` push-down/enter-empty/16-clamp).
+
 ## [0.7.80] - 2026-09-02
 
 ### Changed

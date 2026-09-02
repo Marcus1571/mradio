@@ -25,7 +25,7 @@ Brahms from the Chicago Symphony, this minute, with a scholar's paragraph
 explaining what you're hearing. No accounts. No ads. No Electron.
 
 - **Curated, right-sized.** Your favorites are grouped by genre (Classical /
-  Jazz / Blues / Country / Rock / Pop / Focus / Chill / Other) via `s`, and
+  Jazz / Blues / Country / Rock / Pop / Focus / Chill / Other) via `g`, and
   hot-picked `1-9` at all times — not a firehose of 40,000 streams.
 - **Favorites that are yours.** `stations.json` is a plain file you own,
   edit, and back up. Your list, your rule.
@@ -47,7 +47,7 @@ Every valve lives in the machine room: **[KB.md](KB.md) (the long read)**.
   <img src="screenshots/player.png" alt="player screen" width="420">
 </p>
 
-`f` drops your favorites — one press tunes in. `s` opens a genre chooser
+`f` drops your favorites — one press tunes in. `g` opens a genre chooser
 (Classical / Jazz / Blues / Country / Rock / Pop / Focus / Chill / Other):
 your favorites grouped by genre, with curated catalogs filling those submenus
 even when your favorites list is full. `k` leaps straight to this book.
@@ -71,11 +71,12 @@ context in **[KB §2 — Requirements & install](KB.md#2-requirements--install)*
 
 | Key | What it does |
 | --- | ------------ |
-| `1`-`9`, `0` | tune a favorite, instantly |
+| `1`-`9`, `0` | tune a favorite, instantly (`0` = slot #10; slots 11-16 via arrows) |
 | `v` | check for the latest release (and watch it land) |
 | `l` | resume the **last-played station** (offered to the right of `v:check`) |
 | `i` | **add a stream URL on the fly** — paste any http(s) URL, plays + saves as a favorite |
-| `d` | **delete mode** (favorites / genre menus): press `d`, pick a number or `↑/↓`, confirm to clear a slot (it stays `— empty`, the numbering never shifts) |
+| `g` | open the **genre chooser** (favorites grouped by genre) |
+| `e` | **edit mode** (favorites / genre menus): `s` selects a station to move (light-blue) then `Enter` lands it pushing the rest down; `d` deletes the slot under `▶` (confirm, stays `— empty`, numbering never shifts) |
 | `k` | open the knowledge base |
 | **Full keyboard & menus**: **[KB.md](KB.md)** |
 

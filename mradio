@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.80"
+VERSION = "0.7.81"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -587,8 +587,10 @@ def upsert_favorite(favs, url, name):
         if is_empty_slot(x):
             favs[i] = ent
             return favs, True
-    favs.append(ent)
-    return favs, True
+    if len(favs) < MAX_FAV:
+        favs.append(ent)
+        return favs, True
+    return favs, False
 
 
 def delete_favorite(favs, url):
@@ -614,13 +616,45 @@ def is_empty_slot(e):
     return e is None
 
 
+def move_favorite(favs, src, dst):
+    """Move the favorite at slot `src` into slot `dst`, pushing everything
+    from `dst` down by one. The picked landing slot takes the moved station
+    and the rest slide down: e.g. [A, @, C] move src=2 (C) to dst=0 (A)
+    yields [C, A, @]. Returns the new 16-slot padded list."""
+    favs = list(favs or [])
+    if src < 0 or src >= len(favs) or is_empty_slot(favs[src]):
+        return favs
+    ent = favs.pop(src)
+    if dst < 0:
+        dst = 0
+    if dst > len(favs):
+        dst = len(favs)
+    favs.insert(dst, ent)
+    favs = (favs + [None] * MAX_FAV)[:MAX_FAV]
+    return favs
+
+
+MAX_FAV = 16  # total quick-pick slots; slot #10 is the one still called "0"
+
+
 def fav_index(ch):
-    """Map a digit key ('1'-'9' or '0') to a favorites index; 0 = #10."""
+    """Map a digit key ('1'-'9' or '0') to a favorites index; 0 = #10.
+    Slots 11-16 (`i >= 10`) are reachable only via the arrow keys."""
     if ord("1") <= ch <= ord("9"):
         return ch - ord("1")
     if ch == ord("0"):
         return 9
     return None
+
+
+def slot_tag(i):
+    """Label for favorites slot `i` (0-based). ''1'-'9' are 1-9, slot #10 is
+    shown as '0', and slots 11-16 keep their full number."""
+    if i < 9:
+        return str(i + 1)
+    if i == 9:
+        return "0"
+    return str(i + 1)
 
 
 def _follow_esc(std):
@@ -815,19 +849,21 @@ def load_favorites():
         lst = None
     except Exception:
         log(f"favorites read FAIL (invalid {STATIONS_FILE})", "WARN")
-        return list(DEFAULT_STATIONS)[:10]
+        return list(DEFAULT_STATIONS)[:MAX_FAV]
     if isinstance(lst, list):
-        return norm(lst)
+        out = norm(lst)
+        out.extend([None] * (MAX_FAV - len(out)))
+        return out[:MAX_FAV]
     try:
         cfg_lst = load_cfg().get("stations")
         if isinstance(cfg_lst, list) and cfg_lst:
-            out = norm(cfg_lst)[:10]
+            out = norm(cfg_lst)[:MAX_FAV]
             if out:
                 save_favorites(out)
                 return out
     except Exception:
         pass
-    out = list(DEFAULT_STATIONS)[:10]
+    out = list(DEFAULT_STATIONS)[:MAX_FAV]
     if not save_favorites(out):
         log("favorites seed FAIL (wrote nothing)", "WARN")
     return out
@@ -902,12 +938,14 @@ def init_colors(theme="dark"):
             curses.init_pair(n, *_SCHEME_PAL_256[theme][n])
         curses.init_pair(11, 235, 252)  # input field: dark fg on light grey bg
         curses.init_pair(12, 0, 196)  # MUTE badge: black on red
+        curses.init_pair(13, 0, 81)  # marked (selected-to-move) station: black on light blue
     else:
         pal = _SCHEME_PAL_ANSI[theme]
         for n in range(1, 11):
             curses.init_pair(n, pal[n], CHIP_BG.get(n, -1))
         curses.init_pair(11, -1, curses.COLOR_WHITE)
         curses.init_pair(12, curses.COLOR_BLACK, curses.COLOR_RED)
+        curses.init_pair(13, curses.COLOR_BLACK, curses.COLOR_CYAN)
 
 
 def ai_configured():
@@ -1904,7 +1942,7 @@ def render(std, elapsed, s):
             if msg:
                 mid = f" {msg}"
             else:
-                mid = (f" f:favorites   s:genres   k:kb   v:check" +
+                mid = (f" f:favorites   g:genres   k:kb   v:check" +
                        last_hint(s) + "   i:input" +
                        ("   u:page   U:apply" if s.get("update_url") else ""))
             add(std, h - 2, 1, mid[:lw], 5)
@@ -1971,7 +2009,7 @@ def render(std, elapsed, s):
         if msg:
             mid = f" {msg}"
         else:
-            mid = (f" f:favorites   s:genres   k:kb   v:check" +
+            mid = (f" f:favorites   g:genres   k:kb   v:check" +
                    last_hint(s) + "   i:input" +
                    ("" if s.get("update_pending")
                     else ("   u:page   U:apply" if s.get("update_url") else "")))
@@ -2008,12 +2046,14 @@ def back_target(menu, playing):
     return None if playing else "QUIT"
 
 
-def render_menu(std, s, mode, cur, del_mode=False):
+def render_menu(std, s, mode, cur, edit=False, mark=-1):
     """Draw a station menu. Modes:
     `genres`  — pick a genre (Classical/Jazz/Blues/Country/Rock/Pop/Focus/Chill/Other);
     `genre`   — a genre's favorite stations (numbered);
-    `fav`     — your full favorites list (1-9, 0).
-    `del_mode` highlights scanning/listening for a delete target."""
+    `fav`     — your full favorites list (1-9, 0, 11-16).
+    `edit`    — edit mode: `s` marks the source slot to move, `d` deletes the
+    slot under the triangle. `mark` is the currently marked source slot (-1
+    if none), drawn with a light-blue background."""
     std.erase()
     h, w = std.getmaxyx()
     badge = " ● RADIO "
@@ -2048,11 +2088,11 @@ def render_menu(std, s, mode, cur, del_mode=False):
         x += len(" my stations ")
         add(std, 0, x, " ▸ SELECT ", 8)
         x += 10
-        hint = f" pick a number — {len(sts)} favorite(s)"
+        hint = f" pick a number — {sum(1 for e in sts if not is_empty_slot(e))} favorite(s)"
 
-    if del_mode and mode in ("fav", "genre"):
-        add(std, 0, x, " DELETE MODE ", 12, curses.A_BOLD)
-        x += len(" DELETE MODE ")
+    if edit and mode in ("fav", "genre"):
+        add(std, 0, x, " EDIT ", 12, curses.A_BOLD)
+        x += len(" EDIT ")
 
     add(std, 0, x, f" {s.get('theme') or 'dark'} (p)", 1)
 
@@ -2074,23 +2114,40 @@ def render_menu(std, s, mode, cur, del_mode=False):
                    else f"{GENRE_LABELS.get(s.get('genre') or 'other', 'Stations')} favorites")
         add(std, y, 1, heading, 1, curses.A_BOLD)
         y += 1
+        lwide = max(8, w - 2)
         for i, ent in enumerate(sts or []):
-            if i >= 10:
+            if i >= MAX_FAV:
                 break
             if y >= h - 2:
                 break
+            marked = (edit and mark == i)
+            if marked:
+                tri = "▶ " if i == cur else "  "
+                tag = slot_tag(i)
+                if is_empty_slot(ent):
+                    body = tri + tag + " — empty"
+                else:
+                    nm = (ent.get("name") or "?").strip()
+                    host = (ent.get("url") or "").split("/")[2] if "/" in \
+                        (ent.get("url") or "") else ""
+                    body = tri + tag + " " + nm + "   " + host
+                pad = " " * max(0, lwide - len(body))
+                add(std, y, 1, (body + pad)[:max(1, lwide)], 13)
+                y += 1
+                continue
             if i == cur:
                 add(std, y, 1, "▶", 2, curses.A_BOLD)
-            tag = f"{i + 1}" if i < 9 else "0"
+            tag = slot_tag(i)
             add(std, y, 4, tag, 1)
             if is_empty_slot(ent):
-                add(std, y, 8, "— empty (press d to fill)"[:max(1, w - 26)], 5)
+                add(std, y, 8, "— empty"[:max(1, w - 26)], 5)
                 y += 1
                 continue
             name = (ent.get("name") or "?").strip()
             nlim = max(1, w - 26)
             add(std, y, 8, name[:nlim], 6)
-            host = (ent.get("url") or "").split("/")[2]
+            host = (ent.get("url") or "").split("/")[2] if "/" in \
+                (ent.get("url") or "") else ""
             sx = 8 + min(len(name), nlim) + 2
             if sx < w - 4:
                 add(std, y, sx, host[:w - sx - 1], 5)
@@ -2110,20 +2167,32 @@ def render_menu(std, s, mode, cur, del_mode=False):
             msg = check_msg(s)
             if msg:
                 add(std, h - 3, 1, f" {msg}"[:lw], 3)
-            elif del_mode and mode in ("fav", "genre"):
-                add(std, h - 3, 1,
-                    " delete mode — pick a slot, then confirm"[:lw], 3)
+            elif edit and mode in ("fav", "genre"):
+                if mode == "fav" and mark >= 0 and mark < len(sts):
+                    msgtxt = (" move from slot {}. arrows/numbers: landing, "
+                              "Enter: move".format(mark + 1))
+                elif mode == "fav":
+                    msgtxt = (" edit — ▶ + s:select = grab to move, "
+                              "d:delete = remove")
+                else:
+                    msgtxt = " edit — d:delete removes the slot under ▶"
+                add(std, h - 3, 1, (" " + msgtxt)[:lw], 3)
             elif mode == "fav":
                 add(std, h - 3, 1,
                     (" 1-9,0:pick  ↑/↓  " + " " + hint.strip())[:lw], 3)
             else:
                 add(std, h - 3, 1, f" {hint}"[:lw], 3)
-        if del_mode and mode in ("fav", "genre"):
-            add(std, h - 2, 1, "Y/del:delete  n/q/ESC:back"[:lw], 5)
+        if edit and mode in ("fav", "genre"):
+            sel = "s:select  " if mode == "fav" else ""
+            house = (sel + "d:delete  g:genres  f:fav  v:check" +
+                     last_hint(s) + "   i:input")
+            if s.get("update_url") and not s.get("update_pending"):
+                house += "  u:page  U:apply"
+            add(std, h - 2, 1, house[:lw], 5)
         else:
             house = ({
-                "fav": "s:genres  f:fav  v:check  d:delete",
-                "genre": "Enter:pick  ↑/↓:move  s:genres  f:fav  v:check  d:delete",
+                "fav": "e:edit  g:genres  f:fav  v:check",
+                "genre": "Enter:pick  ↑/↓:move  e:edit  g:genres  f:fav  v:check",
                 "genres": "Enter:pick  ↑/↓:move  f:fav  v:check",
             }.get(mode, "") + last_hint(s) + "   i:input")
             if s.get("update_url") and not s.get("update_pending"):
@@ -2133,8 +2202,10 @@ def render_menu(std, s, mode, cur, del_mode=False):
         nav = chip
         if mode == "genres":
             nav += "   Enter:pick"
-        elif del_mode and mode in ("fav", "genre"):
-            nav = "n/q/ESC:back   Enter:delete"
+        elif edit and mode in ("fav", "genre"):
+            act = " Enter:move" if mark >= 0 and not is_empty_slot(
+                sts[mark]) else " Enter:play"
+            nav += act
         elif mode in ("fav", "genre"):
             nav += "   Enter:play"
         if top and s.get("update_pending"):
@@ -2299,7 +2370,8 @@ def main():
             f"({VERSION}, menu={menu}, last_url={'yes' if state['last_url'] else 'no'}, "
             f"provider={state['ai_provider'] or 'none'})")
 
-        del_mode = False
+        edit = False
+        mark = -1
 
         while True:
             t = time.time()
@@ -2320,46 +2392,66 @@ def main():
                 else:  # fav
                     lst = state["fav_stations"] or []
                     cur_st = min(cur_st, max(0, len(lst) - 1))
-                render_menu(stdscr, state, menu, cur_st, del_mode)
+                render_menu(stdscr, state, menu, cur_st, edit, mark)
                 ch = stdscr.getch()
                 if ch == 27:
                     ch = _follow_esc(stdscr)
                 if ch == curses.KEY_RESIZE:
                     continue
                 if ch in (ord("q"), 27):
-                    if del_mode and menu in ("fav", "genre"):
-                        del_mode = False
+                    if edit and menu in ("fav", "genre"):
+                        edit = False
+                        mark = -1
                         continue
                     target = back_target(menu, proc is not None)
                     if target == "QUIT":
                         break
                     menu = target
                     cur_st = 0
-                elif ch == ord("d") and menu in ("fav", "genre"):
-                    del_mode = not del_mode
-                elif del_mode and menu in ("fav", "genre"):
+                    mark = -1
+                elif ch == ord("e") and menu in ("fav", "genre"):
+                    edit = not edit
+                    mark = -1
+                elif edit and menu in ("fav", "genre"):
                     if ch in (curses.KEY_DOWN, ord("j")) and cur_st < len(lst) - 1:
                         cur_st += 1
                     elif ch in (curses.KEY_UP, ord("k")) and cur_st > 0:
                         cur_st -= 1
-                    elif len(lst):
+                    else:
                         idx = fav_index(ch)
                         if idx is not None and idx < len(lst):
                             cur_st = idx
                         elif ch in (10, 13, curses.KEY_ENTER):
-                            idx = cur_st
-                        else:
-                            idx = None
-                        if idx is not None and idx < len(lst):
-                            ent = lst[idx]
+                            if menu == "fav" and mark >= 0 and \
+                                    not is_empty_slot(lst[mark]):
+                                favs = move_favorite(
+                                    state["fav_stations"] or [], mark, cur_st)
+                                if save_favorites(favs):
+                                    state["fav_stations"] = favs
+                                    log(f"moved favorite slot {mark + 1} "
+                                        f"→ {cur_st + 1}")
+                                mark = -1
+                                lst = state["fav_stations"] or []
+                                cur_st = min(cur_st, max(0, len(lst) - 1))
+                            elif not is_empty_slot(lst[cur_st]):
+                                switch_stream(lst[cur_st])
+                                edit = False
+                                mark = -1
+                                menu = None
+                        elif ch == ord("s") and menu == "fav" and \
+                                not is_empty_slot(lst[cur_st]):
+                            mark = cur_st
+                        elif ch == ord("d"):
+                            ent = lst[cur_st]
                             if not is_empty_slot(ent):
                                 u = str(ent.get("url") or "").strip()
-                                if u and confirm_delete(stdscr, idx + 1, ent):
+                                if u and confirm_delete(stdscr, cur_st + 1, ent):
                                     favs, _rem = delete_favorite(
                                         state["fav_stations"] or [], u)
                                     if save_favorites(favs):
                                         state["fav_stations"] = favs
-                                        log(f"deleted favorite slot {idx + 1}: {u}")
+                                        log(f"deleted favorite slot {cur_st + 1}: {u}")
+                                mark = -1
                             lst = (state["fav_stations"] or []) if menu == "fav" \
                                 else genre_stations_for(
                                     state["fav_stations"] or [],
@@ -2370,7 +2462,7 @@ def main():
                         show_favorites()
                         cur_st = 0
                     menu = "fav"
-                elif ch == ord("s") and menu != "genres":
+                elif ch == ord("g") and menu != "genres":
                     menu = "genres"
                     cur_st = 0
                 elif ch == ord("p"):
@@ -2531,7 +2623,7 @@ def main():
                 add_url_stream(stdscr)
             elif ch in (ord("k"), ord("K")):
                 subprocess.Popen(["open", KB_URL])
-            elif ch == ord("s"):
+            elif ch == ord("g"):
                 menu = "genres"
                 cur_st = 0
             elif ch == ord("f"):
