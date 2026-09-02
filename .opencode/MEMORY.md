@@ -112,6 +112,8 @@ the project's CURRENT state.
   change** (see the DOCS rule above). `CHANGELOG.md` = release history.
   `screenshots/` = REAL captures of the running app (not mocks — the mock
   renderer was deleted so nothing overwrites them).
+  ⏳ **PENDING (remind weekly/at each work batch):** user will supply NEW
+  screenshots to replace the current ones — keep nagging until they arrive.
 - **Update flow:** `update_watcher()` daemon thread checks at every startup
   (one immediate ETag check, then hourly). `U` self-updates in place; user
   prefers to run `U` themselves — never run `install.sh` for them unless asked.
