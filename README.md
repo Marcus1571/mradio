@@ -43,8 +43,9 @@ Every valve lives in the machine room: **[KB.md](KB.md) (the long read)**.
 ## In the wild
 
 <p align="center">
+  <img src="screenshots/player.png" alt="mradio player" width="420">
   <img src="screenshots/favorites.png" alt="favorites menu" width="420">
-  <img src="screenshots/player.png" alt="player screen" width="420">
+  <img src="screenshots/genres.png" alt="genre chooser" width="420">
 </p>
 
 `f` drops your favorites — one press tunes in. `g` opens a genre chooser
