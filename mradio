@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.85"
+VERSION = "0.7.86"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -235,6 +235,26 @@ DEFAULT_STATIONS = [
      "url": "http://mediaserv33.live-streams.nl:8036/live", "genre": "chill"},
     {"name": "Costa del Mar - Zen",
      "url": "http://stream.cdm-zen.com:8004/stream-mp3-Zen", "genre": "chill"},
+    {"name": "Amsterdam Funk Channel",
+     "url": "https://live.afc.fm", "genre": "funk"},
+    {"name": "Funky Radio Classic Funk",
+     "url": "http://funkyradio.streamingmedia.it:8001/play.mp3", "genre": "funk"},
+    {"name": "Radio Meuh",
+     "url": "http://radiomeuh.ice.infomaniak.ch/radiomeuh-128.mp3", "genre": "funk"},
+    {"name": "Capital Jazz Radio",
+     "url": "http://stream.radio.co/s7c1ea5960/listen", "genre": "funk"},
+    {"name": "Funk the Planet",
+     "url": "https://streaming.live365.com/a01484", "genre": "funk"},
+    {"name": "DanceGroove Radio",
+     "url": "http://s13.streamingcloud.online:34128", "genre": "funk"},
+    {"name": "Funk42 Radio",
+     "url": "http://213.133.97.249:8843/stream", "genre": "funk"},
+    {"name": "Funkstar Radio",
+     "url": "https://funkstar.radioca.st/stream", "genre": "funk"},
+    {"name": "Ministry of Soul",
+     "url": "https://soul.stream.laut.fm/soul", "genre": "funk"},
+    {"name": "Funky Radio Disco Funk",
+     "url": "https://funky.radio/discofunk_modernsoul_boogie/", "genre": "funk"},
 ]
 SETTINGS_FILE = os.environ.get("MRADIO_SETTINGS",
                                os.path.expanduser("~/.local/share/mradio/settings.json"))
@@ -347,11 +367,11 @@ PROVIDERS = ("opencode", "ollama", "openai")
 _PROVIDER_DISPLAY = {"opencode": "opencode", "ollama": "ollama", "openai": "NIM"}
 
 GENRES = ("classical", "jazz", "blues", "country", "rock", "pop", "focus",
-          "chill", "other")
+          "chill", "funk", "other")
 GENRE_LABELS = {"classical": "Classical", "jazz": "Jazz",
                 "blues": "Blues", "country": "Country", "rock": "Rock",
                 "pop": "Pop", "focus": "Focus", "chill": "Chill",
-                "other": "Other"}
+                "funk": "Funk", "other": "Other"}
 _GENRE_KEYWORDS = {
     "blues": ("blues",),
     "jazz": ("jazz", "swing", "bigband", "big band"),
@@ -365,6 +385,8 @@ _GENRE_KEYWORDS = {
     "focus": ("focus", "meditation", "meditat", "relax", "new age", "newage",
               "yoga", "zen", "ambient", "drone", "instrumental"),
     "chill": ("chill", "chillout", "lounge", "downtempo", "del mar"),
+    "funk": ("funk", "funky", "groove", "grooves", "boogie", "soul", "r&b",
+             "rnb", "rhythm and blues", "disco funk", "jazz funk"),
 }
 
 
@@ -372,7 +394,7 @@ def genre_of(name):
     """Best-effort genre for a station by its name; 'other' when unknown."""
     n = (name or "").lower()
     for genre in ("blues", "jazz", "country", "rock", "pop", "focus", "chill",
-                  "classical"):
+                  "funk", "classical"):
         for kw in _GENRE_KEYWORDS[genre]:
             if kw in n:
                 return genre
@@ -400,7 +422,7 @@ def genre_stations_for(fav_stations, genre):
             if not is_empty_slot(e)
             and (e.get("genre") or "other") == genre]
     if genre not in ("classical", "jazz", "blues", "country", "rock", "pop",
-                     "focus", "chill"):
+                     "focus", "chill", "funk"):
         return favs
     seen = set()
     out = []

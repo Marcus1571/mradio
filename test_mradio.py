@@ -798,6 +798,12 @@ class TestGenres(unittest.TestCase):
                   "Lounge Radio", "Costa del Mar"):
             self.assertEqual(_mradio.genre_of(n), "chill")
 
+    def test_genre_of_funk(self):
+        for n in ("Funk Radio", "Funky Groove", "Boogie Night",
+                  "Soul Station", "R&B Radio", "Disco Funk",
+                  "Groove Machine", "Funky Town"):
+            self.assertEqual(_mradio.genre_of(n), "funk")
+
     def test_genre_of_other(self):
         self.assertEqual(_mradio.genre_of("Radio Paradise"), "other")
         self.assertEqual(_mradio.genre_of(""), "other")
@@ -880,6 +886,7 @@ class TestGenres(unittest.TestCase):
         self.assertGreaterEqual(counts["pop"], 10)
         self.assertGreaterEqual(counts["focus"], 10)
         self.assertGreaterEqual(counts["chill"], 10)
+        self.assertGreaterEqual(counts["funk"], 10)
 
     def test_genre_stations_for_rock_aggregates_curated(self):
         sts = _mradio.genre_stations_for([], "rock")
@@ -928,13 +935,25 @@ class TestGenres(unittest.TestCase):
                             f"{curated!r} missing")
         self.assertEqual(len(names), 10)
 
+    def test_genre_stations_for_funk_aggregates_curated(self):
+        sts = _mradio.genre_stations_for([], "funk")
+        names = [e["name"] for e in sts]
+        expected = ("Amsterdam Funk Channel", "Funky Radio Classic Funk",
+                    "Radio Meuh", "Capital Jazz Radio", "Funk the Planet",
+                    "DanceGroove Radio", "Funk42 Radio", "Funkstar Radio",
+                    "Ministry of Soul", "Funky Radio Disco Funk")
+        for curated in expected:
+            self.assertTrue(any(curated in n for n in names),
+                            f"{curated!r} missing")
+        self.assertEqual(len(names), 10)
+
     def test_genre_entries_order_country_fourth_other_last(self):
         favs = [{"name": "Radio Paradise", "url": "u://rp", "genre": "other"}]
         entries = _mradio.genre_entries({"fav_stations": favs})
         genres = [g for g, _l, _c in entries]
-        self.assertEqual(genres[:8],
+        self.assertEqual(genres[:9],
                          ["classical", "jazz", "blues", "country", "rock",
-                          "pop", "focus", "chill"])
+                          "pop", "focus", "chill", "funk"])
         self.assertEqual(genres[-1], "other")
 
     def test_genre_menu_renders_country_4_and_other_0(self):
@@ -956,7 +975,8 @@ class TestGenres(unittest.TestCase):
         self.assertEqual(drawn[8], "6")
         self.assertEqual(drawn[9], "7")
         self.assertEqual(drawn[10], "8")
-        self.assertEqual(drawn[11], "0")
+        self.assertEqual(drawn[11], "9")
+        self.assertEqual(drawn[12], "0")
 
     def test_load_favorites_backfills_genre_on_legacy_entries(self):
         import tempfile

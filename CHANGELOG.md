@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.86] - 2026-09-03
+
+### Added
+
+- **New Funk genre (category 9).** The genre chooser (`g`) now lists **Funk**
+  as a 9th curated genre (key `9`, before Other which stays as `0`), with 10
+  hand-picked stations from around the world: Amsterdam Funk Channel (NL),
+  Funky Radio Classic Funk (IT), Radio Meuh (FR), Capital Jazz Radio (US),
+  Funk the Planet (US), DanceGroove Radio, Funk42 Radio (NL), Funkstar Radio
+  (CZ), Ministry of Soul (DE), and Funky Radio Disco Funk (IT). `funk`
+  auto-classification keywords added (funk/funky/groove/boogie/soul/r&b/rnb/
+  disco funk/jazz funk). Genre menu now shows 9 genres + Other. Tests → **108**.
+
 ## [0.7.85] - 2026-09-02
 
 ### Added
