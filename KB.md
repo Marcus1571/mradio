@@ -286,7 +286,7 @@ Top to bottom, on the player screen:
   — kbps · 44.1 kHz · mp3 · cache 0.8s · stream 00:45  ← format/stream line
   vol ████████████...  100%                       ← volume meter + value
 
-  AI: 1=opencode  2=ollama  3=NIM  now:opencode  press to re-request  z:expand
+  AI: 1=opencode  2=NIM  3=ollama  now:opencode  press to re-request  z:expand
   f:favorites   s:all   v:check                                     UPDATE
   q:quit  space:pause  ← -/+ →:volume  m:mute  r:reconnect         v0.7.51
 └ three-row footer: AI line / stations+update row / transport keys;
@@ -335,7 +335,7 @@ Top to bottom, on the player screen:
 | `o` / `O`   | open the **verified** Wikipedia article in your browser (only when one exists) |
 | `z` / `Z`   | expand/collapse the full trivia note (fills the screen); no note = toggles detail view |
 | `p` / `P`   | rotate color theme (`p`); choice is remembered in `config.json` |
-| `1` `2` `3` | pick AI provider: 1=opencode, 2=ollama, 3=NIM. Saves the choice **and** re-requests the current track immediately — even if a cached note exists |
+| `1` `2` `3` | pick AI provider: 1=opencode, 2=NIM, 3=ollama. Saves the choice **and** re-requests the current track immediately — even if a cached note exists |
 | `v`         | force a version check now; result flashes in the footer's mid row (works with or without AI configured) |
 | `k` / `K`   | open the project knowledge base (KB.md) in your browser — this is the manual you're reading |
 | `u`         | when an update is available: open the release page |
