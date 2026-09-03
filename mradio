@@ -363,7 +363,7 @@ STATIONS_FILE = os.environ.get("MRADIO_STATIONS",
                                os.path.expanduser("~/.local/share/mradio/stations.json"))
 OC_PID = os.environ.get("MRADIO_OC_PID",
                         os.path.expanduser("~/.local/share/mradio/opencode.pid"))
-PROVIDERS = ("opencode", "ollama", "openai")
+PROVIDERS = ("opencode", "openai", "ollama")
 _PROVIDER_DISPLAY = {"opencode": "opencode", "ollama": "ollama", "openai": "NIM"}
 
 GENRES = ("classical", "jazz", "blues", "country", "rock", "pop", "focus",
@@ -2014,7 +2014,7 @@ def render(std, elapsed, s):
                 hint = "c:change Ollama URL"
             else:
                 hint = "press to re-request"
-            line = (f" AI: 1=opencode  2=ollama  3=NIM   "
+            line = (f" AI: 1=opencode  2=NIM  3=ollama   "
                     f"now:{_PROVIDER_DISPLAY.get(prov, '')}   {hint}   z:collapse")
             msg = check_msg(s)
             if msg:
@@ -2106,7 +2106,7 @@ def render(std, elapsed, s):
             hint = "c:change Ollama URL"
         else:
             hint = "press to re-request"
-        line = (f" AI: 1=opencode  2=ollama  3=NIM   now:{_PROVIDER_DISPLAY.get(prov, '')}   "
+        line = (f" AI: 1=opencode  2=NIM  3=ollama   now:{_PROVIDER_DISPLAY.get(prov, '')}   "
                 f"{hint}   z:expand")
         msg = check_msg(s)
         if msg:
@@ -2725,7 +2725,7 @@ def main():
                 mpc = Mpc(SOCK)
                 apply_volume(mpc)
             elif ch in (ord("1"), ord("2"), ord("3")):
-                names = {ord("1"): "opencode", ord("2"): "ollama", ord("3"): "openai"}
+                names = {ord("1"): "opencode", ord("2"): "openai", ord("3"): "ollama"}
                 name = names[ch]
                 if name == "openai" and not API_KEY:
                     key = prompt_api_key(stdscr)
