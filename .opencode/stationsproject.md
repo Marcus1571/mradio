@@ -70,6 +70,25 @@ does not add stations on its own initiative.
   The genre picker order is now 1 Classical, 2 Jazz, 3 Blues, 4 Country,
   5 Rock, 6 Pop, 7 Focus, 8 Chill, and **Other is the literal `0` slot**
   (last). Focus/Chill aggregate curated + favorites like the others;
+  **0.7.86** adds **Funk (category 9)** with **10 curated stations** — the
+  user "as usual curate the best 10 stations worldwide" request: **Amsterdam
+  Funk Channel** (NL, 80s/90s+ pure funky grooves, 256k AAC — `https://live.afc.fm`),
+  **Funky Radio Classic Funk** (IT, 1963–1982 classics/vinyl rarities, 128k MP3 —
+  `http://funkyradio.streamingmedia.it:8001/play.mp3`), **Radio Meuh** (FR,
+  Funk/Jazz/Soul/Electro, 128k MP3 — `http://radiomeuh.ice.infomaniak.ch/radiomeuh-128.mp3`),
+  **Capital Jazz Radio** (US, groove jazz/instrumental funk, 128k MP3 —
+  `http://stream.radio.co/s7c1ea5960/listen`), **Funk the Planet** (US,
+  classic funk + rare groove + jazz-funk, 128k MP3 —
+  `https://streaming.live365.com/a01484`), **DanceGroove Radio** (80s
+  funk/soul/boogie, 128k MP3 — `http://s13.streamingcloud.online:34128`),
+  **Funk42 Radio** (NL, funk/soul/disco/house, 320k — `http://213.133.97.249:8843/stream`),
+  **Funkstar Radio** (CZ, funk/soul/boogie/disco/jazz funk/R&B, 192k MP3 —
+  `https://funkstar.radioca.st/stream`), **Ministry of Soul** (DE, laut.fm
+  soul/funk/disco/jazz/R&B, 128k MP3 — `https://soul.stream.laut.fm/soul`),
+  **Funky Radio Disco Funk** (IT, disco funk/modern soul/boogie rarities,
+  128k MP3 — `https://funky.radio/discofunk_modernsoul_boogie/`). `funk`
+  auto-classification keywords added (funk/funky/groove/boogie/soul/r&b/rnb/
+  disco funk/jazz funk); genre picker now shows 1–9 + Other as `0`.
   **0.7.69** added **Rock (5)** & **Pop (6)** with 10 each:
   Rock — Radio Caroline, Virgin Classic Rock (IT), Rock Antenne, Arrow Classic
   Rock (NL), 1.FM Classic Rock Replay, SomaFM Left Coast 70s, Radio ROKS
@@ -94,8 +113,8 @@ does not add stations on its own initiative.
   Secret Agent) / 3 Blues from **0.7.65**. All new entries live-verified via
   mpv (audio, bitrate, icy-title); higher bitrate + popular/reviewed picks win.
   Surfaced in the **`s` genre submenus** for Classical/Jazz/Blues/Country/
-  Rock/Pop/Focus/Chill (de-duplicated against favorites; the favorites file is
-  untouched). Your favorites live in `~/.local/share/mradio/stations.json`
+  Rock/Pop/Focus/Chill/Funk (de-duplicated against favorites; the favorites
+  file is untouched). Your favorites live in `~/.local/share/mradio/stations.json`
   (key `"favorites"`, opened by `f`), seeded once from the first 10 of
   `DEFAULT_STATIONS` on first run; afterwards the file is entirely the user's
   (releases never touch it). The old `S01…Snn` all-stations catalog and the `a`

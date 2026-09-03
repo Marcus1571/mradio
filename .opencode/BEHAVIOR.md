@@ -52,8 +52,10 @@ a bare tag is NOT a release.
 - The user personally approves every station; the assistant NEVER adds
   stations on its own initiative (`stationsproject.md` holds the list).
 - `stations.json` (favorites) is the user's file — releases never touch it.
-- Update flow: the user prefers to update themselves with `U`; never run
-  `install.sh` unless asked.
+- **Update flow (non-negotiable):** the user updates locally with the in-app
+  `U` self-update. Never run `install.sh` — and never install/update the local
+  binary on your own — unless the user explicitly asks. After cutting a
+  release, just commit & push; leave the local install to the user's `U`.
 
 ## 6. Verification limits
 
