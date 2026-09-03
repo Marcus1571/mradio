@@ -1191,6 +1191,38 @@ class TestGenres(unittest.TestCase):
         self.assertFalse(_mradio.vol_key(m, ord("a")))
         self.assertFalse(_mradio.vol_key(m, 0))
 
+    def test_apply_volume_uses_latest_persisted_volume_not_stale(self):
+        import tempfile
+        # Regression: a volume changed mid-session (persisted by vol_key) must
+        # survive a station switch. apply_volume reads config fresh, so a value
+        # captured at startup is never re-applied over a newer one.
+        class M:
+            def __init__(self):
+                self.set = {}
+            def cmd(self, c, *a):
+                if c == "set_property":
+                    self.set[a[0]] = a[1]
+                return None
+            def get(self, k):
+                return self.set.get(k)
+        saved_cfg = _mradio.CFG_FILE
+        with tempfile.TemporaryDirectory() as td:
+            _mradio.CFG_FILE = os.path.join(td, "config.json")
+            try:
+                _mradio.persist_cfg(volume=35)
+                m = M()
+                # first apply uses 35
+                _mradio.apply_volume(m)
+                self.assertEqual(m.set["volume"], 35.0)
+                # user raises volume mid-session -> persisted to 55
+                _mradio.persist_cfg(volume=55)
+                # a fresh mpv (e.g. next station) must get 55, not the stale 35
+                m2 = M()
+                _mradio.apply_volume(m2)
+                self.assertEqual(m2.set["volume"], 55.0)
+            finally:
+                _mradio.CFG_FILE = saved_cfg
+
     def test_add_fav_msg_fills_next_free_slot(self):
         saved = _mradio.save_favorites
         logged = _mradio.log

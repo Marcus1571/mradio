@@ -30,8 +30,8 @@ Reference docs live in their canonical homes and are **not** duplicated here:
 
 ## Current state
 
-- **Latest version / release:** `0.7.86` (in-code `VERSION`, GitHub Release
-  `v0.7.86` marked `Latest`, assets `mradio` + `install.sh`). `main` kept in
+- **Latest version / release:** `0.7.87` (in-code `VERSION`, GitHub Release
+  `v0.7.87` marked `Latest`, assets `mradio` + `install.sh`). `main` kept in
   sync with every release.
 - **Palettes:** `p` rotates `dark` → `light` → `light-navy` → `light-mauve`
   (256-color Catppuccin-inspired, ANSI fallback; pair 5 = muted subtext).

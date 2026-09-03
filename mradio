@@ -27,7 +27,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 
-VERSION = "0.7.86"
+VERSION = "0.7.87"
 
 UPDATE_REPO = os.environ.get("MRADIO_REPO", "Marcus1571/mradio")
 UPDATE_URL = os.environ.get("MRADIO_UPDATE_URL", "") or \
@@ -1370,12 +1370,18 @@ def make_state():
             "last_url": "", "last_name": ""}
 
 
-def apply_volume(mpc, vol, muted=None):
+def apply_volume(mpc, vol=None, muted=None):
     """Push the saved volume (and the saved muted state) into a fresh mpv.
 
     mpv starts every new process unmuted and with its default volume, so this
     must be called after every launch / reconnect / station switch — otherwise
-    a mute is silently lost the moment mpv restarts."""
+    a mute is silently lost the moment mpv restarts.
+
+    The current volume (and mute) are read fresh from config so the latest
+    value wins — never pass a value cached at startup, or an in-session volume
+    change is reverted on the next station switch."""
+    if vol is None:
+        vol = load_cfg().get("volume")
     if vol is None:
         return
     if muted is None:
@@ -2357,7 +2363,6 @@ def main():
     enrich = None
     try:
         mpc = Mpc(SOCK)
-        saved_vol = load_cfg().get("volume")
         state = make_state()
         stations = load_favorites()
         state["fav_stations"] = stations
@@ -2404,7 +2409,7 @@ def main():
                 time.sleep(0.2)
             proc = launch_mpv(url)
             mpc = Mpc(SOCK)
-            apply_volume(mpc, saved_vol)
+            apply_volume(mpc)
 
         if menu is None:
             state["station"] = ovr_name or url.split("/")[2]
@@ -2413,7 +2418,7 @@ def main():
             state["last_name"] = state["station"]
             save_last_station(url, state["station"])
             proc = launch_mpv(url)
-            apply_volume(mpc, saved_vol)
+            apply_volume(mpc)
 
         def show_favorites():
             nonlocal cur_st
@@ -2617,7 +2622,7 @@ def main():
             if proc.poll() is not None:
                 proc = launch_mpv(url)
                 mpc = Mpc(SOCK)
-                apply_volume(mpc, saved_vol)
+                apply_volume(mpc)
             if not state["station_resolved"]:
                 icy = mpc.get("metadata/by-key/icy-name")
                 if icy:
@@ -2718,7 +2723,7 @@ def main():
                 time.sleep(0.2)
                 proc = launch_mpv(url)
                 mpc = Mpc(SOCK)
-                apply_volume(mpc, saved_vol)
+                apply_volume(mpc)
             elif ch in (ord("1"), ord("2"), ord("3")):
                 names = {ord("1"): "opencode", ord("2"): "ollama", ord("3"): "openai"}
                 name = names[ch]

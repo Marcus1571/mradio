@@ -814,7 +814,9 @@ Everything lives self-contained in `~/.local/share/mradio/`:
 
 - `provider` — last AI provider picked with `1/2/3`.
 - `theme` — last palette (`p`).
-- `volume` — last volume (`+/−`, remembered so restart matches your ear).
+- `volume` — last volume (`+/−`, remembered **and re-applied** on every
+  launch, reconnect and station switch, read fresh from config each time so an
+  in-session change is never reverted).
 - `mute` — last muted state (`m`, remembered **and re-applied**: mpv resets
   mute each time it restarts, so mradio re-pushes it on every launch,
   reconnect and station switch — a mute can no longer silently disappear).

@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.87] - 2026-09-03
+
+### Fixed
+
+- **Volume no longer resets on station change.** Previously the volume was read
+  from config **once** at startup and that stale value was re-applied on every
+  station switch / reconnect / `r`, so a volume you changed mid-session (e.g.
+  35% → 55%) got clobbered back to the old value (35%) when you picked the next
+  station. `apply_volume()` now reads the current volume (and mute) fresh from
+  config on every call, so the latest in-session value always wins. New
+  regression test `test_apply_volume_uses_latest_persisted_volume_not_stale`.
+  Tests → **109**.
+
 ## [0.7.86] - 2026-09-03
 
 ### Added
