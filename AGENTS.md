@@ -1,8 +1,13 @@
-# mradio — assistant behavior (permanent rules)
+# AGENTS.md — mradio
 
-> This file governs HOW I work, independent of the project's current state.
-> Read it together with `MEMORY.md` (project state) at the start of every
-> session. These rules stand unless the user explicitly overrides them.
+**Read first:** at the start of every session in this project, read `GOVERNANCE.md` and
+`USER.md` from the operator's Obsidian vault on the home server (see GOVERNANCE.md, "The two
+fixed, universal files"). They hold the operator's cross-project defaults. This file governs
+when the two disagree on a project-specific fact; cross-cutting principles (secrets
+handling, destructive-action caution) still apply here regardless.
+
+> Permanent rules for HOW to work on mradio, independent of the project's current state.
+> Read it together with `STATUS.md` (project state) at the start of every session.
 
 ## 1. Commit & push is the DEFAULT
 
@@ -18,7 +23,7 @@
 Every change that fixes a bug or adds / alters / removes a feature must, **in
 the same commit**, also:
 
-1. **Project memory** — keep `MEMORY.md` (and this file) current.
+1. **Project memory** — keep `STATUS.md` (and this file) current.
 2. **`CHANGELOG.md`** — always reflect the change (release history).
 3. **`README.md`** — update *if* a reader of the marketing page would care.
 4. **`KB.md`** — the canonical reference; update *always* when behavior
@@ -29,7 +34,7 @@ the same commit**, also:
 - **Steady warning messages live ONLY in the right-side yellow pill**.
   No "restart to update" / "new version …" steady text on the left.
   Transient flashes (`v`, `a`, updates) may use the mid row for a few seconds.
-- Favorites are **exactly 10** hot slots (`1-9` + `0`).
+- Favorites have **12** never-shifting quick-pick slots (`1-9`, `0` = #10, 11-12 via arrows; since v0.7.82).
 - The TUI is a thin remote control over mpv; steady state must stay quiet.
 
 ## 4. Release discipline (full sequence, never stop early)
@@ -50,7 +55,7 @@ a bare tag is NOT a release.
 ## 5. Stations & data
 
 - The user personally approves every station; the assistant NEVER adds
-  stations on its own initiative (`stationsproject.md` holds the list).
+  stations on its own initiative (`.opencode/stationsproject.md` holds the list).
 - `stations.json` (favorites) is the user's file — releases never touch it.
 - **Update flow (non-negotiable):** the user updates locally with the in-app
   `U` self-update. Never run `install.sh` — and never install/update the local

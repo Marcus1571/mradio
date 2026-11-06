@@ -1,10 +1,10 @@
-# MEMORY.md — Current State Snapshot
+# STATUS.md — Current State Snapshot
 
 ## Latest Version / Release
 - **In-code VERSION**: 0.7.88 (from mradio script)
-- **Latest git tag**: v0.7.87 (most recent tag; v0.7.88 pending after this commit)
+- **Latest git tag / GitHub release**: v0.7.88, published 2026-09-03 and marked Latest
 - **Latest CHANGELOG entry**: [0.7.88] - 2026-09-03
-- **Platform release status**: Tag v0.7.88 pending (to be created after this commit)
+- **Activity**: no commits since 2026-09-03 (checked 2026-11-06)
 
 ## Current Feature / Data Model
 - **Genres**: 10 curated genres (classical, jazz, blues, country, rock, pop, focus, chill, funk, other)
@@ -24,11 +24,11 @@
 - **TUI rendering**: Curses-based with dynamic layout adaptation
 
 ## Open Questions / Pending Items
-1. **Research log**: findings.md exists in project root but not yet checked for recent entries.
+1. **Older state notes**: `.opencode/MEMORY.md` (2026-09-03) still holds the architecture map, the "why mpv" rationale and key terms. Those durable parts belong in `KB.md`; merge them there, then delete the file.
 2. **Curated data compliance**: Verify that no curated stations were added by agent without user approval (per 2.5).
 
 ## Recent Meaningful Changes (from CHANGELOG)
-- **v0.7.88** (pending): 
+- **v0.7.88**: 
   - **AI provider priority**: changed fallback order to opencode → NIM → ollama (PROVIDERS tuple). Hotkeys: 1=opencode, 2=NIM, 3=ollama.
   - **Documentation**: fixed MEMORY.md to reflect correct latest tag (v0.7.87 matches code VERSION at time of write).
   - **README**: spaced out the three screenshots with individual captions for better readability.
