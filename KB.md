@@ -601,104 +601,22 @@ first that is both enabled *and* responding wins.
 | # | Provider | How to enable | Notes |
 | - | -------- | ------------- | ----- |
 | 1 | **opencode** | **auto-detected** if the `opencode` CLI is on `PATH` | richest trivia, zero-auth, slowest (20–90 s) |
-| 2 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | fastest, most private, requires local resources |
-| 3 | **NIM** | `3` in the UI → paste your NVIDIA API key | free hosted inference, no local resources |
+| 2 | **NIM** | `2` in the UI → paste your NVIDIA API key | free hosted inference, no local resources |
+| 3 | **ollama** | `MRADIO_OLLAMA=http://host:11434` | fastest, most private, requires local resources |
 
 OpenCode is the zero-config option — no API key, no account, just install and
 go. mradio auto-detects it on `PATH` and drives it headlessly.
 
-#### Install (macOS):
+### 8.3 Provider 2: NIM
 
-```sh
-brew install anomalyco/tap/opencode
-```
+NIM is NVIDIA's hosted inference service. It's free for the `minimaxai/minimax-m3`
+model and requires no local resources — just an NVIDIA account and API key.
 
-#### Install (Linux):
-
-```sh
-curl -fsSL https://opencode.ai/install | bash
-```
-
-#### Authenticate (first time only):
-
-```sh
-opencode auth
-```
-
-**Pros:** richest trivia, zero cost, no API key
-**Cons:** slowest (20–90 s per track), requires the CLI installed
-
-### 8.3 Provider 2: Ollama
+### 8.4 Provider 3: Ollama
 
 Ollama runs a local LLM server. It's the fastest and most private option —
 everything stays on your machine. You can run it locally or on a remote machine
 (including Docker).
-
-#### Install (macOS):
-
-```sh
-brew install ollama
-```
-
-#### Install (Linux):
-
-```sh
-curl -fsSL https://ollama.ai/install.sh | sh
-```
-
-#### Docker (local or remote):
-
-```sh
-docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
-```
-
-#### Pull the recommended model:
-
-```sh
-ollama pull gemma3:4b
-```
-
-This is the default model mradio uses. It's small, fast, and produces good
-trivia. Other models work too — `llama3`, `phi3`, `mistral` — but `gemma3:4b`
-is the sweet spot for quality vs speed.
-
-#### Remote Ollama:
-
-If Ollama runs on another machine (or inside Docker), point mradio to it by
-pressing **`2`** when no server is configured (or **`c`** while provider 2 is
-active) and typing the URL in the popup. The popup shows three example lines:
-
-```sh
-http://localhost:11434
-http://192.168.1.12:11434
-https://internet.accessible.server
-```
-
-The URL is saved to `settings.json` (`ollama_url`). You can also set it via
-env var:
-
-```sh
-MRADIO_OLLAMA=http://192.168.1.100:11434 mradio
-```
-
-Or in `~/.local/share/mradio/settings.json`:
-
-```json
-{ "ollama_url": "http://192.168.1.100:11434" }
-```
-
-#### GPU offload:
-
-If Ollama uses CPU instead of GPU, set
-`MRADIO_OLLAMA_NUM_GPU=999` (or `"ollama_gpu": 999` in settings.json).
-
-**Pros:** fastest, most private, no API key, runs offline
-**Cons:** requires local resources (RAM/GPU), quality depends on model size
-
-### 8.4 Provider 3: NIM (NVIDIA)
-
-NIM is NVIDIA's hosted inference service. It's free for the `minimaxai/minimax-m3`
-model and requires no local resources — just an NVIDIA account and API key.
 
 #### Sign up:
 
@@ -747,9 +665,9 @@ It also relaxes the trivia length target — short-but-true beats padded.
 - **`1` / `2` / `3`** — switch provider live. The choice is saved to
   `config.json` and the current track is **re-requested immediately, even if
   cached** (so switching AIs always shows fresh info).
-  - When **`3`** is selected with no API key, a TUI popup pastes your NVIDIA
+  - When **`2`** is selected with no API key, a TUI popup pastes your NVIDIA
     key; when the key is set the footer shows **`c:change API Key`** for 10s.
-  - When **`2`** is selected with no Ollama server, a TUI popup asks for the
+  - When **`3`** is selected with no Ollama server, a TUI popup asks for the
     server URL; when set the footer shows **`c:change Ollama URL`** for 10s.
 - **`c`** — change the current provider's credential: the NIM API key, or the
   Ollama server URL (whichever is active).
